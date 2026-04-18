@@ -38,9 +38,16 @@ function Get-EnvValue([string]$path, [string]$key) {
 }
 
 $pw = Get-EnvValue $envFile 'SERVER_LV_SSH_PASSWORD'
+# Для kit20-oauth.env пароль SSH берём из КонтентЗавод (меньше опечаток при копировании)
+$useKontentSsh = (Test-Path -LiteralPath $kontentEnv) -and ($envFile -like '*kit20-oauth.env*')
+if ($useKontentSsh) {
+  $pwKont = Get-EnvValue $kontentEnv 'SERVER_LV_SSH_PASSWORD'
+  if ($pwKont) { $pw = $pwKont }
+}
+if (-not $pw) { $pw = Get-EnvValue $kontentEnv 'SERVER_LV_SSH_PASSWORD' }
 $cid = Get-EnvValue $envFile 'KIT20_GITHUB_OAUTH_CLIENT_ID'
 $csec = Get-EnvValue $envFile 'KIT20_GITHUB_OAUTH_CLIENT_SECRET'
-if (-not $pw) { throw 'SERVER_LV_SSH_PASSWORD is empty in env file' }
+if (-not $pw) { throw 'SERVER_LV_SSH_PASSWORD: set in kit20-oauth.env or in KontentZavod .env' }
 if (-not $cid -or -not $csec) {
   Write-Host 'Fill KIT20_GITHUB_OAUTH_CLIENT_ID and KIT20_GITHUB_OAUTH_CLIENT_SECRET in kit20-oauth.env (see kit20-oauth.env.example), then run again.'
   exit 1
@@ -73,4 +80,5 @@ docker ps --filter name=decap-oauth-kit20 --format '{{.Status}}'
 '@.Replace('__CID__', $cidE).Replace('__CSEC__', $csecE)
 
 & $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $remote
-Write-Host "Done (used: $envFile). Open https://kit20.ru/admin/ and use Login with GitHub."
+if ($LASTEXITCODE -ne 0) { throw "plink failed (exit $LASTEXITCODE). Check SSH password and host." }
+Write-Host "Done. Open https://kit20.ru/admin/"
