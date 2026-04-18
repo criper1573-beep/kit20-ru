@@ -1,0 +1,111 @@
+backend:
+  name: github
+  repo: criper1573-beep/kit20-ru
+  branch: master
+  # OAuth-прокси на том же домене (nginx → Docker, см. scripts/deploy-kit20-oauth.ps1)
+  base_url: https://kit20.ru
+  auth_endpoint: auth
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: home
+    label: Главная страница
+    files:
+      - label: Контент главной
+        name: home
+        file: src/content/home.md
+        fields:
+          - { label: Заголовок, name: title, widget: string }
+          - { label: Подзаголовок, name: subtitle, widget: string, required: false }
+          - { label: Текст страницы, name: body, widget: markdown }
+
+  - name: students
+    label: Учащиеся
+    folder: src/content/students
+    create: false
+    delete: false
+    extension: md
+    format: frontmatter
+    identifier_field: slug
+    fields:
+      - label: Slug (технический id)
+        name: slug
+        widget: string
+        pattern:
+          - '^[a-z0-9]+(-[a-z0-9]+)*$'
+          - "Латиница, дефисы"
+      - { label: Имя на сайте, name: displayName, widget: string }
+      - { label: ФИО полностью, name: fullName, widget: string, required: false }
+      - { label: День рождения, name: birthday, widget: string, required: false }
+      - { label: Псевдоним, name: nickname, widget: string, required: false }
+      - { label: Телефон, name: phone, widget: string, required: false }
+      - label: Фото (путь после загрузки)
+        name: photo
+        widget: string
+        required: false
+      - { label: Порядок в списке (1–16), name: order, widget: number }
+      - label: Этюды
+        name: etudes
+        widget: list
+        summary: "{{fields.title}}"
+        fields:
+          - { label: Название этюда, name: title, widget: string }
+          - { label: Сдан, name: passed, widget: boolean, default: false }
+          - label: Дата сдачи
+            name: date
+            widget: string
+            required: false
+      - { label: Заметки (markdown), name: body, widget: markdown }
+
+  - name: attendance
+    label: Посещаемость
+    files:
+      - label: График занятий
+        name: attendance
+        file: src/content/attendance.md
+        fields:
+          - label: demo
+            name: demo
+            widget: boolean
+            default: false
+          - label: Занятия
+            name: lessons
+            widget: list
+            summary: "{{fields.date}} — {{fields.label}}"
+            fields:
+              - { label: Дата занятия, name: date, widget: string }
+              - { label: Тема / комментарий, name: label, widget: string, required: false }
+              - label: Отметки по ученикам
+                name: records
+                widget: list
+                summary: "{{fields.student}} — {{fields.status}}"
+                fields:
+                  - label: Ученик
+                    name: student
+                    widget: select
+                    options:
+                      - { label: Настя, value: nastya }
+                      - { label: Катя (1), value: katya-1 }
+                      - { label: Катя (2), value: katya-2 }
+                      - { label: Ира, value: ira }
+                      - { label: Галя, value: galya }
+                      - { label: Газик, value: gazik }
+                      - { label: Егор, value: egor }
+                      - { label: Серёжа, value: seryozha }
+                      - { label: Коля, value: kolya }
+                      - { label: Юля (1), value: yulya-1 }
+                      - { label: Юля (2), value: yulya-2 }
+                      - { label: Аня, value: anya }
+                      - { label: Валерия, value: valeria }
+                      - { label: Наташа, value: natasha }
+                      - { label: Маруся, value: marusya }
+                      - { label: Крис, value: chris }
+                  - label: Статус
+                    name: status
+                    widget: select
+                    options:
+                      - { label: Был(а), value: present }
+                      - { label: Не был(а), value: absent }
+                      - { label: Уважительно, value: excused }

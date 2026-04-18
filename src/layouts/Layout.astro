@@ -1,0 +1,88 @@
+---
+import '../styles/global.css';
+import StageBackdrop from '../components/StageBackdrop.astro';
+
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = 'Сайт учебной группы театра и кино' } = Astro.props;
+
+const links = [
+	{ href: '/', label: 'Главная' },
+	{ href: '/class', label: 'Класс' },
+	{ href: '/attendance', label: 'Посещаемость' },
+];
+---
+
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="description" content={description} />
+		<meta name="generator" content={Astro.generator} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{title}</title>
+	</head>
+	<body class="relative overflow-x-hidden text-ink">
+		<StageBackdrop />
+		<div class="relative z-10 flex min-h-dvh flex-col">
+			<div class="sticky top-0 z-40 px-3 pt-3 sm:px-6 sm:pt-4">
+				<header
+					class="mx-auto grid max-w-5xl grid-cols-1 items-center gap-y-2 rounded-full border border-slate-200/90 bg-surface/90 px-3 py-2.5 shadow-[var(--shadow-float)] backdrop-blur-md sm:gap-y-2.5 sm:px-5 sm:py-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-x-4 md:gap-y-0"
+				>
+					<a
+						href="/"
+						class="group flex min-w-0 items-center gap-2.5 justify-self-start sm:gap-3 md:col-start-1"
+					>
+						<span
+							class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-lg text-white shadow-md shadow-blue-500/25 transition group-hover:shadow-lg group-hover:shadow-blue-500/30 sm:h-10 sm:w-10"
+							aria-hidden="true"
+						>🎭</span>
+						<div class="min-w-0">
+							<p class="font-display text-base font-extrabold tracking-tight text-ink sm:text-lg">
+								КИТ · группа
+							</p>
+							<p class="text-xs font-medium text-muted">театр и кино</p>
+						</div>
+					</a>
+					<nav
+						class="col-span-full flex flex-wrap items-center justify-center gap-1 md:col-span-1 md:col-start-2 md:row-start-1 md:flex-nowrap"
+						aria-label="Основная навигация"
+					>
+						{
+							links.map(({ href, label }) => (
+								<a
+									href={href}
+									class:list={[
+										'rounded-full px-3.5 py-2 text-sm font-semibold transition sm:px-4',
+										Astro.url.pathname === href
+											? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
+											: 'text-slate-600 hover:bg-slate-100 hover:text-ink',
+									]}
+								>
+									{label}
+								</a>
+							))
+						}
+					</nav>
+					<div class="hidden md:col-start-3 md:row-start-1 md:block" aria-hidden="true"></div>
+				</header>
+			</div>
+			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+				<slot />
+			</main>
+			<footer class="border-t border-slate-200/80 py-6 text-center text-sm text-muted">
+				<p>КИТ · группа</p>
+			</footer>
+		</div>
+	</body>
+</html>

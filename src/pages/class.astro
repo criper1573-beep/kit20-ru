@@ -1,0 +1,158 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ClassStage from '../components/ClassStage.astro';
+import StudentAvatar from '../components/StudentAvatar.astro';
+import { getCollection, render } from 'astro:content';
+
+const studentsSorted = (await getCollection('students')).sort(
+	(a, b) => a.data.order - b.data.order
+);
+
+const blocks = await Promise.all(
+	studentsSorted.map(async (entry, i) => {
+		const { Content } = await render(entry);
+		return {
+			slug: entry.data.slug,
+			data: entry.data,
+			Content,
+			variant: i,
+		};
+	})
+);
+
+const stageBlocks = blocks.map(({ slug, data, variant }) => ({
+	slug,
+	data: { displayName: data.displayName },
+	variant,
+}));
+---
+
+<Layout title="Класс" description="Карточки группы и этюды">
+	<div class="mb-6 md:mb-8">
+		<h1 class="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Класс</h1>
+	</div>
+
+	<ClassStage blocks={stageBlocks} />
+
+	{
+		blocks.map(({ slug, data, Content, variant }) => (
+			<dialog
+				id={`dlg-${slug}`}
+				class="fixed left-1/2 top-1/2 z-50 w-[min(100vw-2rem,28rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
+			>
+				<div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+					<div class="flex items-start justify-between gap-4">
+						<div>
+							<h2 class="font-display text-xl font-bold text-ink sm:text-2xl">{data.displayName}</h2>
+							{data.fullName && <p class="text-sm text-muted">{data.fullName}</p>}
+						</div>
+						<button
+							type="button"
+							class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+							data-close-dialog=""
+						>
+							Закрыть
+						</button>
+					</div>
+				</div>
+				<div class="max-h-[min(70vh,32rem)] overflow-y-auto px-5 py-4">
+					<div class="mb-5 flex gap-4">
+						<div class="h-24 w-20 shrink-0">
+							<StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" />
+						</div>
+						<dl class="grid flex-1 gap-2 text-sm">
+							{data.fullName && (
+								<div class="flex justify-between gap-4 border-b border-slate-100 py-1.5">
+									<dt class="text-muted">ФИО</dt>
+									<dd class="text-right font-medium text-ink">{data.fullName}</dd>
+								</div>
+							)}
+							{data.birthday && (
+								<div class="flex justify-between gap-4 border-b border-slate-100 py-1.5">
+									<dt class="text-muted">День рождения</dt>
+									<dd class="text-right font-medium text-ink">{data.birthday}</dd>
+								</div>
+							)}
+							{data.nickname && (
+								<div class="flex justify-between gap-4 border-b border-slate-100 py-1.5">
+									<dt class="text-muted">Псевдоним</dt>
+									<dd class="text-right font-medium text-ink">{data.nickname}</dd>
+								</div>
+							)}
+							{data.phone && (
+								<div class="flex justify-between gap-4 border-b border-slate-100 py-1.5">
+									<dt class="text-muted">Телефон</dt>
+									<dd class="text-right font-medium text-ink">{data.phone}</dd>
+								</div>
+							)}
+						</dl>
+					</div>
+					{data.photo && (
+						<img
+							src={data.photo}
+							alt=""
+							class="mb-5 max-h-48 w-full rounded-xl border border-slate-200 object-cover object-top shadow-sm"
+							loading="lazy"
+						/>
+					)}
+					{data.etudes.length > 0 && (
+						<>
+							<h3 class="mb-2 font-display text-base font-bold text-accent">Этюды</h3>
+							<ul class="space-y-2">
+								{data.etudes.map((e) => (
+									<li class="rounded-xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+										<div class="flex flex-wrap items-center justify-between gap-2">
+											<span class="font-semibold text-ink">{e.title}</span>
+											<span
+												class:list={[
+													'rounded-full px-2.5 py-0.5 text-xs font-bold',
+													e.passed
+														? 'bg-emerald-100 text-emerald-800'
+														: 'bg-slate-200 text-slate-600',
+												]}
+											>
+												{e.passed ? 'Сдан' : 'Не сдан'}
+											</span>
+										</div>
+										{e.date && <p class="mt-1 text-xs text-muted">{e.date}</p>}
+									</li>
+								))}
+							</ul>
+						</>
+					)}
+					<div class="markdown-body mt-6 border-t border-slate-100 pt-5 text-sm">
+						<Content />
+					</div>
+				</div>
+			</dialog>
+		))
+	}
+
+	<script is:inline>
+		document.querySelectorAll('[data-open-dialog]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const id = btn.getAttribute('data-open-dialog');
+				if (id?.startsWith('dlg-')) {
+					const slug = id.slice(4);
+					document.querySelectorAll(`[data-stage-slug="${slug}"]`).forEach((el) => {
+						el.classList.add('class-stage-figure-pulse');
+						window.setTimeout(() => el.classList.remove('class-stage-figure-pulse'), 780);
+					});
+				}
+				const dlg = id ? document.getElementById(id) : null;
+				if (dlg instanceof HTMLDialogElement) dlg.showModal();
+			});
+		});
+		document.querySelectorAll('[data-close-dialog]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const dlg = btn.closest('dialog');
+				dlg?.close();
+			});
+		});
+		document.querySelectorAll('dialog').forEach((dlg) => {
+			dlg.addEventListener('click', (e) => {
+				if (e.target === dlg) dlg.close();
+			});
+		});
+	</script>
+</Layout>

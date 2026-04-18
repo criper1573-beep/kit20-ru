@@ -1,0 +1,167 @@
+---
+/* Глобальный фон: сетка + мягкие «пятна» + линии — только CSS, pointer-events none */
+---
+
+<div class="site-backdrop pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+	<svg
+		class="site-backdrop-svg absolute inset-0 h-full w-full"
+		viewBox="0 0 1200 800"
+		preserveAspectRatio="xMidYMid slice"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<defs>
+			<pattern id="site-bg-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+				<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" stroke-width="0.45" opacity="0.55" />
+			</pattern>
+			<linearGradient id="site-bg-wash" x1="0%" y1="0%" x2="100%" y2="100%">
+				<stop offset="0%" stop-color="#eff6ff" stop-opacity="0.85" />
+				<stop offset="55%" stop-color="#f8fafc" stop-opacity="0.35" />
+				<stop offset="100%" stop-color="#f1f5f9" stop-opacity="0.9" />
+			</linearGradient>
+			<radialGradient id="site-bg-blob-a" cx="50%" cy="50%" r="50%">
+				<stop offset="0%" stop-color="#3b82f6" stop-opacity="0.22" />
+				<stop offset="70%" stop-color="#3b82f6" stop-opacity="0" />
+			</radialGradient>
+			<radialGradient id="site-bg-blob-b" cx="50%" cy="50%" r="50%">
+				<stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.18" />
+				<stop offset="65%" stop-color="#0ea5e9" stop-opacity="0" />
+			</radialGradient>
+			<radialGradient id="site-bg-blob-c" cx="50%" cy="50%" r="50%">
+				<stop offset="0%" stop-color="#6366f1" stop-opacity="0.12" />
+				<stop offset="60%" stop-color="#6366f1" stop-opacity="0" />
+			</radialGradient>
+			<filter id="site-bg-soft" x="-50%" y="-50%" width="200%" height="200%">
+				<feGaussianBlur in="SourceGraphic" stdDeviation="48" result="b" />
+				<feMerge>
+					<feMergeNode in="b" />
+				</feMerge>
+			</filter>
+		</defs>
+
+		<rect width="1200" height="800" fill="#f8fafc" />
+		<rect width="1200" height="800" fill="url(#site-bg-grid)" />
+		<rect width="1200" height="800" fill="url(#site-bg-wash)" />
+
+		<g class="site-backdrop-blobs" filter="url(#site-bg-soft)">
+			<ellipse class="site-bg-blob site-bg-blob--1" cx="280" cy="220" rx="420" ry="260" fill="url(#site-bg-blob-a)" />
+			<ellipse class="site-bg-blob site-bg-blob--2" cx="980" cy="200" rx="380" ry="240" fill="url(#site-bg-blob-b)" />
+			<ellipse class="site-bg-blob site-bg-blob--3" cx="620" cy="720" rx="460" ry="220" fill="url(#site-bg-blob-c)" />
+		</g>
+
+		<g
+			class="site-backdrop-ribbons"
+			fill="none"
+			stroke="#94a3b8"
+			stroke-width="1.1"
+			stroke-linecap="round"
+			opacity="0.32"
+		>
+			<path
+				class="site-bg-ribbon"
+				d="M -120 220 C 200 140 400 280 620 240 S 1000 180 1320 200"
+				pathLength="1"
+			/>
+			<path
+				class="site-bg-ribbon site-bg-ribbon--2"
+				d="M -100 520 C 220 440 460 580 700 520 S 980 460 1300 480"
+				pathLength="1"
+			/>
+		</g>
+
+		<circle class="site-bg-glint" cx="1100" cy="70" r="4" fill="#60a5fa" opacity="0.35" />
+		<circle class="site-bg-glint site-bg-glint--2" cx="100" cy="440" r="3.5" fill="#38bdf8" opacity="0.3" />
+	</svg>
+</div>
+
+<style>
+	.site-bg-blob--1 {
+		transform-origin: 22% 28%;
+		animation: site-bg-drift-a 28s ease-in-out infinite;
+	}
+	.site-bg-blob--2 {
+		transform-origin: 78% 22%;
+		animation: site-bg-drift-b 34s ease-in-out infinite;
+	}
+	.site-bg-blob--3 {
+		transform-origin: 55% 88%;
+		animation: site-bg-drift-c 31s ease-in-out infinite reverse;
+	}
+
+	@keyframes site-bg-drift-a {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(4%, -3%) scale(1.04);
+		}
+	}
+	@keyframes site-bg-drift-b {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(-5%, 4%) scale(1.06);
+		}
+	}
+	@keyframes site-bg-drift-c {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		50% {
+			transform: translate(-3%, -5%) scale(1.03);
+		}
+	}
+
+	.site-bg-ribbon {
+		stroke-dasharray: 0.12 0.88;
+		stroke-dashoffset: 0;
+		animation: site-bg-dash 42s linear infinite;
+	}
+	.site-bg-ribbon--2 {
+		animation-duration: 56s;
+		animation-direction: reverse;
+		opacity: 0.28;
+	}
+
+	@keyframes site-bg-dash {
+		to {
+			stroke-dashoffset: -1;
+		}
+	}
+
+	.site-bg-glint {
+		transform-origin: center;
+		animation: site-bg-glint 6s ease-in-out infinite;
+	}
+	.site-bg-glint--2 {
+		animation-delay: -2s;
+		animation-duration: 7.5s;
+	}
+
+	@keyframes site-bg-glint {
+		0%,
+		100% {
+			opacity: 0.2;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.55;
+			transform: scale(1.4);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.site-bg-blob--1,
+		.site-bg-blob--2,
+		.site-bg-blob--3,
+		.site-bg-ribbon,
+		.site-bg-ribbon--2,
+		.site-bg-glint,
+		.site-bg-glint--2 {
+			animation: none !important;
+		}
+	}
+</style>

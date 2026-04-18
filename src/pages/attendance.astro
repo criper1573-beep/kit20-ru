@@ -1,0 +1,103 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const students = (await getCollection('students')).sort((a, b) => a.data.order - b.data.order);
+const attEntry = (await getCollection('attendance'))[0];
+const lessons = attEntry?.data.lessons ?? [];
+
+const statusLabel: Record<string, string> = {
+	present: 'Б',
+	absent: 'Н',
+	excused: 'У',
+};
+
+const statusTitle: Record<string, string> = {
+	present: 'Был(а)',
+	absent: 'Не был(а)',
+	excused: 'Уважительно',
+};
+
+function cellStatus(lesson: (typeof lessons)[number], slug: string) {
+	const r = lesson.records.find((x) => x.student === slug);
+	return r?.status ?? null;
+}
+---
+
+<Layout title="Посещаемость" description="График посещаемости занятий">
+	<div class="mb-6 md:mb-8">
+		<h1 class="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Посещаемость</h1>
+	</div>
+
+	{
+		lessons.length === 0 ? (
+			<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/90 p-8 text-center text-sm text-muted">
+				Нет данных.
+			</div>
+		) : (
+			<>
+				<div class="overflow-x-auto rounded-3xl border border-slate-200/90 bg-surface shadow-[var(--shadow-card)]">
+				<table class="w-full min-w-[640px] border-collapse text-left text-sm">
+					<thead>
+						<tr class="border-b border-slate-200 bg-slate-50/90">
+							<th class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-3.5 font-display font-bold text-accent backdrop-blur-sm">
+								Ученик
+							</th>
+							{lessons.map((lesson) => (
+								<th class="min-w-[5.5rem] px-2 py-3 text-center font-semibold text-slate-700">
+									<div class="text-xs font-normal text-muted">{lesson.date}</div>
+									<div class="mt-0.5 text-[11px] font-medium leading-tight text-slate-500">
+										{lesson.label ?? '—'}
+									</div>
+								</th>
+							))}
+						</tr>
+					</thead>
+					<tbody>
+						{students.map((s) => (
+							<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
+								<td class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-2.5 font-semibold text-ink backdrop-blur-sm">
+									{s.data.displayName}
+								</td>
+								{lessons.map((lesson) => {
+									const st = cellStatus(lesson, s.data.slug);
+									const label = st ? statusLabel[st] : '—';
+									const t = st ? statusTitle[st] : 'Нет записи';
+									return (
+										<td class="px-2 py-2.5 text-center">
+											<span
+												class:list={[
+													'inline-flex min-w-[2rem] justify-center rounded-lg px-1.5 py-1 text-xs font-bold',
+													st === 'present' && 'bg-emerald-100 text-emerald-800',
+													st === 'absent' && 'bg-rose-100 text-rose-800',
+													st === 'excused' && 'bg-amber-100 text-amber-900',
+													!st && 'text-slate-400',
+												]}
+												title={t}
+											>
+												{label}
+											</span>
+										</td>
+									);
+								})}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+			</>
+		)
+	}
+
+	<div class="mt-8 flex flex-wrap gap-4 text-xs text-muted">
+		<span>
+			<strong class="font-bold text-emerald-600">Б</strong> — был(а)
+		</span>
+		<span>
+			<strong class="font-bold text-rose-600">Н</strong> — не был(а)
+		</span>
+		<span>
+			<strong class="font-bold text-amber-700">У</strong> — уважительно
+		</span>
+	</div>
+</Layout>

@@ -1,0 +1,73 @@
+---
+/** Полнофигурные персонажи (SVG из office_characters.html + сценическая палитра в CSS). */
+import '../styles/office-characters.css';
+import s0 from './office-svgs/0.snippet.html?raw';
+import s1 from './office-svgs/1.snippet.html?raw';
+import s2 from './office-svgs/2.snippet.html?raw';
+import s3 from './office-svgs/3.snippet.html?raw';
+import s4 from './office-svgs/4.snippet.html?raw';
+import s5 from './office-svgs/5.snippet.html?raw';
+import s6 from './office-svgs/6.snippet.html?raw';
+import s7 from './office-svgs/7.snippet.html?raw';
+import s8 from './office-svgs/8.snippet.html?raw';
+import s9 from './office-svgs/9.snippet.html?raw';
+import s10 from './office-svgs/10.snippet.html?raw';
+import s11 from './office-svgs/11.snippet.html?raw';
+import s12 from './office-svgs/12.snippet.html?raw';
+import s13 from './office-svgs/13.snippet.html?raw';
+import s14 from './office-svgs/14.snippet.html?raw';
+import s15 from './office-svgs/15.snippet.html?raw';
+
+const snippets = [
+	s0,
+	s1,
+	s2,
+	s3,
+	s4,
+	s5,
+	s6,
+	s7,
+	s8,
+	s9,
+	s10,
+	s11,
+	s12,
+	s13,
+	s14,
+	s15,
+];
+
+interface Props {
+	/** 0–15: соответствует порядку фигур в office_characters.html */
+	variant: number;
+	displayName?: string;
+	class?: string;
+}
+
+const { variant, displayName = '', class: className = '' } = Astro.props;
+const i = ((Math.floor(variant) % 16) + 16) % 16;
+const html = snippets[i] ?? snippets[0];
+const label = displayName ? `Персонаж: ${displayName}` : 'Персонаж';
+---
+
+<div
+	class:list={['office-char-root flex h-full w-full items-end justify-center overflow-visible', className]}
+	role="img"
+	aria-label={label}
+	set:html={html}
+>
+</div>
+
+<style>
+	.office-char-root :global(svg.office-char-svg) {
+		width: 100%;
+		height: auto;
+		max-height: 100%;
+		filter: drop-shadow(0 3px 10px rgb(36 16 24 / 0.14)) sepia(0.08) saturate(1.05);
+		transition: transform 0.2s ease, filter 0.2s ease;
+	}
+	.office-char-root:hover :global(svg.office-char-svg) {
+		transform: scale(1.03);
+		filter: drop-shadow(0 6px 18px rgb(110 42 58 / 0.22)) sepia(0.1) saturate(1.08);
+	}
+</style>

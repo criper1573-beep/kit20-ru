@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+	--font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+	--font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+	--color-canvas: #f8fafc;
+	--color-surface: #ffffff;
+	--color-muted: #64748b;
+	--color-ink: #0f172a;
+	--color-accent: #2563eb;
+	--color-accent-hover: #1d4ed8;
+	--color-ring: #93c5fd;
+	--shadow-float: 0 10px 40px -12px rgb(15 23 42 / 0.12), 0 4px 16px -8px rgb(15 23 42 / 0.08);
+	--shadow-card: 0 1px 3px rgb(15 23 42 / 0.06), 0 8px 24px -6px rgb(15 23 42 / 0.08);
+}
+
+@layer base {
+	html {
+		@apply scroll-smooth;
+	}
+	body {
+		@apply min-h-dvh bg-canvas font-sans text-ink antialiased;
+	}
+}
+
+@layer utilities {
+	.text-balance {
+		text-wrap: balance;
+	}
+}
+
+.markdown-body :global(h2) {
+	@apply mt-10 font-display text-2xl font-bold text-ink first:mt-0;
+}
+.markdown-body :global(h3) {
+	@apply mt-6 font-display text-lg font-semibold text-accent;
+}
+.markdown-body :global(p) {
+	@apply my-4 leading-relaxed text-slate-600;
+}
+.markdown-body :global(a) {
+	@apply font-medium text-accent underline decoration-accent/30 underline-offset-2 transition hover:text-accent-hover;
+}
+.markdown-body :global(ul) {
+	@apply my-4 list-disc space-y-2 pl-6 text-slate-600;
+}
+.markdown-body :global(strong) {
+	@apply font-semibold text-ink;
+}
+
+dialog::backdrop {
+	background: rgb(15 23 42 / 0.35);
+	backdrop-filter: blur(4px);
+}
