@@ -75,12 +75,20 @@ collections:
             widget: list
             summary: "{{fields.date}} — {{fields.label}}"
             fields:
-              - { label: Дата занятия, name: date, widget: string }
-              - { label: Тема / комментарий, name: label, widget: string, required: false }
-              - label: Отметки по ученикам
-                name: records
+              - label: Дата занятия
+                name: date
+                widget: string
+                hint: "Формат ГГГГ-ММ-ДД (например 2026-04-14)"
+              - label: Тема / комментарий
+                name: label
+                widget: string
+                required: false
+              - label: "Кто не был или уважительно (остальные = «был(а)» автоматически)"
+                name: exceptions
                 widget: list
-                summary: "{{fields.student}} — {{fields.status}}"
+                required: false
+                summary: "{{fields.student}} → {{fields.status}}"
+                hint: "Не добавляйте всех подряд: только отсутствие (Н) или уважительно (У). Пустой список = все были."
                 fields:
                   - label: Ученик
                     name: student
@@ -106,6 +114,5 @@ collections:
                     name: status
                     widget: select
                     options:
-                      - { label: Был(а), value: present }
                       - { label: Не был(а), value: absent }
                       - { label: Уважительно, value: excused }

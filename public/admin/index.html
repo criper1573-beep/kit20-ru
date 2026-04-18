@@ -5,8 +5,31 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="robots" content="noindex" />
 		<title>Редактор контента · КИТ</title>
+		<link rel="stylesheet" href="/admin/custom.css" />
 	</head>
 	<body>
+		<header
+			id="kit20-admin-bar"
+			style="
+				position: sticky;
+				top: 0;
+				z-index: 10000;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				padding: 0.65rem 1rem;
+				background: linear-gradient(135deg, #2563eb, #1d4ed8);
+				color: #fff;
+				font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+				font-weight: 800;
+				letter-spacing: -0.02em;
+				box-shadow: 0 4px 20px rgb(37 99 235 / 0.25);
+			"
+		>
+			<span>КИТ · редактор</span>
+			<a href="/" style="color: #fff !important; font-weight: 600; text-decoration: none; opacity: 0.95">На сайт →</a>
+		</header>
 		<script src="https://unpkg.com/decap-cms@3.3.3/dist/decap-cms.js"></script>
 	</body>
 </html>

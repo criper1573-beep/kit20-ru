@@ -9,15 +9,29 @@ const etudeSchema = z.object({
 
 const attendanceStatus = z.enum(['present', 'absent', 'excused']);
 
+/** Устаревший формат: полный список учеников на занятие */
 const attendanceRecordSchema = z.object({
 	student: z.string(),
 	status: attendanceStatus,
 });
 
+/** Новый формат: только отсутствия и уважительные; остальные считаются present */
+const attendanceExceptionSchema = z.object({
+	student: z.string(),
+	status: z.enum(['absent', 'excused']),
+});
+
+/** YAML без кавычек даёт timestamp → Date; нормализуем в YYYY-MM-DD */
+const yamlDateToString = z.preprocess((val) => {
+	if (val instanceof Date) return val.toISOString().slice(0, 10);
+	return val;
+}, z.string());
+
 const lessonSchema = z.object({
-	date: z.string(),
+	date: yamlDateToString,
 	label: z.string().optional(),
-	records: z.array(attendanceRecordSchema).default([]),
+	exceptions: z.array(attendanceExceptionSchema).optional().default([]),
+	records: z.array(attendanceRecordSchema).optional(),
 });
 
 export const collections = {

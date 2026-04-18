@@ -10,6 +10,14 @@ if (home) {
 	Content = r.Content;
 }
 const title = home?.data.title ?? 'Группа театра и кино';
+
+const attList = await getCollection('attendance');
+const allLessons = attList[0]?.data.lessons ?? [];
+const today = new Date().toISOString().slice(0, 10);
+const upcomingLessons = [...allLessons]
+	.filter((l) => l.date >= today)
+	.sort((a, b) => a.date.localeCompare(b.date))
+	.slice(0, 12);
 ---
 
 <Layout title={title}>
@@ -37,4 +45,27 @@ const title = home?.data.title ?? 'Группа театра и кино';
 			)
 		}
 	</section>
+
+	{
+		upcomingLessons.length > 0 && (
+			<section class="mt-10 sm:mt-12">
+				<h2 class="font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Ближайшие занятия</h2>
+				<p class="mt-2 max-w-2xl text-sm text-muted">
+					Даты из графика посещаемости. Массово на месяц:{' '}
+					<code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-ink">
+						npm run schedule:month -- 2026 5
+					</code>{' '}
+					(пн, ср, сб).
+				</p>
+				<ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+					{upcomingLessons.map((lesson) => (
+						<li class="rounded-2xl border border-slate-200/90 bg-surface px-4 py-3 shadow-[var(--shadow-card)]">
+							<p class="font-display text-sm font-bold text-accent">{lesson.date}</p>
+							<p class="mt-1 text-sm font-semibold text-ink">{lesson.label?.trim() ? lesson.label : 'Тема уточняется'}</p>
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
 </Layout>

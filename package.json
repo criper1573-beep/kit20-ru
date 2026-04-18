@@ -10,11 +10,16 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "extract:office-svgs": "node scripts/extract-svgs.mjs"
+    "extract:office-svgs": "node scripts/extract-svgs.mjs",
+    "schedule:month": "node scripts/generate-lesson-month.mjs",
+    "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "astro": "^6.1.8",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "yaml": "^2.8.3"
   }
 }

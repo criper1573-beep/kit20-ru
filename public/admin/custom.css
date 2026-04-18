@@ -1,0 +1,67 @@
+/* КИТ — оформление Decap в духе сайта (шрифты, фон, поля) */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+:root {
+	--kit-canvas: #f8fafc;
+	--kit-surface: #ffffff;
+	--kit-ink: #0f172a;
+	--kit-muted: #64748b;
+	--kit-accent: #2563eb;
+	--kit-border: #e2e8f0;
+	--kit-radius: 0.75rem;
+}
+
+html {
+	font-size: 15px;
+}
+
+body {
+	margin: 0;
+	font-family: 'DM Sans', ui-sans-serif, system-ui, sans-serif !important;
+	background: var(--kit-canvas) !important;
+	color: var(--kit-ink) !important;
+}
+
+/* Заголовки внутри Decap */
+h1,
+h2,
+h3,
+[class*='AppHeader'] {
+	font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif !important;
+}
+
+input[type='text'],
+input[type='search'],
+input[type='url'],
+input[type='email'],
+input[type='number'],
+textarea,
+select {
+	font-family: inherit !important;
+	border-radius: var(--kit-radius) !important;
+	border: 1px solid #cbd5e1 !important;
+	background: var(--kit-surface) !important;
+	color: var(--kit-ink) !important;
+}
+
+button {
+	font-family: inherit !important;
+	border-radius: var(--kit-radius) !important;
+}
+
+a {
+	color: var(--kit-accent) !important;
+}
+
+/* Карточки / панели */
+[class*='Pane'],
+[class*='Card'],
+[class*='ControlPane'],
+[class*='CollectionMain'] {
+	border-radius: var(--kit-radius) !important;
+}
+
+/* Список записей — чуть воздуха */
+[class*='List'] {
+	gap: 0.35rem;
+}

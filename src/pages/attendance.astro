@@ -19,8 +19,14 @@ const statusTitle: Record<string, string> = {
 };
 
 function cellStatus(lesson: (typeof lessons)[number], slug: string) {
-	const r = lesson.records.find((x) => x.student === slug);
-	return r?.status ?? null;
+	const legacy = lesson.records;
+	if (legacy && legacy.length > 0) {
+		const r = legacy.find((x) => x.student === slug);
+		return r?.status ?? 'present';
+	}
+	const ex = lesson.exceptions?.find((x) => x.student === slug);
+	if (ex?.status === 'absent' || ex?.status === 'excused') return ex.status;
+	return 'present';
 }
 ---
 
@@ -61,8 +67,8 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string) {
 								</td>
 								{lessons.map((lesson) => {
 									const st = cellStatus(lesson, s.data.slug);
-									const label = st ? statusLabel[st] : '—';
-									const t = st ? statusTitle[st] : 'Нет записи';
+									const label = statusLabel[st];
+									const t = statusTitle[st];
 									return (
 										<td class="px-2 py-2.5 text-center">
 											<span
@@ -71,7 +77,6 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string) {
 													st === 'present' && 'bg-emerald-100 text-emerald-800',
 													st === 'absent' && 'bg-rose-100 text-rose-800',
 													st === 'excused' && 'bg-amber-100 text-amber-900',
-													!st && 'text-slate-400',
 												]}
 												title={t}
 											>
