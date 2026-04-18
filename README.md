@@ -26,10 +26,12 @@ npm run dev
 2. **OAuth-приложение GitHub** для входа в Decap: [Developer settings → OAuth Apps → New](https://github.com/settings/applications/new).
    - **Homepage URL:** `https://kit20.ru`
    - **Authorization callback URL:** `https://kit20.ru/callback`
-3. Скопируйте **Client ID** и сгенерируйте **Client secret**. Вставьте их в `КонтентЗавод\.env` в переменные **`KIT20_GITHUB_OAUTH_CLIENT_ID`** и **`KIT20_GITHUB_OAUTH_CLIENT_SECRET`** (блок уже добавлен в файл).
+3. Скопируйте **Client ID** и сгенерируйте **Client secret**. Удобнее всего: в корне репозитория скопируйте **`kit20-oauth.env.example`** → **`kit20-oauth.env`** и вставьте туда пароль SSH и оба значения GitHub (файл `kit20-oauth.env` в `.gitignore`, в Git не попадёт). Альтернатива — те же переменные в `КонтентЗавод\.env`.
 4. На VPS поднимается Docker-контейнер с OAuth-прокси; nginx на `kit20.ru` проксирует пути **`/auth`** и **`/callback`** на этот сервис. Запуск с вашего ПК (после шага 3):
 
    `powershell -ExecutionPolicy Bypass -File scripts\deploy-kit20-oauth.ps1`
+
+   Скрипт сначала ищет **`kit20-oauth.env`** в корне проекта, иначе — `КонтентЗавод\.env`, либо путь в переменной окружения **`KIT20_ENV_FILE`**.
 
 5. Откройте **https://kit20.ru/admin/** → **Login with GitHub**. Учётная запись GitHub должна иметь **право push** в репозиторий с контентом (владелец или collaborator).
 

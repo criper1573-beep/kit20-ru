@@ -1,11 +1,34 @@
-# OAuth proxy for Decap on VPS. Secrets: Desktop\КонтентЗавод\.env KIT20_GITHUB_OAUTH_*
-# Path built with char codes so the script runs under Windows PowerShell 5.1 without UTF-8 BOM issues.
+# OAuth proxy for Decap on VPS.
+# Reads secrets from (in order): $env:KIT20_ENV_FILE, repo\kit20-oauth.env, Desktop\КонтентЗавод\.env
 $ErrorActionPreference = 'Stop'
+
+$repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
+$localKit20Env = Join-Path $repoRoot 'kit20-oauth.env'
+
 $kontentDirName = -join @(0x041A, 0x043E, 0x043D, 0x0442, 0x0435, 0x043D, 0x0442, 0x0417, 0x0430, 0x0432, 0x043E, 0x0434 | ForEach-Object { [char]$_ })
 $kontentEnv = Join-Path $env:USERPROFILE (Join-Path 'Desktop' (Join-Path $kontentDirName '.env'))
-if ($env:KIT20_KONTENT_ENV) { $kontentEnv = $env:KIT20_KONTENT_ENV }
-if (-not (Test-Path -LiteralPath $kontentEnv)) {
-  throw "Missing env file: $kontentEnv (set KIT20_KONTENT_ENV to full path if Desktop folder moved)"
+
+$envFile = $null
+if ($env:KIT20_ENV_FILE -and (Test-Path -LiteralPath $env:KIT20_ENV_FILE)) {
+  $envFile = $env:KIT20_ENV_FILE
+}
+elseif (Test-Path -LiteralPath $localKit20Env) {
+  $envFile = $localKit20Env
+}
+elseif ($env:KIT20_KONTENT_ENV -and (Test-Path -LiteralPath $env:KIT20_KONTENT_ENV)) {
+  $envFile = $env:KIT20_KONTENT_ENV
+}
+elseif (Test-Path -LiteralPath $kontentEnv) {
+  $envFile = $kontentEnv
+}
+
+if (-not $envFile) {
+  throw @"
+No env file found. Do one of:
+  - Copy kit20-oauth.env.example to kit20-oauth.env in repo root and fill it, or
+  - Set KIT20_ENV_FILE to full path of your .env, or
+  - Set KIT20_KONTENT_ENV to full path of KontentZavod\.env
+"@
 }
 
 function Get-EnvValue([string]$path, [string]$key) {
@@ -14,24 +37,23 @@ function Get-EnvValue([string]$path, [string]$key) {
   ($line -replace "^\s*$key\s*=\s*", '').Trim()
 }
 
-$pw = Get-EnvValue $kontentEnv 'SERVER_LV_SSH_PASSWORD'
-$cid = Get-EnvValue $kontentEnv 'KIT20_GITHUB_OAUTH_CLIENT_ID'
-$csec = Get-EnvValue $kontentEnv 'KIT20_GITHUB_OAUTH_CLIENT_SECRET'
-if (-not $pw) { throw 'SERVER_LV_SSH_PASSWORD missing in .env' }
+$pw = Get-EnvValue $envFile 'SERVER_LV_SSH_PASSWORD'
+$cid = Get-EnvValue $envFile 'KIT20_GITHUB_OAUTH_CLIENT_ID'
+$csec = Get-EnvValue $envFile 'KIT20_GITHUB_OAUTH_CLIENT_SECRET'
+if (-not $pw) { throw 'SERVER_LV_SSH_PASSWORD is empty in env file' }
 if (-not $cid -or -not $csec) {
-  Write-Host 'Add KIT20_GITHUB_OAUTH_CLIENT_ID and KIT20_GITHUB_OAUTH_CLIENT_SECRET to KontentZavod .env, then run again.'
+  Write-Host 'Fill KIT20_GITHUB_OAUTH_CLIENT_ID and KIT20_GITHUB_OAUTH_CLIENT_SECRET in kit20-oauth.env (see kit20-oauth.env.example), then run again.'
   exit 1
 }
 
 $hk = 'ssh-ed25519 SHA256:HuSaSJtaQi7uJItHO0/A10c9e61lnnP4LuQXTrn/X1k'
 $plink = 'C:\Program Files\PuTTY\plink.exe'
-$hostLv = (Get-EnvValue $kontentEnv 'SERVER_LV_HOST')
+$hostLv = (Get-EnvValue $envFile 'SERVER_LV_HOST')
 if (-not $hostLv) { $hostLv = '194.113.209.152' }
 
 $cidE = $cid.Replace("'", "'\''")
 $csecE = $csec.Replace("'", "'\''")
 
-# Single-quoted here-string so PowerShell 5 does not parse bash '||'
 $remote = @'
 set -e
 docker rm -f decap-oauth-kit20 2>/dev/null || true
@@ -51,4 +73,4 @@ docker ps --filter name=decap-oauth-kit20 --format '{{.Status}}'
 '@.Replace('__CID__', $cidE).Replace('__CSEC__', $csecE)
 
 & $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $remote
-Write-Host 'Done. Open https://kit20.ru/admin/ and use Login with GitHub.'
+Write-Host "Done (used: $envFile). Open https://kit20.ru/admin/ and use Login with GitHub."
