@@ -9,17 +9,20 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "preview:public": "astro preview --host 0.0.0.0 --port 4321",
+    "start": "node ./dist/server/entry.mjs",
+    "start:public": "node ./scripts/start-prod.mjs",
     "astro": "astro",
     "extract:office-svgs": "node scripts/extract-svgs.mjs",
     "schedule:month": "node scripts/generate-lesson-month.mjs",
     "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only"
   },
   "dependencies": {
+    "@astrojs/node": "^10.0.5",
     "@tailwindcss/vite": "^4.2.2",
     "astro": "^6.1.8",
-    "tailwindcss": "^4.2.2"
-  },
-  "devDependencies": {
+    "marked": "^18.0.2",
+    "tailwindcss": "^4.2.2",
     "yaml": "^2.8.3"
   }
 }

@@ -5,15 +5,29 @@ import StageBackdrop from '../components/StageBackdrop.astro';
 interface Props {
 	title: string;
 	description?: string;
+	/** Режим встроенной админки: те же экраны, но под `/admin` */
+	admin?: boolean;
 }
 
-const { title, description = 'Сайт учебной группы театра и кино' } = Astro.props;
+const { title, description = 'Сайт учебной группы театра и кино', admin = false } = Astro.props;
 
-const links = [
-	{ href: '/', label: 'Главная' },
-	{ href: '/class', label: 'Класс' },
-	{ href: '/attendance', label: 'Посещаемость' },
-];
+const pathname = Astro.url.pathname;
+
+const links = admin
+	? [
+			{ href: '/admin', label: 'Главная', match: (p: string) => p === '/admin' || p === '/admin/' },
+			{
+				href: '/admin/class',
+				label: 'Класс',
+				match: (p: string) => p.startsWith('/admin/class') || p.startsWith('/admin/student'),
+			},
+			{ href: '/admin/attendance', label: 'Посещаемость', match: (p: string) => p.startsWith('/admin/attendance') },
+		]
+	: [
+			{ href: '/', label: 'Главная', match: (p: string) => p === '/' },
+			{ href: '/class', label: 'Класс', match: (p: string) => p.startsWith('/class') },
+			{ href: '/attendance', label: 'Посещаемость', match: (p: string) => p.startsWith('/attendance') },
+		];
 ---
 
 <!doctype html>
@@ -40,7 +54,7 @@ const links = [
 					class="mx-auto grid max-w-5xl grid-cols-1 items-center gap-y-2 rounded-full border border-slate-200/90 bg-surface/90 px-3 py-2.5 shadow-[var(--shadow-float)] backdrop-blur-md sm:gap-y-2.5 sm:px-5 sm:py-3 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-x-4 md:gap-y-0"
 				>
 					<a
-						href="/"
+						href={admin ? '/admin' : '/'}
 						class="group flex min-w-0 items-center gap-2.5 justify-self-start sm:gap-3 md:col-start-1"
 					>
 						<span
@@ -51,7 +65,9 @@ const links = [
 							<p class="font-display text-base font-extrabold tracking-tight text-ink sm:text-lg">
 								КИТ · группа
 							</p>
-							<p class="text-xs font-medium text-muted">театр и кино</p>
+							<p class="text-xs font-medium text-muted">
+								{admin ? 'редактирование' : 'театр и кино'}
+							</p>
 						</div>
 					</a>
 					<nav
@@ -59,12 +75,12 @@ const links = [
 						aria-label="Основная навигация"
 					>
 						{
-							links.map(({ href, label }) => (
+							links.map(({ href, label, match }) => (
 								<a
 									href={href}
 									class:list={[
 										'rounded-full px-3.5 py-2 text-sm font-semibold transition sm:px-4',
-										Astro.url.pathname === href
+										match(pathname)
 											? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
 											: 'text-slate-600 hover:bg-slate-100 hover:text-ink',
 									]}
@@ -74,9 +90,34 @@ const links = [
 							))
 						}
 					</nav>
-					<div class="hidden md:col-start-3 md:row-start-1 md:block" aria-hidden="true"></div>
+					<div class="flex flex-wrap items-center justify-end gap-2 justify-self-stretch md:col-start-3 md:row-start-1">
+						{
+							admin ? (
+								<>
+									<a
+										href="/"
+										class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50 sm:text-sm"
+									>
+										На сайт
+									</a>
+									<form method="POST" action="/api/admin/logout">
+										<button
+											type="submit"
+											class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm hover:bg-slate-50 sm:text-sm"
+										>
+											Выйти
+										</button>
+									</form>
+								</>
+							) : (
+								<div class="hidden md:block" aria-hidden="true"></div>
+							)
+						}
+					</div>
 				</header>
 			</div>
+			<!-- Слой «Класс»: фигуры между шапкой (z-40) и main, иначе fixed внутри main оказывается под sticky -->
+			<slot name="class-overlay" />
 			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
 				<slot />
 			</main>

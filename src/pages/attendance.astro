@@ -1,10 +1,11 @@
 ---
+export const prerender = false;
 import Layout from '../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { readStudentsSorted, readAttendance } from '../lib/siteContent';
 
-const students = (await getCollection('students')).sort((a, b) => a.data.order - b.data.order);
-const attEntry = (await getCollection('attendance'))[0];
-const lessons = attEntry?.data.lessons ?? [];
+const students = await readStudentsSorted();
+const { data: att } = await readAttendance();
+const lessons = att.lessons ?? [];
 
 const statusLabel: Record<'present' | 'absent', string> = {
 	present: 'Б',
@@ -24,7 +25,6 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 		const r = legacy.find((x) => x.student === slug);
 		const st = r?.status;
 		if (st === 'absent') return 'absent';
-		/* present и устаревший excused → «был» */
 		return 'present';
 	}
 	const ex = lesson.exceptions?.find((x) => x.student === slug);
@@ -47,52 +47,52 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 		) : (
 			<>
 				<div class="overflow-x-auto rounded-3xl border border-slate-200/90 bg-surface shadow-[var(--shadow-card)]">
-				<table class="w-full min-w-[640px] border-collapse text-left text-sm">
-					<thead>
-						<tr class="border-b border-slate-200 bg-slate-50/90">
-							<th class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-3.5 font-display font-bold text-accent backdrop-blur-sm">
-								Ученик
-							</th>
-							{lessons.map((lesson) => (
-								<th class="min-w-[5.5rem] px-2 py-3 text-center font-semibold text-slate-700">
-									<div class="text-xs font-normal text-muted">{lesson.date}</div>
-									<div class="mt-0.5 text-[11px] font-medium leading-tight text-slate-500">
-										{lesson.label ?? '—'}
-									</div>
+					<table class="w-full min-w-[640px] border-collapse text-left text-sm">
+						<thead>
+							<tr class="border-b border-slate-200 bg-slate-50/90">
+								<th class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-3.5 font-display font-bold text-accent backdrop-blur-sm">
+									Ученик
 								</th>
-							))}
-						</tr>
-					</thead>
-					<tbody>
-						{students.map((s) => (
-							<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
-								<td class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-2.5 font-semibold text-ink backdrop-blur-sm">
-									{s.data.displayName}
-								</td>
-								{lessons.map((lesson) => {
-									const st = cellStatus(lesson, s.data.slug);
-									const label = statusLabel[st];
-									const t = statusTitle[st];
-									return (
-										<td class="px-2 py-2.5 text-center">
-											<span
-												class:list={[
-													'inline-flex min-w-[2rem] justify-center rounded-lg px-1.5 py-1 text-xs font-bold',
-													st === 'present' && 'bg-emerald-100 text-emerald-800',
-													st === 'absent' && 'bg-rose-100 text-rose-800',
-												]}
-												title={t}
-											>
-												{label}
-											</span>
-										</td>
-									);
-								})}
+								{lessons.map((lesson) => (
+									<th class="min-w-[5.5rem] px-2 py-3 text-center font-semibold text-slate-700">
+										<div class="text-xs font-normal text-muted">{lesson.date}</div>
+										<div class="mt-0.5 text-[11px] font-medium leading-tight text-slate-500">
+											{lesson.label ?? '—'}
+										</div>
+									</th>
+								))}
 							</tr>
-						))}
-					</tbody>
-				</table>
-			</div>
+						</thead>
+						<tbody>
+							{students.map((s) => (
+								<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
+									<td class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-2.5 font-semibold text-ink backdrop-blur-sm">
+										{s.data.displayName}
+									</td>
+									{lessons.map((lesson) => {
+										const st = cellStatus(lesson, s.data.slug);
+										const label = statusLabel[st];
+										const t = statusTitle[st];
+										return (
+											<td class="px-2 py-2.5 text-center">
+												<span
+													class:list={[
+														'inline-flex min-w-[2rem] justify-center rounded-lg px-1.5 py-1 text-xs font-bold',
+														st === 'present' && 'bg-emerald-100 text-emerald-800',
+														st === 'absent' && 'bg-rose-100 text-rose-800',
+													]}
+													title={t}
+												>
+													{label}
+												</span>
+											</td>
+										);
+									})}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			</>
 		)
 	}

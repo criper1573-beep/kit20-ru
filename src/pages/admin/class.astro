@@ -1,10 +1,10 @@
 ---
 export const prerender = false;
-import Layout from '../layouts/Layout.astro';
-import ClassPageOverlay from '../components/ClassPageOverlay.astro';
-import StudentAvatar from '../components/StudentAvatar.astro';
-import { readStudentsSorted } from '../lib/siteContent';
-import { renderMarkdownToHtml } from '../lib/renderMarkdown';
+import Layout from '../../layouts/Layout.astro';
+import ClassPageOverlay from '../../components/ClassPageOverlay.astro';
+import StudentAvatar from '../../components/StudentAvatar.astro';
+import { readStudentsSorted } from '../../lib/siteContent';
+import { renderMarkdownToHtml } from '../../lib/renderMarkdown';
 
 const rows = await readStudentsSorted();
 
@@ -22,8 +22,12 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 }));
 ---
 
-<Layout title="Класс" description="Карточки группы и этюды">
-	<ClassPageOverlay slot="class-overlay" blocks={stageBlocks} />
+<Layout admin title="Класс · редактирование">
+	<ClassPageOverlay
+		slot="class-overlay"
+		blocks={stageBlocks}
+		pageLead="Нажмите на фигуру, как на сайте. В карточке есть ссылка «Редактировать данные»."
+	/>
 	<div class="min-h-[min(88vh,52rem)] w-full" aria-hidden="true"></div>
 	{
 		blocks.map(({ slug, data, bodyHtml, variant }) => (
@@ -32,18 +36,26 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 				class="fixed left-1/2 top-1/2 z-[100] w-[min(100vw-2rem,28rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-slate-200 bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
 			>
 				<div class="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
-					<div class="flex items-start justify-between gap-4">
+					<div class="flex flex-wrap items-start justify-between gap-3">
 						<div>
 							<h2 class="font-display text-xl font-bold text-ink sm:text-2xl">{data.displayName}</h2>
 							{data.fullName && <p class="text-sm text-muted">{data.fullName}</p>}
 						</div>
-						<button
-							type="button"
-							class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
-							data-close-dialog=""
-						>
-							Закрыть
-						</button>
+						<div class="flex flex-wrap gap-2">
+							<a
+								href={`/admin/student/${slug}`}
+								class="rounded-full bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+							>
+								Редактировать данные
+							</a>
+							<button
+								type="button"
+								class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+								data-close-dialog=""
+							>
+								Закрыть
+							</button>
+						</div>
 					</div>
 				</div>
 				<div class="max-h-[min(70vh,32rem)] overflow-y-auto px-5 py-4">

@@ -1,0 +1,34 @@
+# Пример для nginx: HTTPS на домене, прокси на Node (см. PORT в env).
+# Подставьте домен и пути к сертификатам (Let's Encrypt / certbot).
+
+upstream kit20_node {
+	server 127.0.0.1:4321;
+	keepalive 8;
+}
+
+server {
+	listen 443 ssl http2;
+	server_name kit20.ru www.kit20.ru;
+
+	ssl_certificate     /etc/letsencrypt/live/kit20.ru/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/kit20.ru/privkey.pem;
+
+	client_max_body_size 8m;
+
+	location / {
+		proxy_pass http://kit20_node;
+		proxy_http_version 1.1;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwarded-Proto $scheme;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection "upgrade";
+	}
+}
+
+server {
+	listen 80;
+	server_name kit20.ru www.kit20.ru;
+	return 301 https://$host$request_uri;
+}

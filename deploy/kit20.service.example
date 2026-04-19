@@ -1,0 +1,18 @@
+# Скопируйте в /etc/systemd/system/kit20.service и подставьте пути.
+# sudo systemctl daemon-reload && sudo systemctl enable --now kit20
+
+[Unit]
+Description=КИТ20 Astro SSR (сайт + /admin)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/kit20
+EnvironmentFile=/etc/kit20.env
+ExecStart=/usr/bin/node /var/www/kit20/scripts/start-prod.mjs
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

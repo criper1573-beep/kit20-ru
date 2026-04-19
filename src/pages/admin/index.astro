@@ -1,0 +1,85 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { readHome } from '../../lib/siteContent';
+import { renderMarkdownToHtml } from '../../lib/renderMarkdown';
+
+const { data, body } = await readHome();
+const previewHtml = renderMarkdownToHtml(body);
+const title = `Редактор · ${data.title}`;
+---
+
+<Layout admin title={title}>
+	<section
+		class="relative overflow-hidden rounded-3xl border border-amber-200/80 bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8"
+	>
+		<p class="mb-4 text-sm font-semibold text-amber-800">Черновик главной — сохраняется в `src/content/home.md`</p>
+		<form id="home-form" class="space-y-4">
+			<label class="block text-sm font-semibold">
+				Заголовок
+				<input
+					type="text"
+					name="title"
+					value={data.title}
+					class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base"
+				/>
+			</label>
+			<label class="block text-sm font-semibold">
+				Подзаголовок
+				<input
+					type="text"
+					name="subtitle"
+					value={data.subtitle ?? ''}
+					class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base"
+				/>
+			</label>
+			<label class="block text-sm font-semibold">
+				Текст (Markdown)
+				<textarea
+					name="body"
+					rows="14"
+					class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 font-mono text-sm leading-relaxed"
+				>{body}</textarea>
+			</label>
+			<div class="flex flex-wrap items-center gap-3">
+				<button
+					type="submit"
+					class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700"
+				>
+					Сохранить
+				</button>
+				<span id="home-status" class="text-sm text-muted"></span>
+			</div>
+		</form>
+	</section>
+
+	<section class="mt-10 rounded-3xl border border-slate-200/90 bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8">
+		<h2 class="font-display text-lg font-bold text-ink">Предпросмотр</h2>
+		<div class="markdown-body mt-4 max-w-3xl border-t border-slate-100 pt-4" set:html={previewHtml} />
+	</section>
+
+	<script>
+		const form = document.getElementById('home-form');
+		const status = document.getElementById('home-status');
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!form || !status) return;
+			status.textContent = 'Сохраняю…';
+			const fd = new FormData(form);
+			const title = String(fd.get('title') ?? '');
+			const subtitle = String(fd.get('subtitle') ?? '');
+			const body = String(fd.get('body') ?? '');
+			const res = await fetch('/api/admin/home', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ title, subtitle, body }),
+			});
+			const j = await res.json().catch(() => ({}));
+			if (!res.ok) {
+				status.textContent = j.error ? JSON.stringify(j.error) : 'Ошибка';
+				return;
+			}
+			status.textContent = 'Сохранено. Обновите страницу сайта, чтобы увидеть изменения.';
+		});
+	</script>
+</Layout>

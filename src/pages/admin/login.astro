@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+import '../../styles/global.css';
+import StageBackdrop from '../../components/StageBackdrop.astro';
+import { cookieName, getSessionSecret, verifySessionToken } from '../../lib/auth';
+
+const secret = getSessionSecret();
+const token = Astro.cookies.get(cookieName())?.value;
+if (secret && token && verifySessionToken(token, secret)) {
+	return Astro.redirect('/admin');
+}
+
+const next = Astro.url.searchParams.get('next') ?? '/admin';
+---
+
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<title>Вход · КИТ</title>
+	</head>
+	<body class="relative overflow-x-hidden text-ink">
+		<StageBackdrop />
+		<div class="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-12">
+			<div
+				class="w-full max-w-md rounded-3xl border border-slate-200/90 bg-surface/95 p-8 shadow-[var(--shadow-card)] backdrop-blur-md"
+			>
+				<h1 class="font-display text-2xl font-extrabold text-ink">Вход для редактирования</h1>
+				<p class="mt-2 text-sm text-muted">Тот же пароль, что задан на сервере в переменной ADMIN_PASSWORD.</p>
+				<form class="mt-6 space-y-4" method="POST" action="/api/admin/login">
+					<input type="hidden" name="next" value={next} />
+					<label class="block text-sm font-semibold text-ink">
+						Пароль
+						<input
+							type="password"
+							name="password"
+							required
+							autocomplete="current-password"
+							class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none ring-blue-500/30 focus:ring-4"
+						/>
+					</label>
+					<button
+						type="submit"
+						class="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/25 hover:bg-blue-700"
+					>
+						Войти
+					</button>
+				</form>
+				<p class="mt-6 text-center text-sm">
+					<a href="/" class="font-semibold text-blue-600 hover:text-blue-700">На сайт</a>
+				</p>
+			</div>
+		</div>
+	</body>
+</html>

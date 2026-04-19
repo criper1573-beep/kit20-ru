@@ -1,0 +1,178 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { readStudentsSorted, readAttendance } from '../../lib/siteContent';
+
+const students = await readStudentsSorted();
+const { data: att } = await readAttendance();
+const lessons = att.lessons ?? [];
+
+type CellState = 'present' | 'absent';
+
+function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
+	const legacy = lesson.records;
+	if (legacy && legacy.length > 0) {
+		const r = legacy.find((x) => x.student === slug);
+		if (r?.status === 'absent') return 'absent';
+		return 'present';
+	}
+	const ex = lesson.exceptions?.find((x) => x.student === slug);
+	if (!ex) return 'present';
+	if (ex.status === 'excused') return 'present';
+	return 'absent';
+}
+
+const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
+---
+
+<Layout admin title="Посещаемость · редактирование">
+	<div class="mb-6 md:mb-8">
+		<h1 class="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Посещаемость</h1>
+		<p class="mt-2 text-sm text-muted">
+			Нажмите на ячейку, чтобы отметить отсутствие (Н). Ещё раз — снова «был» (Б). Сохранение записывает `exceptions` в
+			<code class="rounded bg-slate-100 px-1">src/content/attendance.md</code>.
+		</p>
+	</div>
+
+	{
+		lessons.length === 0 ? (
+			<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/90 p-8 text-center text-sm text-muted">
+				Нет занятий в файле.
+			</div>
+		) : (
+			<>
+				<label class="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
+					<input type="checkbox" id="att-demo" checked={att.demo} class="h-4 w-4" />
+					Демо-режим (флаг <code class="rounded bg-slate-100 px-1">demo</code> в frontmatter)
+				</label>
+
+				<div class="overflow-x-auto rounded-3xl border border-slate-200/90 bg-surface shadow-[var(--shadow-card)]">
+					<table class="w-full min-w-[640px] border-collapse text-left text-sm">
+						<thead>
+							<tr class="border-b border-slate-200 bg-slate-50/90">
+								<th class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-3.5 font-display font-bold text-accent backdrop-blur-sm">
+									Ученик
+								</th>
+								{lessons.map((lesson, li) => (
+									<th class="min-w-[5.5rem] px-2 py-3 text-center font-semibold text-slate-700">
+										<div class="text-xs font-normal text-muted">{lesson.date}</div>
+										<div class="mt-0.5 text-[11px] font-medium leading-tight text-slate-500">
+											{lesson.label ?? '—'}
+										</div>
+									</th>
+								))}
+							</tr>
+						</thead>
+						<tbody>
+							{students.map((s) => (
+								<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
+									<td class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-2.5 font-semibold text-ink backdrop-blur-sm">
+										{s.data.displayName}
+									</td>
+									{lessons.map((lesson, li) => {
+										const st = cellStatus(lesson, s.data.slug);
+										const absent = st === 'absent';
+										const label = absent ? 'Н' : 'Б';
+										return (
+											<td class="px-2 py-2 text-center">
+												<button
+													type="button"
+													class:list={[
+														'cell-att inline-flex min-w-[2.5rem] justify-center rounded-lg px-2 py-1.5 text-xs font-bold transition',
+														absent ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800',
+													]}
+													data-li={String(li)}
+													data-slug={s.data.slug}
+													data-absent={absent ? '1' : '0'}
+												>
+													{label}
+												</button>
+											</td>
+										);
+									})}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+
+				<div class="mt-6 flex flex-wrap items-center gap-3">
+					<button
+						type="button"
+						id="att-save"
+						class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700"
+					>
+						Сохранить посещаемость
+					</button>
+					<span id="att-status" class="text-sm text-muted"></span>
+				</div>
+			</>
+		)
+	}
+
+	<script id="att-initial" type="application/json" set:html={initialJson} />
+
+	<script>
+		const initialEl = document.getElementById('att-initial');
+		const saveBtn = document.getElementById('att-save');
+		const status = document.getElementById('att-status');
+		const demoEl = document.getElementById('att-demo') as HTMLInputElement | null;
+
+		function readInitial(): { lessons: { date: string; label?: string; exceptions?: { student: string }[] }[]; demo: boolean } {
+			if (!initialEl?.textContent) return { lessons: [], demo: false };
+			return JSON.parse(initialEl.textContent);
+		}
+
+		document.querySelectorAll('.cell-att').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const absent = btn.getAttribute('data-absent') === '1';
+				const next = absent ? '0' : '1';
+				btn.setAttribute('data-absent', next);
+				btn.textContent = next === '1' ? 'Н' : 'Б';
+				btn.classList.toggle('bg-rose-100', next === '1');
+				btn.classList.toggle('text-rose-800', next === '1');
+				btn.classList.toggle('bg-emerald-100', next === '0');
+				btn.classList.toggle('text-emerald-800', next === '0');
+			});
+		});
+
+		saveBtn?.addEventListener('click', async () => {
+			if (!status) return;
+			const initial = readInitial();
+			const byLesson: Map<number, Set<string>> = new Map();
+			document.querySelectorAll('.cell-att').forEach((el) => {
+				const btn = el as HTMLButtonElement;
+				const li = Number(btn.dataset.li);
+				const slug = btn.dataset.slug;
+				if (!Number.isFinite(li) || !slug) return;
+				if (btn.getAttribute('data-absent') !== '1') return;
+				if (!byLesson.has(li)) byLesson.set(li, new Set());
+				byLesson.get(li)!.add(slug);
+			});
+			const lessons = initial.lessons.map((lesson, i) => {
+				const absentSlugs = byLesson.get(i);
+				const exceptions = absentSlugs
+					? [...absentSlugs].sort((a, b) => a.localeCompare(b, 'ru')).map((student) => ({ student }))
+					: [];
+				return {
+					date: lesson.date,
+					label: lesson.label ?? '',
+					exceptions,
+				};
+			});
+			const demo = Boolean(demoEl?.checked);
+			status.textContent = 'Сохраняю…';
+			const res = await fetch('/api/admin/attendance', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ lessons, demo, body: '' }),
+			});
+			const j = await res.json().catch(() => ({}));
+			if (!res.ok) {
+				status.textContent = j.error ? JSON.stringify(j.error) : 'Ошибка';
+				return;
+			}
+			status.textContent = 'Сохранено.';
+		});
+	</script>
+</Layout>

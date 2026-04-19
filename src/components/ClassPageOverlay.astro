@@ -1,0 +1,321 @@
+---
+import StudentAvatar from './StudentAvatar.astro';
+import { buildClassStageWalkerCss } from '../lib/classStageWalkCss';
+
+export interface StageBlock {
+	slug: string;
+	data: { displayName: string };
+	variant: number;
+}
+
+interface Props {
+	blocks: StageBlock[];
+	/** Подпись под надписью «КЛАСС» (например в админке) */
+	pageLead?: string;
+}
+
+const { blocks, pageLead } = Astro.props;
+
+const roamCss = buildClassStageWalkerCss();
+
+const anchors: [number, number][] = [
+	[18, 22],
+	[28, 16],
+	[78, 24],
+	[68, 34],
+	[48, 20],
+	[34, 30],
+	[58, 46],
+	[82, 50],
+	[16, 58],
+	[30, 72],
+	[52, 68],
+	[74, 62],
+	[40, 48],
+	[62, 78],
+	[84, 38],
+	[24, 40],
+];
+
+const SPEECH_CYCLE_MS = 60_000;
+const speechLines = [
+	'Что светит в том окошке? Восток… и Джульетта — солнце.',
+	'О Ромео, Ромео! Забудь отца — я стану твоей.',
+	'Ужели ты Ромео? И знал ли ты запретный дом?',
+	'Любовь впервые шепнула мне, когда я услышала речь твою.',
+	'Как ни зовут меня — сердце узнает твой голос.',
+	'Поклянись любовью — с любви слетает клятва.',
+	'Не клянись ни в чём: любовь сама себе обет.',
+	'Что за шум? Проклята рука, что пролила кровь!',
+	'Один день наших вражд — и горе родам нашим!',
+	'Прощай… ты останешься в сердце, виновник моего несчастья.',
+	'Нож любви хочу занести на имя, что мне мерещится.',
+	'Ночь прошла — смотри, как роса с уст твоих…',
+	'Уйти? Нет, погибну здесь, где ты впервые обнял меня.',
+	'Два дома, равные в чести… где заря смешает их в пепел.',
+	'Тише! стража — укройся в сумраке сада.',
+	'Окно открыто — лестница луны к нам склонилась.',
+	'Не говори «навсегда» — скажи «сегодня», и этого достаточно.',
+	'Шаги… это смерть иль мир идёт ко мне?',
+	'Пусть имя твоё станет молитвой, которую шепчет ночь.',
+	'Снова зовёт занавес — и снова мы встретимся в пьесе…',
+];
+---
+
+<!--
+  Рендерится слотом между шапкой (z-40) и main — z-[45] выше хедера; не внутри main, иначе весь main рисуется под sticky.
+-->
+<div class="class-page-overlay-root pointer-events-none relative z-[45] min-h-0 w-full" data-class-stage="">
+	<div
+		class="class-stage-roam-shell pointer-events-none fixed inset-0 z-[55] overflow-hidden"
+		style="padding: max(0.5rem, env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));"
+	>
+		<div
+			class="class-stage-ambient pointer-events-none absolute inset-0 z-0 rounded-[clamp(8px,1.5vmin,16px)]"
+			aria-hidden="true"
+		>
+		</div>
+
+		<!-- Между фоном и фигурами: иначе весь слой z-55 перекрывал надпись -->
+		<div
+			class="class-stage-watermark pointer-events-none absolute inset-0 z-[12] flex flex-col items-center justify-center px-4 text-center"
+		>
+			<h1
+				class="class-stage-cap-label font-display font-extrabold uppercase tracking-[0.12em] sm:tracking-[0.18em]"
+			>
+				КЛАСС
+			</h1>
+			{
+				pageLead && (
+					<p class="class-stage-watermark-lead mt-5 max-w-xl text-sm leading-relaxed sm:mt-6 sm:text-base">
+						{pageLead}
+					</p>
+				)
+			}
+		</div>
+
+		<div class="relative z-20 h-full min-h-[12rem] w-full">
+			{
+				blocks.map((b, i) => {
+					const [lx, ty] = anchors[i] ?? [50, 50];
+					return (
+						<button
+							type="button"
+							data-open-dialog={`dlg-${b.slug}`}
+							data-stage-slug={b.slug}
+							data-stage-roam="page"
+							class:list={[
+								'class-stage-walker-page absolute z-10 flex w-14 flex-col items-center rounded-2xl border border-transparent bg-transparent p-0.5 shadow-none transition [transform-style:flat] sm:w-[5.25rem] md:w-28',
+								`class-stage-walker-${i}`,
+								'pointer-events-auto active:bg-slate-900/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:hover:border-blue-300/50 md:hover:bg-slate-900/[0.04]',
+							]}
+							style={`left:${lx}%; top:${ty}%;`}
+						>
+							<div
+								class="class-stage-bubble pointer-events-none absolute bottom-[calc(100%-2px)] left-0 right-0 z-[25] flex justify-center opacity-0 transition-opacity duration-500 ease-out sm:bottom-[calc(100%-4px)]"
+								data-stage-bubble=""
+								aria-hidden="true"
+							>
+								<div
+									class="class-stage-bubble-panel class-stage-bubble-panel--compact relative max-w-[min(11rem,calc(100vw-3rem))] rounded-lg border border-slate-200/90 bg-white px-1.5 py-1 text-center text-[8px] font-medium leading-tight text-slate-800 shadow-md sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-[10px] sm:leading-snug md:text-[11px]"
+								>
+									<span data-stage-bubble-text=""></span>
+								</div>
+							</div>
+							<div class="h-10 w-full sm:h-[4.5rem] md:h-28">
+								<StudentAvatar variant={b.variant} displayName={b.data.displayName} class="h-full w-full" />
+							</div>
+							<span class="mt-0.5 max-w-full truncate px-0.5 text-center text-[10px] font-semibold leading-tight text-slate-800 sm:text-xs">
+								{b.data.displayName}
+							</span>
+						</button>
+					);
+				})
+			}
+		</div>
+	</div>
+
+	<div
+		class="pointer-events-none fixed bottom-0 left-0 right-0 z-[56] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:hidden"
+	>
+		<div
+			class="pointer-events-auto mx-auto max-w-5xl rounded-2xl border border-slate-200/70 bg-white/80 px-2 py-2 shadow-sm backdrop-blur-sm sm:px-4"
+		>
+			<p class="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Открыть карточку</p>
+			<div class="flex flex-wrap justify-center gap-1 sm:gap-1.5">
+				{
+					blocks.map((b) => (
+						<button
+							type="button"
+							data-open-dialog={`dlg-${b.slug}`}
+							class="rounded-full border border-slate-200/90 bg-white px-2 py-0.5 text-[11px] font-semibold leading-tight text-slate-700 shadow-sm transition hover:border-blue-300/60 hover:bg-blue-50/50 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-[0.98] sm:px-2.5 sm:text-xs md:py-1"
+						>
+							{b.data.displayName}
+						</button>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+<style is:global set:html={roamCss}></style>
+
+<style>
+	.class-stage-cap-label {
+		margin: 0;
+		line-height: 0.95;
+		font-size: clamp(3.25rem, 22vw, 14rem);
+		color: rgb(15 23 42 / 0.38);
+		text-shadow: 0 1px 0 rgb(255 255 255 / 0.55), 0 0 40px rgb(255 255 255 / 0.4);
+		user-select: none;
+	}
+
+	.class-stage-watermark-lead {
+		color: rgb(100 116 139 / 0.45);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.class-stage-cap-label {
+			color: rgb(248 250 252 / 0.28);
+			text-shadow: 0 0 48px rgb(15 23 42 / 0.35);
+		}
+		.class-stage-watermark-lead {
+			color: rgb(148 163 184 / 0.4);
+		}
+	}
+
+	.class-stage-ambient {
+		background:
+			radial-gradient(ellipse 85% 55% at 18% 28%, rgb(59 130 246 / 0.11), transparent 52%),
+			radial-gradient(ellipse 70% 50% at 82% 72%, rgb(14 165 233 / 0.09), transparent 48%),
+			radial-gradient(ellipse 50% 40% at 50% 50%, rgb(99 102 241 / 0.05), transparent 55%);
+		background-size: 120% 120%, 115% 115%, 100% 100%;
+		animation: class-stage-ambient-drift 52s ease-in-out infinite;
+	}
+
+	@keyframes class-stage-ambient-drift {
+		0%,
+		100% {
+			background-position: 0% 0%, 100% 100%, 50% 50%;
+			opacity: 1;
+		}
+		33% {
+			background-position: 8% 12%, 92% 88%, 45% 55%;
+			opacity: 0.92;
+		}
+		66% {
+			background-position: -6% 6%, 108% 94%, 55% 45%;
+			opacity: 0.96;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.class-stage-ambient {
+			animation: none;
+		}
+	}
+
+	.class-stage-bubble-panel::after {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 100%;
+		margin-left: -7px;
+		border: 7px solid transparent;
+		border-top-color: #fff;
+	}
+
+	.class-stage-bubble-panel--compact::after {
+		margin-left: -5px;
+		border-width: 5px;
+	}
+
+	.class-stage-walker-page.is-speaking {
+		z-index: 30;
+	}
+
+	.class-stage-walker-page.is-speaking .class-stage-bubble {
+		opacity: 1;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.class-stage-walker-page[class*='class-stage-walker-'] {
+			animation: none !important;
+			transform: translate(-50%, -50%);
+		}
+	}
+</style>
+
+<style is:global>
+	[data-class-stage] [data-stage-slug].class-stage-figure-pulse {
+		animation: class-stage-figure-pulse 0.75s ease-out;
+	}
+
+	@keyframes class-stage-figure-pulse {
+		0% {
+			box-shadow: 0 0 0 0 rgb(59 130 246 / 0);
+		}
+		35% {
+			box-shadow: 0 0 0 5px rgb(59 130 246 / 0.28);
+		}
+		100% {
+			box-shadow: 0 0 0 0 rgb(59 130 246 / 0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		[data-class-stage] [data-stage-slug].class-stage-figure-pulse {
+			animation: none;
+		}
+	}
+</style>
+
+<script is:inline define:vars={{ speechLines, speechCycleMs: SPEECH_CYCLE_MS }}>
+	(function () {
+		const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+		function tick() {
+			const figures = [...document.querySelectorAll('[data-stage-roam="page"]')];
+
+			const clearAll = () => {
+				for (const el of figures) {
+					el.classList.remove('is-speaking');
+				}
+			};
+
+			if (mqReduce.matches || !figures.length) {
+				clearAll();
+				return;
+			}
+
+			const nLines = speechLines.length;
+			const seg = speechCycleMs / nLines;
+			const t = Date.now() % speechCycleMs;
+			const lineIndex = Math.min(Math.floor(t / seg), nLines - 1);
+			const n = figures.length;
+			const speakerIndex = lineIndex % n;
+
+			figures.forEach((el, i) => {
+				const textEl = el.querySelector('[data-stage-bubble-text]');
+				if (i === speakerIndex && textEl) {
+					textEl.textContent = speechLines[lineIndex];
+					el.classList.add('is-speaking');
+				} else {
+					el.classList.remove('is-speaking');
+				}
+			});
+		}
+
+		const id = window.setInterval(tick, 120);
+		tick();
+		mqReduce.addEventListener('change', tick);
+		document.addEventListener(
+			'astro:before-swap',
+			() => {
+				window.clearInterval(id);
+			},
+			{ once: true }
+		);
+	})();
+</script>

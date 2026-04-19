@@ -1,15 +1,12 @@
 ---
+export const prerender = false;
 import Layout from '../layouts/Layout.astro';
-import { getCollection, render } from 'astro:content';
+import { readHome } from '../lib/siteContent';
+import { renderMarkdownToHtml } from '../lib/renderMarkdown';
 
-const homeList = await getCollection('home');
-const home = homeList[0];
-let Content: Awaited<ReturnType<typeof render>>['Content'] | null = null;
-if (home) {
-	const r = await render(home);
-	Content = r.Content;
-}
-const title = home?.data.title ?? 'Группа театра и кино';
+const { data, body } = await readHome();
+const bodyHtml = renderMarkdownToHtml(body);
+const title = data.title;
 ---
 
 <Layout title={title}>
@@ -22,18 +19,16 @@ const title = home?.data.title ?? 'Группа театра и кино';
 		>
 		</div>
 		<h1 class="font-display text-balance text-3xl font-extrabold tracking-tight text-ink sm:text-4xl lg:text-5xl">
-			{home?.data.title ?? 'Группа'}
+			{data.title}
 		</h1>
 		{
-			home?.data.subtitle && (
-				<p class="mt-3 max-w-2xl text-lg font-medium text-accent">{home.data.subtitle}</p>
+			data.subtitle && (
+				<p class="mt-3 max-w-2xl text-lg font-medium text-accent">{data.subtitle}</p>
 			)
 		}
 		{
-			Content && (
-				<div class="markdown-body mt-8 max-w-3xl">
-					<Content />
-				</div>
+			bodyHtml.trim() && (
+				<div class="markdown-body mt-8 max-w-3xl" set:html={bodyHtml} />
 			)
 		}
 	</section>

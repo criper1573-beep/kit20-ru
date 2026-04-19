@@ -1,46 +1,35 @@
-/** Ключевые кадры для «прогулки» актёров по сцене — детерминированно, без runtime. */
+/** Траектории в пределах видимой области: translate только в vmin, небольшая амплитуда. */
 
-const clamp = (n: number) => Math.round(n);
+const s = (n: number) => n.toFixed(2);
 
-/** Десктоп: умеренная амплитуда (коэффициент < 1). */
+/** Целые смещения примерно в [-6, 6] vmin — детерминированно от индекса */
+function wobble(i: number, salt: number): number {
+	return (((i * 17 + salt * 11) % 13) - 6);
+}
+
 export function buildClassStageWalkerCss(): string {
-	const amp = 0.58;
 	return Array.from({ length: 16 }, (_, i) => {
-		const dur = 15 + (i % 6) * 2.4;
-		const delay = -(i * 0.68);
-		const x1 = clamp((26 + (i % 5) * 7) * amp);
-		const y1 = clamp((-16 - (i % 4) * 5) * amp);
-		const x2 = clamp((-20 + (i % 4) * 9) * amp);
-		const y2 = clamp((14 + (i % 3) * 5) * amp);
+		const dur = 40 + (i % 9) * 3.8;
+		const delay = -(i * 1.2);
+
+		const x1 = wobble(i, 1);
+		const y1 = wobble(i, 2);
+		const x2 = wobble(i, 3);
+		const y2 = wobble(i, 4);
+		const x3 = wobble(i, 5);
+		const y3 = wobble(i, 6);
+		const x4 = wobble(i, 7);
+		const y4 = wobble(i, 8);
+
 		return `@keyframes class-stage-roam-${i} {
-  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
-  33% { transform: translate(-50%, -50%) translate(${x1}px, ${y1}px); }
-  66% { transform: translate(-50%, -50%) translate(${x2}px, ${y2}px); }
+  0%, 100% { transform: translate(-50%, -50%) translate(0vmin, 0vmin); }
+  20% { transform: translate(-50%, -50%) translate(${s(x1)}vmin, ${s(y1)}vmin); }
+  40% { transform: translate(-50%, -50%) translate(${s(x2)}vmin, ${s(y2)}vmin); }
+  60% { transform: translate(-50%, -50%) translate(${s(x3)}vmin, ${s(y3)}vmin); }
+  80% { transform: translate(-50%, -50%) translate(${s(x4)}vmin, ${s(y4)}vmin); }
 }
 .class-stage-walker-${i} {
   animation: class-stage-roam-${i} ${dur}s ease-in-out infinite;
-  animation-delay: ${delay}s;
-}`;
-	}).join('\n');
-}
-
-/** Мобильная сцена: меньший шаг, почти одинаковый темп по фигурам. */
-export function buildClassStageWalkerMobileCss(): string {
-	const amp = 0.3;
-	return Array.from({ length: 16 }, (_, i) => {
-		const dur = 19.5 + (i % 5) * 0.12;
-		const delay = -(i * 0.62);
-		const x1 = clamp((26 + (i % 5) * 7) * amp);
-		const y1 = clamp((-16 - (i % 4) * 5) * amp);
-		const x2 = clamp((-20 + (i % 4) * 9) * amp);
-		const y2 = clamp((14 + (i % 3) * 5) * amp);
-		return `@keyframes class-stage-roam-m-${i} {
-  0%, 100% { transform: translate(-50%, -50%) translate(0, 0); }
-  33% { transform: translate(-50%, -50%) translate(${x1}px, ${y1}px); }
-  66% { transform: translate(-50%, -50%) translate(${x2}px, ${y2}px); }
-}
-.class-stage-walker-m-${i} {
-  animation: class-stage-roam-m-${i} ${dur}s ease-in-out infinite;
   animation-delay: ${delay}s;
 }`;
 	}).join('\n');
