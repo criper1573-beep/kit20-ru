@@ -12,6 +12,8 @@ lessons:
         status: absent
       - student: galya
         status: absent
+      - student: katya-1
+        status: absent
   - date: 2026-04-03
     label: Этюд · работа в паре
     exceptions:
