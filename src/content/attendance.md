@@ -10,6 +10,8 @@ lessons:
         status: excused
       - student: anya
         status: absent
+      - student: galya
+        status: absent
   - date: 2026-04-03
     label: Этюд · работа в паре
     exceptions:
