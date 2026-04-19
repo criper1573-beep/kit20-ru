@@ -6,9 +6,27 @@ export function cookieName(): typeof COOKIE {
 	return COOKIE;
 }
 
+/** Пароль и секрет сессии читаются в рантайме (process.env), иначе после build они пустые. По умолчанию — kit20. */
+const DEFAULT_ADMIN_PASSWORD = 'kit20';
+
+function pickEnv(...candidates: (string | undefined)[]): string {
+	for (const c of candidates) {
+		if (typeof c === 'string' && c.trim().length > 0) return c;
+	}
+	return DEFAULT_ADMIN_PASSWORD;
+}
+
+export function getAdminPassword(): string {
+	return pickEnv(process.env.ADMIN_PASSWORD, import.meta.env.ADMIN_PASSWORD);
+}
+
 export function getSessionSecret(): string {
-	const s = import.meta.env.ADMIN_SESSION_SECRET ?? import.meta.env.ADMIN_PASSWORD;
-	return typeof s === 'string' && s.length > 0 ? s : '';
+	return pickEnv(
+		process.env.ADMIN_SESSION_SECRET,
+		import.meta.env.ADMIN_SESSION_SECRET,
+		process.env.ADMIN_PASSWORD,
+		import.meta.env.ADMIN_PASSWORD
+	);
 }
 
 export function createSessionToken(secret: string, ttlSec = 60 * 60 * 24 * 14): string {

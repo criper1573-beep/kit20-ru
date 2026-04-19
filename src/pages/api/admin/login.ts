@@ -1,5 +1,10 @@
 import type { APIRoute } from 'astro';
-import { createSessionToken, cookieName, getSessionSecret } from '../../../lib/auth';
+import {
+	createSessionToken,
+	cookieName,
+	getAdminPassword,
+	getSessionSecret,
+} from '../../../lib/auth';
 
 export const prerender = false;
 
@@ -10,13 +15,7 @@ function safeNext(raw: string | null): string {
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 	const sessionSecret = getSessionSecret();
-	const envPassword = import.meta.env.ADMIN_PASSWORD ?? '';
-	if (!sessionSecret || !envPassword) {
-		return new Response(
-			JSON.stringify({ error: 'Сервер не настроен: задайте ADMIN_PASSWORD в окружении' }),
-			{ status: 503, headers: { 'Content-Type': 'application/json; charset=utf-8' } }
-		);
-	}
+	const envPassword = getAdminPassword();
 
 	let password = '';
 	let next = '/admin';
