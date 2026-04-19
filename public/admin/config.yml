@@ -83,12 +83,12 @@ collections:
                 name: label
                 widget: string
                 required: false
-              - label: "Кто не был или уважительно (остальные = «был(а)» автоматически)"
+              - label: "Не были на занятии (остальные автоматически «был»)"
                 name: exceptions
                 widget: list
                 required: false
-                summary: "{{fields.student}} → {{fields.status}}"
-                hint: "Не добавляйте всех подряд: только отсутствие (Н) или уважительно (У). Пустой список = все были."
+                summary: "{{fields.student}} — не был"
+                hint: "Добавляйте только отсутствующих. Пустой список = все были."
                 fields:
                   - label: Ученик
                     name: student
@@ -110,9 +110,3 @@ collections:
                       - { label: Наташа, value: natasha }
                       - { label: Маруся, value: marusya }
                       - { label: Крис, value: chris }
-                  - label: Статус
-                    name: status
-                    widget: select
-                    options:
-                      - { label: Не был(а), value: absent }
-                      - { label: Уважительно, value: excused }

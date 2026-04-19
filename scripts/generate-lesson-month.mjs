@@ -30,18 +30,21 @@ function serializeAttendance(data) {
 	return `---\n${body}---\n`;
 }
 
-/** Старый records → exceptions (только absent / excused) */
+/** Старый records → exceptions (только не были; excused не попадает в список) */
 function migrateLesson(lesson) {
 	if (lesson.date instanceof Date) {
 		lesson.date = isoDate(lesson.date);
 	}
 	if (Array.isArray(lesson.records) && lesson.records.length > 0) {
 		lesson.exceptions = lesson.records
-			.filter((r) => r.status === 'absent' || r.status === 'excused')
-			.map((r) => ({ student: r.student, status: r.status }));
+			.filter((r) => r.status === 'absent')
+			.map((r) => ({ student: r.student }));
 		delete lesson.records;
 	}
 	if (!Array.isArray(lesson.exceptions)) lesson.exceptions = [];
+	lesson.exceptions = lesson.exceptions
+		.filter((e) => e.status !== 'excused')
+		.map((e) => ({ student: e.student }));
 	return lesson;
 }
 
@@ -87,7 +90,7 @@ function main() {
 		const out = serializeAttendance(data);
 		if (dry) console.log(out);
 		else fs.writeFileSync(attendancePath, out, 'utf8');
-		console.log('Migrated: records → exceptions (only absent / excused).');
+		console.log('Migrated: records → exceptions (only absent; excused dropped).');
 		process.exit(0);
 	}
 

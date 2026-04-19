@@ -15,10 +15,13 @@ const attendanceRecordSchema = z.object({
 	status: attendanceStatus,
 });
 
-/** Новый формат: только отсутствия и уважительные; остальные считаются present */
+/**
+ * Список отсутствующих: только `student` (остальные = «был»).
+ * Допускается устаревшее поле `status` при чтении (игнорируется, кроме excused → не в списке отсутствующих).
+ */
 const attendanceExceptionSchema = z.object({
 	student: z.string(),
-	status: z.enum(['absent', 'excused']),
+	status: z.enum(['absent', 'excused']).optional(),
 });
 
 /** YAML без кавычек даёт timestamp → Date; нормализуем в YYYY-MM-DD */

@@ -6,27 +6,31 @@ const students = (await getCollection('students')).sort((a, b) => a.data.order -
 const attEntry = (await getCollection('attendance'))[0];
 const lessons = attEntry?.data.lessons ?? [];
 
-const statusLabel: Record<string, string> = {
+const statusLabel: Record<'present' | 'absent', string> = {
 	present: 'Б',
 	absent: 'Н',
-	excused: 'У',
 };
 
-const statusTitle: Record<string, string> = {
-	present: 'Был(а)',
-	absent: 'Не был(а)',
-	excused: 'Уважительно',
+const statusTitle: Record<'present' | 'absent', string> = {
+	present: 'Был',
+	absent: 'Не был',
 };
 
-function cellStatus(lesson: (typeof lessons)[number], slug: string) {
+type CellState = 'present' | 'absent';
+
+function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 	const legacy = lesson.records;
 	if (legacy && legacy.length > 0) {
 		const r = legacy.find((x) => x.student === slug);
-		return r?.status ?? 'present';
+		const st = r?.status;
+		if (st === 'absent') return 'absent';
+		/* present и устаревший excused → «был» */
+		return 'present';
 	}
 	const ex = lesson.exceptions?.find((x) => x.student === slug);
-	if (ex?.status === 'absent' || ex?.status === 'excused') return ex.status;
-	return 'present';
+	if (!ex) return 'present';
+	if (ex.status === 'excused') return 'present';
+	return 'absent';
 }
 ---
 
@@ -76,7 +80,6 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string) {
 													'inline-flex min-w-[2rem] justify-center rounded-lg px-1.5 py-1 text-xs font-bold',
 													st === 'present' && 'bg-emerald-100 text-emerald-800',
 													st === 'absent' && 'bg-rose-100 text-rose-800',
-													st === 'excused' && 'bg-amber-100 text-amber-900',
 												]}
 												title={t}
 											>
@@ -96,13 +99,10 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string) {
 
 	<div class="mt-8 flex flex-wrap gap-4 text-xs text-muted">
 		<span>
-			<strong class="font-bold text-emerald-600">Б</strong> — был(а)
+			<strong class="font-bold text-emerald-600">Б</strong> — был
 		</span>
 		<span>
-			<strong class="font-bold text-rose-600">Н</strong> — не был(а)
-		</span>
-		<span>
-			<strong class="font-bold text-amber-700">У</strong> — уважительно
+			<strong class="font-bold text-rose-600">Н</strong> — не был
 		</span>
 	</div>
 </Layout>
