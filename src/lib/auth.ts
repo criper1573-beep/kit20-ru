@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
-const COOKIE = 'kit20_admin';
+// Bump cookie name to invalidate stale long-lived sessions.
+const COOKIE = 'kit20_admin_v2';
 
 export function cookieName(): typeof COOKIE {
 	return COOKIE;

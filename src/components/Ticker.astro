@@ -1,0 +1,41 @@
+---
+/** Верх = t1 под хедером, низ = t2 (#ticker-section бренд-бука) */
+export type TickerBand = 'top' | 'bottom';
+
+interface Props {
+	band: TickerBand;
+}
+
+const { band } = Astro.props;
+const isTop = band === 'top';
+---
+
+{
+	isTop ? (
+		<div class="bb-ticker bb-ticker--top pointer-events-none" aria-hidden="true">
+			<div class="bb-ticker-view">
+				<div class:list={['bb-ticker-track', 'bb-ticker-track--t1']}>
+					<span class="bb-ticker-half">
+						ГРУППА КИТ<span class="bb-ticker-sep">◆</span>ТЕАТР<span class="bb-ticker-sep">◆</span>КИНО<span class="bb-ticker-sep">◆</span>ПАРТ АКАДЕМИЯ<span class="bb-ticker-sep">◆</span>АКТЁРЫ<span class="bb-ticker-sep">◆</span>
+					</span>
+					<span class="bb-ticker-half">
+						ГРУППА КИТ<span class="bb-ticker-sep">◆</span>ТЕАТР<span class="bb-ticker-sep">◆</span>КИНО<span class="bb-ticker-sep">◆</span>ПАРТ АКАДЕМИЯ<span class="bb-ticker-sep">◆</span>АКТЁРЫ<span class="bb-ticker-sep">◆</span>
+					</span>
+				</div>
+			</div>
+		</div>
+	) : (
+		<div class="bb-ticker bb-ticker--bottom pointer-events-none" aria-hidden="true">
+			<div class="bb-ticker-view">
+				<div class:list={['bb-ticker-track', 'bb-ticker-track--t2']}>
+					<span class="bb-ticker-half">
+						РОЛЬ ✦ СЦЕНА ✦ ПРАВДА ✦ ПРИСУТСТВИЕ ✦ МАСТЕРСТВО ✦ РЕПЕТИЦИЯ ✦{' '}
+					</span>
+					<span class="bb-ticker-half">
+						РОЛЬ ✦ СЦЕНА ✦ ПРАВДА ✦ ПРИСУТСТВИЕ ✦ МАСТЕРСТВО ✦ РЕПЕТИЦИЯ ✦{' '}
+					</span>
+				</div>
+			</div>
+		</div>
+	)
+}

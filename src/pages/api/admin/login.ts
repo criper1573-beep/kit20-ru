@@ -43,7 +43,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 		httpOnly: true,
 		sameSite: 'lax',
 		secure: import.meta.env.PROD,
-		maxAge: 60 * 60 * 24 * 14,
 	});
 
 	if (ct.includes('application/json')) {

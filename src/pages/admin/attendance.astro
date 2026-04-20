@@ -2,10 +2,20 @@
 export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import { readStudentsSorted, readAttendance } from '../../lib/siteContent';
+import { hasValidAdminSession } from '../../lib/adminApiAuth';
+
+if (!hasValidAdminSession(Astro.cookies)) {
+	const nextUrl = Astro.url.pathname + Astro.url.search;
+	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
+}
 
 const students = await readStudentsSorted();
 const { data: att } = await readAttendance();
-const lessons = att.lessons ?? [];
+
+// Сортируем занятия: самые новые слева (по убыванию даты)
+const lessons = (att.lessons ?? []).sort((a, b) => {
+	return new Date(b.date).getTime() - new Date(a.date).getTime();
+});
 
 type CellState = 'present' | 'absent';
 
@@ -26,89 +36,88 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 ---
 
 <Layout admin title="Посещаемость · редактирование">
-	<div class="mb-6 md:mb-8">
-		<h1 class="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Посещаемость</h1>
-		<p class="mt-2 text-sm text-muted">
-			Нажмите на ячейку, чтобы отметить отсутствие (Н). Ещё раз — снова «был» (Б). Сохранение записывает `exceptions` в
-			<code class="rounded bg-slate-100 px-1">src/content/attendance.md</code>.
-		</p>
+	<div class="mb-8 border-b-[3px] border-ink pb-4 flex flex-wrap items-center justify-between gap-4">
+		<div>
+			<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Посещаемость</h1>
+			<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">
+				Нажмите на ячейку, чтобы отметить отсутствие (Н). Ещё раз — снова «был» (Б).
+			</p>
+		</div>
+		<button
+			type="button"
+			id="add-lesson-btn"
+			class="border-[3px] border-ink bg-surface px-4 py-2 font-sans text-sm uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift transition-colors flex items-center gap-2"
+		>
+			<span class="text-xl leading-none">+</span> Урок
+		</button>
 	</div>
 
-	{
-		lessons.length === 0 ? (
-			<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/90 p-8 text-center text-sm text-muted">
-				Нет занятий в файле.
-			</div>
-		) : (
-			<>
-				<label class="mb-4 flex items-center gap-2 text-sm font-semibold text-ink">
-					<input type="checkbox" id="att-demo" checked={att.demo} class="h-4 w-4" />
-					Демо-режим (флаг <code class="rounded bg-slate-100 px-1">demo</code> в frontmatter)
-				</label>
+	<label class="mb-6 flex items-center gap-3 font-sans text-sm uppercase tracking-wider text-ink">
+		<input type="checkbox" id="att-demo" checked={att.demo} class="h-5 w-5 border-[2px] border-ink accent-accent" />
+		Демо-режим (флаг <code class="border-[2px] border-ink bg-muted-surface px-1.5 py-0.5 text-ink">demo</code>)
+	</label>
 
-				<div class="overflow-x-auto rounded-3xl border border-slate-200/90 bg-surface shadow-[var(--shadow-card)]">
-					<table class="w-full min-w-[640px] border-collapse text-left text-sm">
-						<thead>
-							<tr class="border-b border-slate-200 bg-slate-50/90">
-								<th class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-3.5 font-display font-bold text-accent backdrop-blur-sm">
-									Ученик
-								</th>
-								{lessons.map((lesson, li) => (
-									<th class="min-w-[5.5rem] px-2 py-3 text-center font-semibold text-slate-700">
-										<div class="text-xs font-normal text-muted">{lesson.date}</div>
-										<div class="mt-0.5 text-[11px] font-medium leading-tight text-slate-500">
-											{lesson.label ?? '—'}
-										</div>
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody>
-							{students.map((s) => (
-								<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
-									<td class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-2.5 font-semibold text-ink backdrop-blur-sm">
-										{s.data.displayName}
-									</td>
-									{lessons.map((lesson, li) => {
-										const st = cellStatus(lesson, s.data.slug);
-										const absent = st === 'absent';
-										const label = absent ? 'Н' : 'Б';
-										return (
-											<td class="px-2 py-2 text-center">
-												<button
-													type="button"
-													class:list={[
-														'cell-att inline-flex min-w-[2.5rem] justify-center rounded-lg px-2 py-1.5 text-xs font-bold transition',
-														absent ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800',
-													]}
-													data-li={String(li)}
-													data-slug={s.data.slug}
-													data-absent={absent ? '1' : '0'}
-												>
-													{label}
-												</button>
-											</td>
-										);
-									})}
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
+	<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
+		<table class="w-max min-w-[640px] border-collapse text-left font-sans text-sm" id="att-table">
+			<thead>
+				<tr class="border-b-[3px] border-ink bg-ink text-canvas">
+					<th class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-ink px-4 py-3.5 font-display text-xl font-normal tracking-widest">
+						УЧЕНИК
+					</th>
+					{lessons.map((lesson, li) => (
+					<th class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0 relative group/th">
+						<button type="button" class="remove-lesson-btn absolute right-1 top-1 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li={String(li)} title="Удалить занятие">✕</button>
+						<div class="text-xs text-accent cursor-pointer hover:underline" data-edit-date data-li={String(li)} title="Изменить дату">{lesson.date}</div>
+						<div class="mt-1 text-[10px] uppercase tracking-wider text-canvas/70 cursor-pointer hover:underline" data-edit-label data-li={String(li)} title="Изменить название">
+							{lesson.label || '—'}
+						</div>
+					</th>
+					))}
+				</tr>
+			</thead>
+			<tbody>
+				{students.map((s) => (
+					<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors" data-slug={s.data.slug}>
+						<td class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-surface px-4 py-3 uppercase tracking-wider text-ink group-hover:bg-muted-surface transition-colors">
+							{s.data.displayName}
+						</td>
+						{lessons.map((lesson, li) => {
+							const st = cellStatus(lesson, s.data.slug);
+							const absent = st === 'absent';
+							const label = absent ? 'Н' : 'Б';
+							return (
+								<td class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0">
+									<button
+										type="button"
+										class:list={[
+											'cell-att inline-flex min-w-[2.5rem] justify-center border-[2px] border-ink px-1.5 py-1 text-xs transition-colors active-shift',
+											absent ? 'bg-surface text-ink' : 'bg-accent text-canvas',
+										]}
+										data-li={String(li)}
+										data-slug={s.data.slug}
+										data-absent={absent ? '1' : '0'}
+									>
+										{label}
+									</button>
+								</td>
+							);
+						})}
+					</tr>
+				))}
+			</tbody>
+		</table>
+	</div>
 
-				<div class="mt-6 flex flex-wrap items-center gap-3">
-					<button
-						type="button"
-						id="att-save"
-						class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700"
-					>
-						Сохранить посещаемость
-					</button>
-					<span id="att-status" class="text-sm text-muted"></span>
-				</div>
-			</>
-		)
-	}
+	<div class="mt-8 flex flex-wrap items-center gap-4">
+		<button
+			type="button"
+			id="att-save"
+			class="border-[3px] border-ink bg-accent px-6 py-3 font-display text-xl tracking-widest text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover active-shift transition-colors"
+		>
+			Сохранить посещаемость
+		</button>
+		<span id="att-status" class="font-sans text-sm uppercase text-muted"></span>
+	</div>
 
 	<script id="att-initial" type="application/json" set:html={initialJson} />
 
@@ -117,28 +126,125 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 		const saveBtn = document.getElementById('att-save');
 		const status = document.getElementById('att-status');
 		const demoEl = document.getElementById('att-demo') as HTMLInputElement | null;
+		const addLessonBtn = document.getElementById('add-lesson-btn');
+		let autosaveTimer: number | null = null;
+		let saveRequestId = 0;
+		let latestSavedId = 0;
 
 		function readInitial(): { lessons: { date: string; label?: string; exceptions?: { student: string }[] }[]; demo: boolean } {
 			if (!initialEl?.textContent) return { lessons: [], demo: false };
 			return JSON.parse(initialEl.textContent);
 		}
 
-		document.querySelectorAll('.cell-att').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const absent = btn.getAttribute('data-absent') === '1';
-				const next = absent ? '0' : '1';
-				btn.setAttribute('data-absent', next);
-				btn.textContent = next === '1' ? 'Н' : 'Б';
-				btn.classList.toggle('bg-rose-100', next === '1');
-				btn.classList.toggle('text-rose-800', next === '1');
-				btn.classList.toggle('bg-emerald-100', next === '0');
-				btn.classList.toggle('text-emerald-800', next === '0');
+		function reindexLessons() {
+			const headerCells = Array.from(document.querySelectorAll('#att-table thead tr th')).slice(1);
+			headerCells.forEach((th, i) => {
+				th.querySelectorAll('[data-li]').forEach((el) => {
+					el.setAttribute('data-li', String(i));
+				});
 			});
-		});
 
-		saveBtn?.addEventListener('click', async () => {
-			if (!status) return;
-			const initial = readInitial();
+			document.querySelectorAll('#att-table tbody tr').forEach((tr) => {
+				const dataCells = Array.from(tr.children).slice(1);
+				dataCells.forEach((td, i) => {
+					const btn = td.querySelector('.cell-att');
+					if (btn) btn.setAttribute('data-li', String(i));
+				});
+			});
+		}
+
+		function bindCellEvents() {
+			document.querySelectorAll('.cell-att').forEach((el) => {
+				const btn = el as HTMLButtonElement;
+				// Remove old listeners to prevent duplicates
+				const newBtn = btn.cloneNode(true) as HTMLButtonElement;
+				btn.replaceWith(newBtn);
+				
+				newBtn.addEventListener('click', () => {
+					const absent = newBtn.getAttribute('data-absent') === '1';
+					const next = absent ? '0' : '1';
+					newBtn.setAttribute('data-absent', next);
+					newBtn.textContent = next === '1' ? 'Н' : 'Б';
+					newBtn.classList.toggle('bg-surface', next === '1');
+					newBtn.classList.toggle('text-ink', next === '1');
+					newBtn.classList.toggle('bg-accent', next === '0');
+					newBtn.classList.toggle('text-canvas', next === '0');
+					scheduleAutoSave();
+				});
+			});
+		}
+
+		function bindEditEvents() {
+			document.querySelectorAll('[data-edit-date]').forEach(el => {
+				const div = el as HTMLDivElement;
+				const newDiv = div.cloneNode(true) as HTMLDivElement;
+				div.replaceWith(newDiv);
+				
+				newDiv.addEventListener('click', () => {
+					const current = newDiv.textContent?.trim() || '';
+					const val = prompt('Дата (YYYY-MM-DD):', current);
+					if (val !== null && val.trim() !== '') {
+						newDiv.textContent = val.trim();
+						scheduleAutoSave();
+					}
+				});
+			});
+
+			document.querySelectorAll('[data-edit-label]').forEach(el => {
+				const div = el as HTMLDivElement;
+				const newDiv = div.cloneNode(true) as HTMLDivElement;
+				div.replaceWith(newDiv);
+				
+				newDiv.addEventListener('click', () => {
+					const current = newDiv.textContent?.trim() === '—' ? '' : newDiv.textContent?.trim() || '';
+					const val = prompt('Название (необязательно):', current);
+					if (val !== null) {
+						newDiv.textContent = val.trim() || '—';
+						scheduleAutoSave();
+					}
+				});
+			});
+
+			document.querySelectorAll('.remove-lesson-btn').forEach(btn => {
+				const b = btn as HTMLButtonElement;
+				const newB = b.cloneNode(true) as HTMLButtonElement;
+				b.replaceWith(newB);
+
+				newB.addEventListener('click', () => {
+					const li = newB.getAttribute('data-li');
+					if (!li || !confirm('Точно удалить это занятие?')) return;
+					
+					// Удаляем заголовок столбца
+					const th = newB.closest('th');
+					if (th) {
+						const tr = th.parentElement;
+						if (tr) {
+							const colIndex = Array.from(tr.children).indexOf(th);
+							th.remove();
+							// Удаляем ячейки в этом столбце
+							document.querySelectorAll('#att-table tbody tr').forEach(tbodyTr => {
+								if (tbodyTr.children[colIndex]) {
+									tbodyTr.children[colIndex].remove();
+								}
+							});
+							reindexLessons();
+							bindEditEvents();
+							scheduleAutoSave();
+						}
+					}
+				});
+			});
+		}
+
+		function collectPayload() {
+			const headerDates = Array.from(document.querySelectorAll('[data-edit-date]')).map(
+				(el) => el.textContent?.trim() || ''
+			);
+			const headerLabels = Array.from(document.querySelectorAll('[data-edit-label]')).map((el) => {
+				const t = el.textContent?.trim() || '';
+				return t === '—' ? '' : t;
+			});
+
 			const byLesson: Map<number, Set<string>> = new Map();
 			document.querySelectorAll('.cell-att').forEach((el) => {
 				const btn = el as HTMLButtonElement;
@@ -149,30 +255,157 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 				if (!byLesson.has(li)) byLesson.set(li, new Set());
 				byLesson.get(li)!.add(slug);
 			});
-			const lessons = initial.lessons.map((lesson, i) => {
+
+			const lessons = headerDates.map((date, i) => {
 				const absentSlugs = byLesson.get(i);
 				const exceptions = absentSlugs
 					? [...absentSlugs].sort((a, b) => a.localeCompare(b, 'ru')).map((student) => ({ student }))
 					: [];
 				return {
-					date: lesson.date,
-					label: lesson.label ?? '',
+					date,
+					label: headerLabels[i] || '',
 					exceptions,
 				};
 			});
-			const demo = Boolean(demoEl?.checked);
-			status.textContent = 'Сохраняю…';
+
+			return {
+				lessons,
+				demo: Boolean(demoEl?.checked),
+				body: '',
+			};
+		}
+
+		async function persistAttendance(mode: 'manual' | 'auto') {
+			if (!status) return false;
+			const requestId = ++saveRequestId;
+			status.textContent = mode === 'manual' ? 'Сохраняю…' : 'Автосохранение…';
 			const res = await fetch('/api/admin/attendance', {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ lessons, demo, body: '' }),
+				body: JSON.stringify(collectPayload()),
 			});
 			const j = await res.json().catch(() => ({}));
+			if (requestId < latestSavedId) return false;
 			if (!res.ok) {
 				status.textContent = j.error ? JSON.stringify(j.error) : 'Ошибка';
-				return;
+				return false;
 			}
-			status.textContent = 'Сохранено.';
+			latestSavedId = requestId;
+			status.textContent = mode === 'manual' ? 'Сохранено.' : 'Автосохранено.';
+			return true;
+		}
+
+		function scheduleAutoSave() {
+			if (autosaveTimer) window.clearTimeout(autosaveTimer);
+			autosaveTimer = window.setTimeout(() => {
+				persistAttendance('auto');
+			}, 700);
+		}
+
+		bindCellEvents();
+		bindEditEvents();
+
+		// Crosshair highlight
+		const table = document.getElementById('att-table');
+		if (table) {
+			const tbody = table.querySelector('tbody');
+			const thead = table.querySelector('thead');
+			if (tbody && thead) {
+				let activeRowHeader = null;
+				let activeColHeader = null;
+
+				function clearHighlight() {
+					if (activeRowHeader) activeRowHeader.classList.remove('is-crosshair-highlight');
+					if (activeColHeader) activeColHeader.classList.remove('is-crosshair-highlight');
+					activeRowHeader = null;
+					activeColHeader = null;
+				}
+
+				function activateByCell(td) {
+					const tr = td.closest('tr');
+					if (!tr) return;
+					const colIndex = Array.from(tr.children).indexOf(td);
+					if (colIndex <= 0) return;
+					clearHighlight();
+					activeRowHeader = tr.children[0];
+					const theadRow = thead.querySelector('tr');
+					activeColHeader = theadRow ? theadRow.children[colIndex] : null;
+
+					if (activeRowHeader) activeRowHeader.classList.add('is-crosshair-highlight');
+					if (activeColHeader) activeColHeader.classList.add('is-crosshair-highlight');
+				}
+
+				const isTouchUi = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+				tbody.addEventListener('mouseover', (e) => {
+					if (isTouchUi) return;
+					const td = e.target.closest('td');
+					if (!td) return;
+					activateByCell(td);
+				});
+
+				tbody.addEventListener('mouseleave', () => {
+					if (isTouchUi) return;
+					clearHighlight();
+				});
+
+				tbody.addEventListener('click', (e) => {
+					if (!isTouchUi) return;
+					const td = e.target.closest('td');
+					if (!td) return;
+					activateByCell(td);
+				});
+			}
+		}
+
+		addLessonBtn?.addEventListener('click', () => {
+			const date = prompt('Дата нового урока (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+			if (!date) return;
+			const label = prompt('Название (необязательно):', '');
+			
+			const initial = readInitial();
+			const newIndex = initial.lessons.length;
+			initial.lessons.push({ date, label: label || undefined });
+			if (initialEl) initialEl.textContent = JSON.stringify(initial);
+
+			const theadTr = document.querySelector('#att-table thead tr');
+			if (theadTr) {
+				const th = document.createElement('th');
+				th.className = "w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0 relative group/th";
+				th.innerHTML = `
+					<button type="button" class="remove-lesson-btn absolute right-1 top-1 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li="${newIndex}" title="Удалить занятие">✕</button>
+					<div class="text-xs text-accent cursor-pointer hover:underline" data-edit-date data-li="${newIndex}" title="Изменить дату">${date}</div>
+					<div class="mt-1 text-[10px] uppercase tracking-wider text-canvas/70 cursor-pointer hover:underline" data-edit-label data-li="${newIndex}" title="Изменить название">${label || '—'}</div>
+				`;
+				theadTr.appendChild(th);
+			}
+
+			document.querySelectorAll('#att-table tbody tr').forEach(tr => {
+				const slug = tr.getAttribute('data-slug');
+				const td = document.createElement('td');
+				td.className = "w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0";
+				td.innerHTML = `
+					<button
+						type="button"
+						class="cell-att inline-flex min-w-[2.5rem] justify-center border-[2px] border-ink px-1.5 py-1 text-xs transition-colors active-shift bg-accent text-canvas"
+						data-li="${newIndex}"
+						data-slug="${slug}"
+						data-absent="0"
+					>Б</button>
+				`;
+				tr.appendChild(td);
+			});
+
+			reindexLessons();
+			bindCellEvents();
+			bindEditEvents();
+			scheduleAutoSave();
+		});
+
+		demoEl?.addEventListener('change', scheduleAutoSave);
+
+		saveBtn?.addEventListener('click', async () => {
+			await persistAttendance('manual');
 		});
 	</script>
 </Layout>

@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%" style="background-color: #f0ebe0;">
+    <!-- Background large number 17 -->
+    <text x="400" y="410" font-family="Bebas Neue, sans-serif" font-size="450" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="4" text-anchor="middle" font-weight="normal" letter-spacing="-0.02em">17</text>
+    
+    <!-- Dashed lines -->
+    <line x1="266" y1="40" x2="266" y2="460" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="4 4" opacity="0.2" />
+    <line x1="533" y1="40" x2="533" y2="460" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="4 4" opacity="0.2" />
+    <line x1="80" y1="250" x2="720" y2="250" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="4 4" opacity="0.2" />
+    
+    
+    <g transform="translate(114.60312949255237, 131.1582223063159)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -18 Q -14 -14 -6 -8" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(200.43628559334456, 137.59436596141245)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" /><path d="M 6 -14 Q 14 -22 22 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(322.06365803747445, 152.20397262774273)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" /><path d="M 6 -14 Q 14 -22 22 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(433.48104924781137, 97.43660109986101)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(575.2342583815523, 139.52883267500314)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" /><path d="M 6 -14 Q 14 -22 22 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(677.7621833844441, 171.93311611013996)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -18 Q -14 -14 -6 -8" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(170.26261207055822, 241.28938570586035)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M 6 -14 Q 14 -22 22 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(285.7343678415298, 246.2062629855829)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M 6 -14 Q 14 -22 22 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(383.5732723571325, 271.4360807405787)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M 6 -8 Q 14 -14 22 -18" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(508.72925696158575, 257.73026626361286)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -18 Q -14 -14 -6 -8" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(600.0179933591329, 268.88874753083655)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" /><path d="M 6 -14 Q 14 -22 22 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(119.84057726516468, 371.1015471562982)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#d42b2b" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#d42b2b" />
+        <circle cx="14" cy="-4" r="4.5" fill="#d42b2b" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" /><path d="M 6 -14 Q 14 -22 22 -14" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(230.84735753866966, 396.82274691172495)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#d42b2b" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#d42b2b" />
+        <circle cx="14" cy="-4" r="4.5" fill="#d42b2b" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M 6 -14 Q 14 -22 22 -14" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(365.06037667050214, 358.2961162989511)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#d42b2b" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#d42b2b" />
+        <circle cx="14" cy="-4" r="4.5" fill="#d42b2b" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M 6 -8 Q 14 -14 22 -18" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(453.66394417184284, 390.3894771278575)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M 6 -8 Q 14 -14 22 -18" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(599.8985348724369, 364.2662585919098)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#0a0a0a" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <circle cx="14" cy="-4" r="4.5" fill="#0a0a0a" />
+        <path d="M -16 12 Q 0 24 16 12" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        <path d="M -22 -14 Q -14 -22 -6 -14" stroke="#0a0a0a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    </g>
+    
+
+    <g transform="translate(686.5470176621893, 353.7014387285525)">
+        <circle cx="0" cy="0" r="38" fill="none" stroke="#d42b2b" stroke-width="2.5" />
+        <circle cx="-14" cy="-4" r="4.5" fill="#d42b2b" />
+        <circle cx="14" cy="-4" r="4.5" fill="#d42b2b" />
+        <path d="M -16 20 Q 0 10 16 20" stroke="#d42b2b" stroke-width="2.5" fill="none" stroke-linecap="round" />
+        
+    </g>
+    
+</svg>

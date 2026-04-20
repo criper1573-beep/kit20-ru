@@ -5,7 +5,11 @@ import { readStudentsSorted, readAttendance } from '../lib/siteContent';
 
 const students = await readStudentsSorted();
 const { data: att } = await readAttendance();
-const lessons = att.lessons ?? [];
+
+// Сортируем занятия: самые новые слева (по убыванию даты)
+const lessons = (att.lessons ?? []).sort((a, b) => {
+	return new Date(b.date).getTime() - new Date(a.date).getTime();
+});
 
 const statusLabel: Record<'present' | 'absent', string> = {
 	present: 'Б',
@@ -35,28 +39,28 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 ---
 
 <Layout title="Посещаемость" description="График посещаемости занятий">
-	<div class="mb-6 md:mb-8">
-		<h1 class="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Посещаемость</h1>
+	<div class="mb-8 border-b-[3px] border-ink pb-4">
+		<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Посещаемость</h1>
 	</div>
 
 	{
 		lessons.length === 0 ? (
-			<div class="rounded-3xl border border-dashed border-slate-200 bg-slate-50/90 p-8 text-center text-sm text-muted">
+			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
 				Нет данных.
 			</div>
 		) : (
 			<>
-				<div class="overflow-x-auto rounded-3xl border border-slate-200/90 bg-surface shadow-[var(--shadow-card)]">
-					<table class="w-full min-w-[640px] border-collapse text-left text-sm">
+				<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
+					<table class="w-max min-w-[640px] border-collapse text-left font-sans text-sm" id="att-table">
 						<thead>
-							<tr class="border-b border-slate-200 bg-slate-50/90">
-								<th class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-3.5 font-display font-bold text-accent backdrop-blur-sm">
-									Ученик
+							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
+								<th class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-ink px-4 py-3.5 font-display text-xl font-normal tracking-widest">
+									УЧЕНИК
 								</th>
 								{lessons.map((lesson) => (
-									<th class="min-w-[5.5rem] px-2 py-3 text-center font-semibold text-slate-700">
-										<div class="text-xs font-normal text-muted">{lesson.date}</div>
-										<div class="mt-0.5 text-[11px] font-medium leading-tight text-slate-500">
+									<th class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0">
+										<div class="text-xs text-accent">{lesson.date}</div>
+										<div class="mt-1 text-[10px] uppercase tracking-wider text-canvas/70">
 											{lesson.label ?? '—'}
 										</div>
 									</th>
@@ -65,8 +69,8 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 						</thead>
 						<tbody>
 							{students.map((s) => (
-								<tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50/80">
-									<td class="sticky left-0 z-10 border-r border-slate-100 bg-surface px-4 py-2.5 font-semibold text-ink backdrop-blur-sm">
+								<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors">
+									<td class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-surface px-4 py-3 uppercase tracking-wider text-ink group-hover:bg-muted-surface transition-colors">
 										{s.data.displayName}
 									</td>
 									{lessons.map((lesson) => {
@@ -74,12 +78,11 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 										const label = statusLabel[st];
 										const t = statusTitle[st];
 										return (
-											<td class="px-2 py-2.5 text-center">
+											<td class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0">
 												<span
 													class:list={[
-														'inline-flex min-w-[2rem] justify-center rounded-lg px-1.5 py-1 text-xs font-bold',
-														st === 'present' && 'bg-emerald-100 text-emerald-800',
-														st === 'absent' && 'bg-rose-100 text-rose-800',
+														'inline-flex min-w-[2.5rem] justify-center border-[2px] border-ink px-1.5 py-1 text-xs',
+														st === 'present' ? 'bg-accent text-canvas' : 'bg-surface text-ink',
 													]}
 													title={t}
 												>
@@ -97,12 +100,75 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 		)
 	}
 
-	<div class="mt-8 flex flex-wrap gap-4 text-xs text-muted">
-		<span>
-			<strong class="font-bold text-emerald-600">Б</strong> — был
+	<div class="mt-8 flex flex-wrap gap-6 font-sans text-xs uppercase tracking-widest text-muted">
+		<span class="flex items-center gap-2">
+			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-accent px-1.5 py-0.5 text-canvas">Б</span> — БЫЛ
 		</span>
-		<span>
-			<strong class="font-bold text-rose-600">Н</strong> — не был
+		<span class="flex items-center gap-2">
+			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-surface px-1.5 py-0.5 text-ink">Н</span> — НЕ БЫЛ
 		</span>
 	</div>
+
+	<script is:inline>
+		(() => {
+			const table = document.getElementById('att-table');
+			if (!table) return;
+			const tbody = table.querySelector('tbody');
+			const thead = table.querySelector('thead');
+			if (!tbody || !thead) return;
+
+			let activeRowHeader: Element | null = null;
+			let activeColHeader: Element | null = null;
+
+			function clearHighlight() {
+				activeRowHeader?.classList.remove('is-crosshair-highlight');
+				activeColHeader?.classList.remove('is-crosshair-highlight');
+				activeRowHeader = null;
+				activeColHeader = null;
+			}
+
+			function activateByCell(td: HTMLTableCellElement) {
+				const tr = td.closest('tr');
+				if (!tr) return;
+				const colIndex = Array.from(tr.children).indexOf(td);
+				if (colIndex <= 0) return;
+				clearHighlight();
+				activeRowHeader = tr.children[0] ?? null;
+				const theadRow = thead.querySelector('tr');
+				activeColHeader = theadRow?.children[colIndex] ?? null;
+				activeRowHeader?.classList.add('is-crosshair-highlight');
+				activeColHeader?.classList.add('is-crosshair-highlight');
+			}
+
+			const isTouchUi = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+			tbody.addEventListener('mouseover', (e) => {
+				if (isTouchUi) return;
+				const target = e.target;
+				const td = target instanceof Element ? target.closest('td') : null;
+				if (!(td instanceof HTMLTableCellElement)) return;
+				activateByCell(td);
+			});
+
+			tbody.addEventListener('mouseleave', () => {
+				if (isTouchUi) return;
+				clearHighlight();
+			});
+
+			tbody.addEventListener('click', (e) => {
+				const target = e.target;
+				const td = target instanceof Element ? target.closest('td') : null;
+				if (!(td instanceof HTMLTableCellElement)) return;
+				activateByCell(td);
+			});
+
+			// Mobile Safari can delay/skip click in some cases; pointerdown makes highlight immediate.
+			tbody.addEventListener('pointerdown', (e) => {
+				const target = e.target;
+				const td = target instanceof Element ? target.closest('td') : null;
+				if (!(td instanceof HTMLTableCellElement)) return;
+				activateByCell(td);
+			});
+		})();
+	</script>
 </Layout>

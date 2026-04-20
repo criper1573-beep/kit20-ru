@@ -3,6 +3,12 @@ export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import { readHome } from '../../lib/siteContent';
 import { renderMarkdownToHtml } from '../../lib/renderMarkdown';
+import { hasValidAdminSession } from '../../lib/adminApiAuth';
+
+if (!hasValidAdminSession(Astro.cookies)) {
+	const nextUrl = Astro.url.pathname + Astro.url.search;
+	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
+}
 
 const { data, body } = await readHome();
 const previewHtml = renderMarkdownToHtml(body);
@@ -11,75 +17,154 @@ const title = `Редактор · ${data.title}`;
 
 <Layout admin title={title}>
 	<section
-		class="relative overflow-hidden rounded-3xl border border-amber-200/80 bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8"
+		class="relative overflow-hidden border-[3px] border-ink bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8"
 	>
-		<p class="mb-4 text-sm font-semibold text-amber-800">Черновик главной — сохраняется в `src/content/home.md`</p>
-		<form id="home-form" class="space-y-4">
-			<label class="block text-sm font-semibold">
+		<p class="mb-6 font-sans text-sm uppercase text-accent">Черновик главной — сохраняется в `src/content/home.md`</p>
+		<form id="home-form" class="space-y-6">
+			<label class="block font-sans text-sm uppercase tracking-wider">
 				Заголовок
 				<input
 					type="text"
 					name="title"
 					value={data.title}
-					class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base"
+					class="mt-2 w-full border-[3px] border-ink bg-surface px-3 py-2 font-sans text-base shadow-[var(--shadow-card)] focus:outline-none focus:ring-2 focus:ring-accent"
 				/>
 			</label>
-			<label class="block text-sm font-semibold">
+			<label class="block font-sans text-sm uppercase tracking-wider">
 				Подзаголовок
 				<input
 					type="text"
 					name="subtitle"
 					value={data.subtitle ?? ''}
-					class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base"
+					class="mt-2 w-full border-[3px] border-ink bg-surface px-3 py-2 font-sans text-base shadow-[var(--shadow-card)] focus:outline-none focus:ring-2 focus:ring-accent"
 				/>
 			</label>
-			<label class="block text-sm font-semibold">
+			
+			<div class="block font-sans text-sm uppercase tracking-wider">
+				Фото группы
+				<div class="mt-2 flex items-center gap-4">
+					<input type="hidden" name="photo" id="photo-input" value={data.photo ?? ''} />
+					<img id="photo-preview" src={data.photo ?? ''} class="h-20 w-20 border-[3px] border-ink object-cover shadow-[var(--shadow-card)]" style={data.photo ? '' : 'display:none;'} />
+					<label class="cursor-pointer border-[3px] border-ink bg-surface px-4 py-2 uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift transition-colors">
+						Загрузить фото
+						<input type="file" id="photo-upload" accept="image/*" class="hidden" />
+					</label>
+					<span id="upload-status" class="text-xs text-muted"></span>
+				</div>
+			</div>
+
+			<label class="block font-sans text-sm uppercase tracking-wider">
 				Текст (Markdown)
 				<textarea
 					name="body"
 					rows="14"
-					class="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 font-mono text-sm leading-relaxed"
+					class="mt-2 w-full border-[3px] border-ink bg-surface px-3 py-2 font-mono text-sm leading-relaxed shadow-[var(--shadow-card)] focus:outline-none focus:ring-2 focus:ring-accent"
 				>{body}</textarea>
 			</label>
-			<div class="flex flex-wrap items-center gap-3">
+			<div class="flex flex-wrap items-center gap-4 pt-4">
 				<button
 					type="submit"
-					class="rounded-full bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-blue-700"
+					class="border-[3px] border-ink bg-accent px-6 py-3 font-display text-xl tracking-widest text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover active-shift transition-colors"
 				>
 					Сохранить
 				</button>
-				<span id="home-status" class="text-sm text-muted"></span>
+				<span id="home-status" class="font-sans text-sm uppercase text-muted"></span>
 			</div>
 		</form>
 	</section>
 
-	<section class="mt-10 rounded-3xl border border-slate-200/90 bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8">
-		<h2 class="font-display text-lg font-bold text-ink">Предпросмотр</h2>
-		<div class="markdown-body mt-4 max-w-3xl border-t border-slate-100 pt-4" set:html={previewHtml} />
+	<section class="mt-12 border-[3px] border-ink bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8">
+		<h2 class="font-display text-3xl font-normal tracking-widest text-ink uppercase">Предпросмотр</h2>
+		<div class="markdown-body mt-6 border-t-[3px] border-ink pt-6" set:html={previewHtml} />
 	</section>
 
 	<script>
 		const form = document.getElementById('home-form');
 		const status = document.getElementById('home-status');
-		form?.addEventListener('submit', async (e) => {
-			e.preventDefault();
-			if (!form || !status) return;
-			status.textContent = 'Сохраняю…';
+		const photoUpload = document.getElementById('photo-upload') as HTMLInputElement;
+		const photoInput = document.getElementById('photo-input') as HTMLInputElement;
+		const photoPreview = document.getElementById('photo-preview') as HTMLImageElement;
+		const uploadStatus = document.getElementById('upload-status');
+		let autosaveTimer: number | null = null;
+		let saveRequestId = 0;
+		let latestSavedId = 0;
+
+		async function saveHome(mode: 'manual' | 'auto') {
+			if (!form || !status) return false;
+			const requestId = ++saveRequestId;
+			status.textContent = mode === 'manual' ? 'Сохраняю…' : 'Автосохранение…';
 			const fd = new FormData(form);
 			const title = String(fd.get('title') ?? '');
 			const subtitle = String(fd.get('subtitle') ?? '');
+			const photo = String(fd.get('photo') ?? '');
 			const body = String(fd.get('body') ?? '');
-			const res = await fetch('/api/admin/home', {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ title, subtitle, body }),
-			});
-			const j = await res.json().catch(() => ({}));
-			if (!res.ok) {
-				status.textContent = j.error ? JSON.stringify(j.error) : 'Ошибка';
-				return;
+			try {
+				const res = await fetch('/api/admin/home', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ title, subtitle, photo, body }),
+				});
+				const j = await res.json().catch(() => ({}));
+				if (requestId < latestSavedId) return false;
+				if (!res.ok) {
+					status.textContent = j.error ? JSON.stringify(j.error) : 'Ошибка';
+					return false;
+				}
+				latestSavedId = requestId;
+				status.textContent = mode === 'manual' ? 'Сохранено.' : 'Автосохранено.';
+				return true;
+			} catch {
+				status.textContent = 'Ошибка';
+				return false;
 			}
-			status.textContent = 'Сохранено. Обновите страницу сайта, чтобы увидеть изменения.';
+		}
+
+		function scheduleAutoSave() {
+			if (!form) return;
+			if (autosaveTimer) window.clearTimeout(autosaveTimer);
+			autosaveTimer = window.setTimeout(() => {
+				saveHome('auto');
+			}, 700);
+		}
+
+		photoUpload?.addEventListener('change', async () => {
+			const file = photoUpload.files?.[0];
+			if (!file) return;
+			
+			if (uploadStatus) uploadStatus.textContent = 'Загрузка...';
+			
+			const fd = new FormData();
+			fd.append('file', file);
+			
+			try {
+				const res = await fetch('/api/admin/upload', {
+					method: 'POST',
+					body: fd,
+				});
+				const data = await res.json();
+				
+				if (res.ok && data.url) {
+					photoInput.value = data.url;
+					photoPreview.src = data.url;
+					photoPreview.style.display = 'block';
+					if (uploadStatus) uploadStatus.textContent = 'Загружено';
+					scheduleAutoSave();
+				} else {
+					if (uploadStatus) uploadStatus.textContent = 'Ошибка загрузки';
+				}
+			} catch (e) {
+				if (uploadStatus) uploadStatus.textContent = 'Ошибка загрузки';
+			}
+		});
+
+		form?.querySelectorAll('input, textarea').forEach((el) => {
+			el.addEventListener('input', scheduleAutoSave);
+			el.addEventListener('change', scheduleAutoSave);
+		});
+
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			await saveHome('manual');
 		});
 	</script>
 </Layout>

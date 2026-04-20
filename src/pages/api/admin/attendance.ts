@@ -1,10 +1,14 @@
 import type { APIRoute } from 'astro';
 import { attendanceFrontmatterSchema } from '../../../lib/schemas';
 import { readAttendance, writeAttendance } from '../../../lib/siteContent';
+import { hasValidAdminSession, unauthorizedJson } from '../../../lib/adminApiAuth';
 
 export const prerender = false;
 
-export const PUT: APIRoute = async ({ request }) => {
+export const PUT: APIRoute = async ({ request, cookies }) => {
+	if (!hasValidAdminSession(cookies)) {
+		return unauthorizedJson();
+	}
 	let json: unknown;
 	try {
 		json = await request.json();
@@ -42,7 +46,10 @@ export const PUT: APIRoute = async ({ request }) => {
 	});
 };
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ cookies }) => {
+	if (!hasValidAdminSession(cookies)) {
+		return unauthorizedJson();
+	}
 	try {
 		const a = await readAttendance();
 		return new Response(JSON.stringify({ data: a.data, body: a.body }), {

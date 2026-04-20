@@ -36,9 +36,17 @@ export const lessonSchema = z.object({
 	records: z.array(attendanceRecordSchema).optional(),
 });
 
+export const homeSemesterBarSchema = z.object({
+	label: z.string(),
+	progress: z.number().min(0).max(100),
+});
+
 export const homeFrontmatterSchema = z.object({
 	title: z.string(),
 	subtitle: z.string().optional(),
+	photo: z.string().optional(),
+	/** Прогресс по семестрам (до 2 учебных лет); см. бренд-бук «Прогресс» */
+	semesters: z.array(homeSemesterBarSchema).optional(),
 });
 
 export const studentFrontmatterSchema = z.object({

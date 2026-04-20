@@ -10,7 +10,7 @@ export interface StageBlock {
 
 interface Props {
 	blocks: StageBlock[];
-	/** Подпись под надписью «КЛАСС» (например в админке) */
+	/** Подсказка по центру сцены (например в админке) */
 	pageLead?: string;
 }
 
@@ -70,24 +70,26 @@ const speechLines = [
 		class="class-stage-roam-shell pointer-events-none fixed inset-0 z-[55] overflow-hidden"
 		style="padding: max(0.5rem, env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));"
 	>
-		<div
-			class="class-stage-ambient pointer-events-none absolute inset-0 z-0 rounded-[clamp(8px,1.5vmin,16px)]"
+		<svg
+			class="class-stage-stroke-layer pointer-events-none absolute inset-0 z-[14] h-full w-full"
 			aria-hidden="true"
 		>
-		</div>
+			<path
+				id="class-stroke-to-figure"
+				fill="none"
+				stroke="#d42b2b"
+				stroke-width="2.5"
+				stroke-linecap="square"
+				stroke-linejoin="round"
+				opacity="0.9"></path>
+		</svg>
 
-		<!-- Между фоном и фигурами: иначе весь слой z-55 перекрывал надпись -->
 		<div
-			class="class-stage-watermark pointer-events-none absolute inset-0 z-[12] flex flex-col items-center justify-center px-4 text-center"
+			class="class-stage-watermark pointer-events-none absolute inset-0 z-[12] flex flex-col items-center justify-end px-4 pb-[max(14vh,4.5rem)] text-center sm:justify-center sm:pb-0"
 		>
-			<h1
-				class="class-stage-cap-label font-display font-extrabold uppercase tracking-[0.12em] sm:tracking-[0.18em]"
-			>
-				КЛАСС
-			</h1>
 			{
 				pageLead && (
-					<p class="class-stage-watermark-lead mt-5 max-w-xl text-sm leading-relaxed sm:mt-6 sm:text-base">
+					<p class="class-stage-watermark-lead max-w-xl text-sm leading-relaxed sm:text-base">
 						{pageLead}
 					</p>
 				)
@@ -105,9 +107,9 @@ const speechLines = [
 							data-stage-slug={b.slug}
 							data-stage-roam="page"
 							class:list={[
-								'class-stage-walker-page absolute z-10 flex w-14 flex-col items-center rounded-2xl border border-transparent bg-transparent p-0.5 shadow-none transition [transform-style:flat] sm:w-[5.25rem] md:w-28',
+								'class-stage-walker-page absolute z-10 flex w-14 flex-col items-center border-[3px] border-transparent bg-transparent p-0.5 shadow-none transition [transform-style:flat] sm:w-[5.25rem] md:w-28',
 								`class-stage-walker-${i}`,
-								'pointer-events-auto active:bg-slate-900/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 md:hover:border-blue-300/50 md:hover:bg-slate-900/[0.04]',
+								'pointer-events-auto active:bg-ink/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent md:hover:border-ink md:hover:bg-muted-surface md:hover:shadow-[var(--shadow-card)]',
 							]}
 							style={`left:${lx}%; top:${ty}%;`}
 						>
@@ -117,7 +119,7 @@ const speechLines = [
 								aria-hidden="true"
 							>
 								<div
-									class="class-stage-bubble-panel class-stage-bubble-panel--compact relative max-w-[min(11rem,calc(100vw-3rem))] rounded-lg border border-slate-200/90 bg-white px-1.5 py-1 text-center text-[8px] font-medium leading-tight text-slate-800 shadow-md sm:rounded-xl sm:px-2.5 sm:py-2 sm:text-[10px] sm:leading-snug md:text-[11px]"
+									class="class-stage-bubble-panel class-stage-bubble-panel--compact relative max-w-[min(11rem,calc(100vw-3rem))] border-[3px] border-ink bg-surface px-2 py-1.5 text-center font-display text-[9px] font-normal uppercase leading-tight tracking-wide text-ink shadow-[var(--shadow-card)] sm:px-3 sm:py-2.5 sm:text-[10px] sm:leading-snug md:text-[11px]"
 								>
 									<span data-stage-bubble-text=""></span>
 								</div>
@@ -125,7 +127,7 @@ const speechLines = [
 							<div class="h-10 w-full sm:h-[4.5rem] md:h-28">
 								<StudentAvatar variant={b.variant} displayName={b.data.displayName} class="h-full w-full" />
 							</div>
-							<span class="mt-0.5 max-w-full truncate px-0.5 text-center text-[10px] font-semibold leading-tight text-slate-800 sm:text-xs">
+							<span class="mt-0.5 max-w-full truncate px-0.5 text-center font-display text-[10px] font-normal uppercase leading-tight tracking-[0.12em] text-ink sm:text-[11px]">
 								{b.data.displayName}
 							</span>
 						</button>
@@ -135,85 +137,19 @@ const speechLines = [
 		</div>
 	</div>
 
-	<div
-		class="pointer-events-none fixed bottom-0 left-0 right-0 z-[56] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:hidden"
-	>
-		<div
-			class="pointer-events-auto mx-auto max-w-5xl rounded-2xl border border-slate-200/70 bg-white/80 px-2 py-2 shadow-sm backdrop-blur-sm sm:px-4"
-		>
-			<p class="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Открыть карточку</p>
-			<div class="flex flex-wrap justify-center gap-1 sm:gap-1.5">
-				{
-					blocks.map((b) => (
-						<button
-							type="button"
-							data-open-dialog={`dlg-${b.slug}`}
-							class="rounded-full border border-slate-200/90 bg-white px-2 py-0.5 text-[11px] font-semibold leading-tight text-slate-700 shadow-sm transition hover:border-blue-300/60 hover:bg-blue-50/50 hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-[0.98] sm:px-2.5 sm:text-xs md:py-1"
-						>
-							{b.data.displayName}
-						</button>
-					))
-				}
-			</div>
-		</div>
-	</div>
 </div>
 
 <style is:global set:html={roamCss}></style>
 
 <style>
-	.class-stage-cap-label {
-		margin: 0;
-		line-height: 0.95;
-		font-size: clamp(3.25rem, 22vw, 14rem);
-		color: rgb(15 23 42 / 0.38);
-		text-shadow: 0 1px 0 rgb(255 255 255 / 0.55), 0 0 40px rgb(255 255 255 / 0.4);
-		user-select: none;
+	.class-page-overlay-root.is-footer-active .class-stage-roam-shell,
+	.class-page-overlay-root.is-footer-active > .fixed.bottom-0 {
+		opacity: 0;
+		pointer-events: none;
 	}
 
 	.class-stage-watermark-lead {
-		color: rgb(100 116 139 / 0.45);
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.class-stage-cap-label {
-			color: rgb(248 250 252 / 0.28);
-			text-shadow: 0 0 48px rgb(15 23 42 / 0.35);
-		}
-		.class-stage-watermark-lead {
-			color: rgb(148 163 184 / 0.4);
-		}
-	}
-
-	.class-stage-ambient {
-		background:
-			radial-gradient(ellipse 85% 55% at 18% 28%, rgb(59 130 246 / 0.11), transparent 52%),
-			radial-gradient(ellipse 70% 50% at 82% 72%, rgb(14 165 233 / 0.09), transparent 48%),
-			radial-gradient(ellipse 50% 40% at 50% 50%, rgb(99 102 241 / 0.05), transparent 55%);
-		background-size: 120% 120%, 115% 115%, 100% 100%;
-		animation: class-stage-ambient-drift 52s ease-in-out infinite;
-	}
-
-	@keyframes class-stage-ambient-drift {
-		0%,
-		100% {
-			background-position: 0% 0%, 100% 100%, 50% 50%;
-			opacity: 1;
-		}
-		33% {
-			background-position: 8% 12%, 92% 88%, 45% 55%;
-			opacity: 0.92;
-		}
-		66% {
-			background-position: -6% 6%, 108% 94%, 55% 45%;
-			opacity: 0.96;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.class-stage-ambient {
-			animation: none;
-		}
+		color: rgb(82 82 91 / 0.55);
 	}
 
 	.class-stage-bubble-panel::after {
@@ -223,7 +159,7 @@ const speechLines = [
 		top: 100%;
 		margin-left: -7px;
 		border: 7px solid transparent;
-		border-top-color: #fff;
+		border-top-color: var(--color-surface);
 	}
 
 	.class-stage-bubble-panel--compact::after {
@@ -314,6 +250,102 @@ const speechLines = [
 			'astro:before-swap',
 			() => {
 				window.clearInterval(id);
+			},
+			{ once: true }
+		);
+	})();
+</script>
+
+<script is:inline>
+	(function () {
+		const root = document.querySelector('[data-class-stage]');
+		const path = document.getElementById('class-stroke-to-figure');
+		if (!root || !path || !(path instanceof SVGPathElement)) return;
+		const isMobile = window.matchMedia('(max-width: 767px)').matches;
+		if (isMobile) {
+			path.setAttribute('opacity', '0');
+			return;
+		}
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+		const clearLine = () => {
+			path.style.transition = 'none';
+			path.style.strokeDasharray = '0';
+			path.style.strokeDashoffset = '0';
+			path.setAttribute('d', '');
+		};
+
+		root.addEventListener('click', (e) => {
+			const el = e.target;
+			const t = el instanceof Element ? el.closest('[data-open-dialog]') : null;
+			if (!t || !root.contains(t)) return;
+			const id = t.getAttribute('data-open-dialog');
+			if (!id || !id.startsWith('dlg-')) return;
+			const rect = t.getBoundingClientRect();
+			const tx = rect.left + rect.width / 2;
+			const ty = rect.top + rect.height / 2;
+			const sx = window.innerWidth * 0.5;
+			const sy = window.innerHeight + 24;
+			const cx = (sx + tx) / 2;
+			const cy = (sy + ty) / 2 - 100;
+			path.setAttribute('d', `M ${sx} ${sy} Q ${cx} ${cy} ${tx} ${ty}`);
+			const len = path.getTotalLength();
+			path.style.strokeDasharray = String(len);
+			path.style.strokeDashoffset = String(len);
+			path.style.transition = 'none';
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					path.style.transition = 'stroke-dashoffset 0.7s ease-out';
+					path.style.strokeDashoffset = '0';
+				});
+			});
+		});
+
+		document.addEventListener(
+			'close',
+			(e) => {
+				if (e.target instanceof HTMLDialogElement) clearLine();
+			},
+			true
+		);
+	})();
+</script>
+
+<script is:inline>
+	(function () {
+		const root = document.querySelector('[data-class-stage]');
+		if (!root) return;
+
+		function initFooterObserver() {
+			const footer = document.querySelector('footer');
+			if (!footer) return false;
+
+			const io = new IntersectionObserver(
+				(entries) => {
+					for (const entry of entries) {
+						root.classList.toggle('is-footer-active', entry.isIntersecting);
+					}
+				},
+				{ threshold: 0.01 }
+			);
+
+			io.observe(footer);
+			document.addEventListener(
+				'astro:before-swap',
+				() => {
+					io.disconnect();
+				},
+				{ once: true }
+			);
+			return true;
+		}
+
+		// Компонент рендерится раньше футера, поэтому делаем ленивую инициализацию.
+		if (initFooterObserver()) return;
+		window.addEventListener(
+			'load',
+			() => {
+				initFooterObserver();
 			},
 			{ once: true }
 		);

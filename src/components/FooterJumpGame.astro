@@ -1,0 +1,423 @@
+---
+---
+
+<section class="border-[3px] border-ink bg-surface p-3 shadow-[var(--shadow-card)]">
+	<div class="flex items-center justify-between gap-2">
+		<h3 class="font-display text-lg uppercase tracking-[0.2em] text-ink">Прыжок</h3>
+		<button id="footer-jump-open-rating-top" type="button" class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:text-accent-hover">
+			Рейтинг
+		</button>
+	</div>
+
+	<div class="mt-2 border-[2px] border-ink bg-canvas p-1">
+		<canvas id="footer-jump-canvas" width="300" height="110" class="h-[110px] w-full"></canvas>
+	</div>
+
+	<p id="footer-jump-status" class="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+		Пробел или клик — прыжок
+	</p>
+	<p id="footer-jump-coach" class="mt-1 hidden font-serif text-[12px] italic leading-relaxed text-muted"></p>
+
+	<form id="footer-jump-form" class="mt-2 hidden items-end gap-2">
+		<label class="flex-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+			Имя
+			<input
+				id="footer-jump-name"
+				type="text"
+				maxlength="24"
+				required
+				class="mt-1 w-full border-[2px] border-ink bg-surface px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-accent"
+			/>
+		</label>
+		<button type="submit" class="type-cta border-[2px] border-ink bg-accent px-3 py-1.5 text-[10px] text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover">
+			Сохранить
+		</button>
+	</form>
+
+	<div class="mt-2 flex items-center justify-between gap-2">
+		<button id="footer-jump-start" type="button" class="type-cta border-[2px] border-ink bg-surface px-3 py-1.5 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface">
+			Старт
+		</button>
+		<button id="footer-jump-restart" type="button" class="type-cta hidden border-[2px] border-ink bg-surface px-3 py-1.5 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface">
+			Ещё раз
+		</button>
+		<button id="footer-jump-open-rating-bottom" type="button" class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted hover:text-ink">
+			Открыть рейтинг
+		</button>
+	</div>
+</section>
+
+<dialog
+	id="footer-jump-rating-dialog"
+	class="fixed left-1/2 top-1/2 z-[120] w-[min(100vw-2rem,32rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 border-[3px] border-ink bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
+>
+	<div class="border-b-[3px] border-ink bg-muted-surface px-4 py-3">
+		<div class="flex items-center justify-between gap-3">
+			<h4 class="font-display text-xl uppercase tracking-[0.15em] text-ink">Рейтинг прыжка</h4>
+			<button id="footer-jump-rating-close" type="button" class="type-cta border-[2px] border-ink bg-surface px-2 py-1 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface">
+				Закрыть
+			</button>
+		</div>
+	</div>
+	<div class="p-4">
+		<p id="footer-jump-rating-status" class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Загрузка…</p>
+		<div class="bb-scrollbar max-h-64 overflow-auto border-[2px] border-ink">
+			<table class="w-full border-collapse text-left">
+				<thead>
+					<tr class="bg-ink text-canvas">
+						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">#</th>
+						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">Имя</th>
+						<th class="px-2 py-2 font-display text-sm uppercase tracking-widest">Дист.</th>
+					</tr>
+				</thead>
+				<tbody id="footer-jump-rating-body"></tbody>
+			</table>
+		</div>
+	</div>
+</dialog>
+
+<script is:inline>
+	(() => {
+		const canvas = document.getElementById('footer-jump-canvas');
+		if (!(canvas instanceof HTMLCanvasElement)) return;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		const statusEl = document.getElementById('footer-jump-status');
+		const coachEl = document.getElementById('footer-jump-coach');
+		const form = document.getElementById('footer-jump-form');
+		const nameInput = document.getElementById('footer-jump-name');
+		const startBtn = document.getElementById('footer-jump-start');
+		const restartBtn = document.getElementById('footer-jump-restart');
+		const openRatingTopBtn = document.getElementById('footer-jump-open-rating-top');
+		const openRatingBottomBtn = document.getElementById('footer-jump-open-rating-bottom');
+		const ratingDialog = document.getElementById('footer-jump-rating-dialog');
+		const ratingCloseBtn = document.getElementById('footer-jump-rating-close');
+		const ratingStatusEl = document.getElementById('footer-jump-rating-status');
+		const ratingBodyEl = document.getElementById('footer-jump-rating-body');
+
+		const W = canvas.width;
+		const H = canvas.height;
+		const groundY = H - 20;
+
+		let running = false;
+		let raf = 0;
+		let last = performance.now();
+		let distance = 0;
+		let spawn = 0.8;
+		const sessionIdKey = 'kit20_jump_session_id';
+		const sessionBestKey = 'kit20_jump_best';
+		const sessionNameKey = 'kit20_jump_name';
+		const obstacles = [];
+		const player = { x: 36, y: groundY - 16, w: 14, h: 16, vy: 0 };
+		const coachPhrases = [
+			'Маловато репетиций. Сделай упражнение «Счет до 30 на одном дыхании».',
+			'Сцена любит подготовку. Выполни «Заземление стоп» 2 минуты.',
+			'Сегодня не дожал. Пройди «Квадрат дыхания» 4-4-4-4.',
+			'Темп просел. Сделай упражнение «Маятник корпуса» 20 повторов.',
+			'Нужно больше концентрации. Выполни «Точка внимания» 90 секунд.',
+			'Прыжок сырой. Сделай «Артикуляционная разминка» (губы/язык) 3 минуты.',
+			'Пластика зажата. Пройди «Волна позвоночника» 10 раз.',
+			'Ритм хромает. Сделай «Хлопки по метронома» 120 BPM, 2 минуты.',
+			'Мало сцепки с телом. Выполни «Стоп-кадр эмоции» 8 поз.',
+			'Выносливость слабая. Сделай «Планка с текстом» 45 секунд.',
+			'Не хватило прыти. Пройди «Бег на месте + дикция» 1 минуту.',
+			'Нужна точность. Выполни «Взгляд в точку» и текст без моргания 30 сек.',
+			'Слишком рано сдался. Сделай «Лестница громкости» от шепота до форте.',
+			'Тело опоздало за мыслью. Пройди «Импульс-стоп» 15 повторов.',
+			'Не хватает опоры. Выполни «Корни» — устойчивые стойки 2 минуты.',
+			'Сценическая правда просела. Сделай «Этюд на предмет» 3 минуты.',
+			'Реакция медленная. Пройди «Поймай импульс» с хлопком 20 раз.',
+			'Голос устал. Сделай «Резонаторы: м-м-м / н-н-н» 2 минуты.',
+			'Внимание рассыпалось. Выполни «Тишина и слушание» 60 секунд.',
+			'Пора в тренинг. Сделай этюд «Препятствие и цель» на 2 минуты.',
+		];
+
+		function renderScores(scores) {
+			if (!(ratingBodyEl instanceof HTMLElement)) return;
+			if (!scores.length) {
+				ratingBodyEl.innerHTML = `
+					<tr>
+						<td colspan="3" class="px-2 py-4 text-center font-sans text-xs uppercase tracking-wider text-muted">
+							Пока нет результатов.
+						</td>
+					</tr>
+				`;
+				return;
+			}
+			ratingBodyEl.innerHTML = scores
+				.map((row, i) => {
+					const name = String(row?.name ?? '');
+					const score = Number(row?.score ?? 0);
+					return `
+						<tr class="border-t-[2px] border-ink/15">
+							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-mono text-xs">${i + 1}</td>
+							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-sans text-sm">${name}</td>
+							<td class="px-2 py-1.5 font-mono text-sm text-accent">${formatScore(score)}</td>
+						</tr>
+					`;
+				})
+				.join('');
+		}
+
+		function formatScore(value) {
+			if (!Number.isFinite(value)) return '0.00';
+			return value.toFixed(2);
+		}
+
+		function getSessionId() {
+			try {
+				const prev = sessionStorage.getItem(sessionIdKey);
+				if (prev) return prev;
+				const next = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+				sessionStorage.setItem(sessionIdKey, next);
+				return next;
+			} catch {
+				return '';
+			}
+		}
+
+		function getSessionBest() {
+			try {
+				return Number(sessionStorage.getItem(sessionBestKey) ?? '0') || 0;
+			} catch {
+				return 0;
+			}
+		}
+
+		function setSessionBest(value) {
+			try {
+				sessionStorage.setItem(sessionBestKey, String(value));
+			} catch {}
+		}
+
+		async function openRatingDialog() {
+			if (!(ratingDialog instanceof HTMLDialogElement)) return;
+			ratingDialog.showModal();
+			if (ratingStatusEl) ratingStatusEl.textContent = 'Загрузка…';
+			try {
+				const res = await fetch('/api/game/scores');
+				const json = await res.json();
+				if (!res.ok) throw new Error('load-failed');
+				renderScores(Array.isArray(json?.scores) ? json.scores : []);
+				if (ratingStatusEl) ratingStatusEl.textContent = 'Топ игроков';
+			} catch {
+				renderScores([]);
+				if (ratingStatusEl) ratingStatusEl.textContent = 'Ошибка загрузки';
+			}
+		}
+
+		function onGround() {
+			return player.y >= groundY - player.h - 0.01;
+		}
+
+		function jump() {
+			if (!running || !onGround()) return;
+			player.vy = -245;
+		}
+
+		function resetGame() {
+			distance = 0;
+			spawn = 0.8;
+			obstacles.length = 0;
+			player.y = groundY - player.h;
+			player.vy = 0;
+			if (statusEl) statusEl.textContent = 'Пробел или клик — прыжок';
+			if (coachEl) {
+				coachEl.textContent = '';
+				coachEl.classList.add('hidden');
+			}
+			if (form) form.classList.add('hidden');
+			if (restartBtn) restartBtn.classList.add('hidden');
+		}
+
+		function startGame() {
+			resetGame();
+			running = true;
+			last = performance.now();
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(loop);
+		}
+
+		function gameOver() {
+			running = false;
+			const result = Math.round(distance * 100) / 100;
+			const prevBest = getSessionBest();
+			if (result > prevBest) setSessionBest(result);
+			if (statusEl) {
+				statusEl.textContent = `Поражение · дистанция ${formatScore(result)} · лучший ${formatScore(Math.max(result, prevBest))}`;
+			}
+			if (coachEl) {
+				const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
+				coachEl.textContent = phrase;
+				coachEl.classList.remove('hidden');
+			}
+			if (form) form.classList.remove('hidden');
+			if (restartBtn) restartBtn.classList.remove('hidden');
+		}
+
+		function drawActor(x, y, w, h) {
+			const cx = x + w / 2;
+			const cy = y + h / 2;
+			const rx = w * 0.5;
+			const ry = h * 0.55;
+
+			// Контур "маски"
+			ctx.strokeStyle = '#0a0a0a';
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+			ctx.stroke();
+
+			// Глаза
+			ctx.fillStyle = '#0a0a0a';
+			ctx.beginPath();
+			ctx.arc(cx - w * 0.18, cy - h * 0.08, 1.8, 0, Math.PI * 2);
+			ctx.arc(cx + w * 0.18, cy - h * 0.08, 1.8, 0, Math.PI * 2);
+			ctx.fill();
+
+			// Улыбка
+			ctx.beginPath();
+			ctx.arc(cx, cy + h * 0.07, w * 0.22, 0.2, Math.PI - 0.2, false);
+			ctx.stroke();
+		}
+
+		function drawObstacleSpike(o) {
+			// Препятствие как "занавес-шип" вместо квадрата
+			ctx.fillStyle = '#d42b2b';
+			ctx.strokeStyle = '#d42b2b';
+			ctx.lineWidth = 1.5;
+			ctx.beginPath();
+			ctx.moveTo(o.x, o.y + o.h);
+			ctx.lineTo(o.x + o.w * 0.45, o.y);
+			ctx.lineTo(o.x + o.w, o.y + o.h);
+			ctx.closePath();
+			ctx.fill();
+
+			// Внутренняя акцентная линия
+			ctx.strokeStyle = '#f0ebe0';
+			ctx.beginPath();
+			ctx.moveTo(o.x + o.w * 0.48, o.y + o.h * 0.2);
+			ctx.lineTo(o.x + o.w * 0.48, o.y + o.h * 0.82);
+			ctx.stroke();
+		}
+
+		function draw() {
+			ctx.fillStyle = '#f0ebe0';
+			ctx.fillRect(0, 0, W, H);
+
+			ctx.strokeStyle = '#0a0a0a22';
+			ctx.lineWidth = 1;
+			ctx.setLineDash([4, 4]);
+			ctx.beginPath();
+			ctx.moveTo(0, groundY + 0.5);
+			ctx.lineTo(W, groundY + 0.5);
+			ctx.stroke();
+			ctx.setLineDash([]);
+
+			drawActor(player.x, player.y, player.w, player.h);
+
+			for (const o of obstacles) drawObstacleSpike(o);
+
+			ctx.fillStyle = '#0a0a0a';
+			ctx.font = '12px "Space Mono", monospace';
+			ctx.fillText(`DIST ${Math.floor(distance)}`, W - 106, 16);
+		}
+
+		function loop(now) {
+			const dt = Math.min((now - last) / 1000, 0.033);
+			last = now;
+
+			if (running) {
+				distance += dt * 12;
+				spawn -= dt;
+				if (spawn <= 0) {
+					const h = 14 + Math.random() * 16;
+					const w = 12 + Math.random() * 12;
+					obstacles.push({ x: W + 8, y: groundY - h, w, h });
+					spawn = 0.9 + Math.random() * 0.8;
+				}
+
+				const speed = 130 + distance * 0.18;
+				for (let i = obstacles.length - 1; i >= 0; i--) {
+					const o = obstacles[i];
+					o.x -= speed * dt;
+					if (o.x + o.w < -2) obstacles.splice(i, 1);
+				}
+
+				player.vy += 680 * dt;
+				player.y += player.vy * dt;
+				if (player.y > groundY - player.h) {
+					player.y = groundY - player.h;
+					player.vy = 0;
+				}
+
+				for (const o of obstacles) {
+					const hit =
+						player.x < o.x + o.w &&
+						player.x + player.w > o.x &&
+						player.y < o.y + o.h &&
+						player.y + player.h > o.y;
+					if (hit) {
+						gameOver();
+						break;
+					}
+				}
+			}
+
+			draw();
+			raf = requestAnimationFrame(loop);
+		}
+
+		canvas.addEventListener('click', jump);
+		window.addEventListener('keydown', (e) => {
+			if (e.code === 'Space') {
+				e.preventDefault();
+				jump();
+			}
+		});
+		startBtn?.addEventListener('click', startGame);
+		restartBtn?.addEventListener('click', startGame);
+		openRatingTopBtn?.addEventListener('click', openRatingDialog);
+		openRatingBottomBtn?.addEventListener('click', openRatingDialog);
+		ratingCloseBtn?.addEventListener('click', () => {
+			if (ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
+		});
+		ratingDialog?.addEventListener('click', (e) => {
+			if (e.target === ratingDialog && ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
+		});
+
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!(nameInput instanceof HTMLInputElement)) return;
+			const name = nameInput.value.trim();
+			if (!name) return;
+			const best = getSessionBest();
+			if (!Number.isFinite(best) || best <= 0) return;
+			try {
+				sessionStorage.setItem(sessionNameKey, name);
+			} catch {}
+			try {
+				const res = await fetch('/api/game/scores', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, score: best, sessionId: getSessionId() }),
+				});
+				if (!res.ok) throw new Error('save-failed');
+				if (statusEl) statusEl.textContent = `Рекорд сессии сохранен · ${formatScore(best)}`;
+				openRatingDialog();
+			} catch {
+				if (statusEl) statusEl.textContent = 'Ошибка сохранения';
+			}
+		});
+
+		if (nameInput instanceof HTMLInputElement) {
+			try {
+				const prevName = sessionStorage.getItem(sessionNameKey);
+				if (prevName) nameInput.value = prevName;
+			} catch {}
+		}
+
+		draw();
+	})();
+</script>

@@ -14,50 +14,56 @@ const next = Astro.url.searchParams.get('next') ?? '/admin';
 ---
 
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="classic">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<script is:inline>
+			try {
+				var k = 'kit20-theme';
+				var v = localStorage.getItem(k);
+				if (v === 'brutal' || v === 'poetry' || v === 'swiss' || v === 'classic') {
+					document.documentElement.setAttribute('data-theme', v);
+				}
+			} catch (e) {}
+		</script>
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
 			rel="stylesheet"
 		/>
 		<title>Вход · КИТ</title>
 	</head>
-	<body class="relative overflow-x-hidden text-ink">
+	<body class="relative overflow-x-hidden bg-canvas font-sans text-ink antialiased">
 		<StageBackdrop />
 		<div class="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-12">
 			<div
-				class="w-full max-w-md rounded-3xl border border-slate-200/90 bg-surface/95 p-8 shadow-[var(--shadow-card)] backdrop-blur-md"
+				class="w-full max-w-md rounded-shell border border-theme bg-surface/95 p-8 shadow-[var(--shadow-card)] backdrop-blur-md"
 			>
-				<h1 class="font-display text-2xl font-extrabold text-ink">Вход для редактирования</h1>
-				<p class="mt-2 text-sm text-muted">
-					Пароль из переменной ADMIN_PASSWORD на сервере (по умолчанию <code class="rounded bg-slate-100 px-1.5 py-0.5">kit20</code>).
-				</p>
+				<h1 class="font-display text-2xl font-normal text-ink">Вход для редактирования</h1>
 				<form class="mt-6 space-y-4" method="POST" action="/api/admin/login">
 					<input type="hidden" name="next" value={next} />
-					<label class="block text-sm font-semibold text-ink">
+					<label class="block text-sm text-ink">
 						Пароль
 						<input
 							type="password"
 							name="password"
 							required
 							autocomplete="current-password"
-							class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none ring-blue-500/30 focus:ring-4"
+							class="mt-1.5 w-full rounded-xl border border-theme bg-surface px-4 py-3 text-base shadow-sm outline-none ring-[color:var(--color-ring)]/30 focus:ring-4"
 						/>
 					</label>
 					<button
 						type="submit"
-						class="w-full rounded-full bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-600/25 hover:bg-blue-700"
+						class="type-cta w-full border-[3px] border-ink bg-accent px-4 py-3 text-base text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover active-shift"
 					>
 						Войти
 					</button>
 				</form>
 				<p class="mt-6 text-center text-sm">
-					<a href="/" class="font-semibold text-blue-600 hover:text-blue-700">На сайт</a>
+					<a href="/" class="text-accent hover:text-accent-hover">На сайт</a>
 				</p>
 			</div>
 		</div>

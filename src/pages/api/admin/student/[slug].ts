@@ -1,10 +1,14 @@
 import type { APIRoute } from 'astro';
 import { studentFrontmatterSchema } from '../../../../lib/schemas';
 import { readStudent, writeStudent } from '../../../../lib/siteContent';
+import { hasValidAdminSession, unauthorizedJson } from '../../../../lib/adminApiAuth';
 
 export const prerender = false;
 
-export const GET: APIRoute = async ({ params }) => {
+export const GET: APIRoute = async ({ params, cookies }) => {
+	if (!hasValidAdminSession(cookies)) {
+		return unauthorizedJson();
+	}
 	const slug = params.slug;
 	if (!slug) {
 		return new Response(JSON.stringify({ error: 'Нет slug' }), { status: 400 });
@@ -23,7 +27,10 @@ export const GET: APIRoute = async ({ params }) => {
 	}
 };
 
-export const PUT: APIRoute = async ({ params, request }) => {
+export const PUT: APIRoute = async ({ params, request, cookies }) => {
+	if (!hasValidAdminSession(cookies)) {
+		return unauthorizedJson();
+	}
 	const slug = params.slug;
 	if (!slug) {
 		return new Response(JSON.stringify({ error: 'Нет slug' }), { status: 400 });

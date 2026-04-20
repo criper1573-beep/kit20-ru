@@ -4,23 +4,16 @@ lessons:
     label: Основы сценической речи
     exceptions:
       - student: anya
-      - student: galya
-      - student: katya-1
-      - student: nastya
   - date: 2026-04-03
     label: Этюд · работа в паре
     exceptions:
-      - student: gazik
-      - student: nastya
       - student: yulya-1
   - date: 2026-04-04
     label: ""
-    exceptions:
-      - student: nastya
+    exceptions: []
   - date: 2026-04-06
     label: ""
-    exceptions:
-      - student: nastya
+    exceptions: []
   - date: 2026-04-08
     label: Пластика и ритм
     exceptions:

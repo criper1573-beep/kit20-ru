@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>КИТ20 — Бренд-бук · Brutalist Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   RESET + ROOT
+═══════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --black: #0a0a0a;
+  --white: #f0ebe0;
+  --red: #d42b2b;
+  --red-dark: #a01f1f;
+  --gray: #888;
+  --gray-light: #e0dbd0;
+  --border: 3px solid var(--black);
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'Libre Baskerville', serif;
+}
+html { scroll-behavior: smooth; }
+body {
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: none;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════════════
+   CUSTOM CURSOR
+═══════════════════════════════════════ */
+#cursor {
+  position: fixed; z-index: 9999; pointer-events: none;
+  width: 14px; height: 14px; background: var(--red);
+  transform: translate(-50%, -50%);
+  transition: transform .1s ease, background .2s;
+  mix-blend-mode: multiply;
+}
+#cursor-ring {
+  position: fixed; z-index: 9998; pointer-events: none;
+  width: 40px; height: 40px; border: 2px solid var(--black);
+  transform: translate(-50%, -50%);
+  transition: transform .35s cubic-bezier(.25,.46,.45,.94), width .25s, height .25s, background .25s;
+  mix-blend-mode: multiply;
+}
+body.hovering #cursor { transform: translate(-50%, -50%) scale(2.5); background: var(--black); }
+body.hovering #cursor-ring { width: 60px; height: 60px; background: rgba(212,43,43,.08); }
+
+/* ═══════════════════════════════════════
+   STICKY NAV
+═══════════════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  background: var(--black); color: var(--white);
+  display: flex; align-items: stretch; border-bottom: 3px solid var(--red);
+  height: 48px; overflow: hidden;
+}
+nav .logo {
+  font-family: var(--font-display); font-size: 28px; letter-spacing: 2px;
+  padding: 0 24px; background: var(--red); display: flex; align-items: center;
+  flex-shrink: 0; color: var(--white);
+}
+nav .links {
+  display: flex; align-items: center; gap: 0; flex: 1; overflow: hidden;
+}
+nav .links a {
+  color: var(--gray); text-decoration: none; padding: 0 18px; height: 100%;
+  display: flex; align-items: center; font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; border-right: 1px solid #222; transition: all .2s;
+  white-space: nowrap;
+}
+nav .links a:hover { color: var(--white); background: #1a1a1a; }
+nav .chapter-num {
+  margin-left: auto; font-family: var(--font-display); font-size: 22px;
+  color: #333; padding: 0 24px; display: flex; align-items: center;
+}
+
+/* ═══════════════════════════════════════
+   SHARED SECTION CHROME
+═══════════════════════════════════════ */
+.section {
+  border-bottom: var(--border);
+  position: relative; overflow: hidden;
+}
+.section-label {
+  position: absolute; top: 0; right: 0;
+  font-family: var(--font-display); font-size: 13px; letter-spacing: 3px;
+  background: var(--black); color: var(--white); padding: 6px 14px;
+  z-index: 10;
+}
+.section-num {
+  position: absolute; bottom: 20px; left: 30px;
+  font-family: var(--font-display); font-size: 100px; color: rgba(0,0,0,.04);
+  line-height: 1; pointer-events: none; z-index: 0; user-select: none;
+}
+
+/* ═══════════════════════════════════════
+   GRID UTILITY
+═══════════════════════════════════════ */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); }
+.bordered { border: var(--border); }
+.bordered + .bordered { border-left: none; }
+.pad { padding: 40px; }
+.pad-sm { padding: 20px; }
+
+/* ═══════════════════════════════════════
+   ─── SECTION 0: COVER ─────────────────
+═══════════════════════════════════════ */
+#cover {
+  min-height: 100vh; padding-top: 48px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  position: relative;
+}
+#cover .left {
+  padding: 60px; border-right: var(--border);
+  display: flex; flex-direction: column; justify-content: space-between;
+  position: relative; overflow: hidden;
+}
+/* Animated grid bg */
+#cover .left::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,0,0,.06) 39px, rgba(0,0,0,.06) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,.06) 39px, rgba(0,0,0,.06) 40px);
+  animation: grid-shift 20s linear infinite;
+}
+@keyframes grid-shift { from { background-position: 0 0; } to { background-position: 40px 40px; } }
+#cover .title-block { position: relative; z-index: 2; }
+#cover h1 {
+  font-family: var(--font-display); font-size: clamp(80px, 12vw, 160px);
+  line-height: .85; letter-spacing: -1px;
+}
+#cover h1 .red-block {
+  display: inline-block; background: var(--red); color: var(--white);
+  padding: 0 12px; margin-bottom: 4px;
+}
+#cover .subtitle {
+  margin-top: 30px; font-size: 12px; letter-spacing: 4px;
+  text-transform: uppercase; color: var(--gray);
+  border-top: 2px solid var(--black); padding-top: 16px;
+}
+#cover .meta-block { position: relative; z-index: 2; }
+#cover .meta-block p { font-size: 11px; line-height: 2; color: #555; }
+#cover .right {
+  display: flex; flex-direction: column;
+  position: relative;
+}
+#cover .right-top {
+  flex: 1; padding: 60px; border-bottom: var(--border);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+/* SVG demo: Animated theatre masks draw */
+#cover .right-bottom {
+  padding: 30px 60px; display: flex; align-items: center;
+  justify-content: space-between;
+}
+#cover .right-bottom .tag {
+  font-family: var(--font-display); font-size: 14px; letter-spacing: 3px; color: var(--red);
+}
+/* Scrolling bg number */
+#cover .bg-20 {
+  position: absolute; font-family: var(--font-display);
+  font-size: 400px; color: transparent; -webkit-text-stroke: 2px rgba(0,0,0,.06);
+  line-height: 1; right: -60px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; user-select: none; z-index: 0;
+}
+
+/* ═══════════════════════════════════════
+   ─── SECTION 1: COLOURS ───────────────
+═══════════════════════════════════════ */
+#colours .swatch-row { display: grid; grid-template-columns: repeat(5, 1fr); }
+.swatch {
+  height: 200px; display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 20px; border-right: var(--border);
+  position: relative; overflow: hidden; cursor: none;
+  transition: transform .3s;
+}
+.swatch:last-child { border-right: none; }
+.swatch:hover { transform: scale(1.03); z-index: 5; }
+.swatch .sname { font-family: var(--font-display); font-size: 18px; letter-spacing: 2px; }
+.swatch .shex { font-size: 10px; letter-spacing: 2px; opacity: .6; margin-top: 4px; }
+.swatch .srole { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; opacity: .5; margin-top: 2px; }
+.swatch-black { background: var(--black); color: var(--white); }
+.swatch-red { background: var(--red); color: var(--white); }
+.swatch-white { background: var(--white); color: var(--black); border: var(--border); }
+.swatch-gray { background: #888; color: var(--white); }
+.swatch-cream { background: #e0dbd0; color: var(--black); }
+
+/* Don't use section */
+#colours .dont { padding: 30px 40px; background: #f8f3e8; border-top: var(--border); }
+#colours .dont h4 { font-family: var(--font-display); font-size: 22px; letter-spacing: 2px; color: var(--red); margin-bottom: 12px; }
+#colours .dont p { font-size: 11px; line-height: 2; color: #555; max-width: 800px; }
+#colours .dont .bad-palette { display: flex; gap: 0; margin-top: 16px; }
+#colours .dont .bad-swatch { height: 50px; flex: 1; position: relative; }
+#colours .dont .bad-swatch::after {
+  content: '✕'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: rgba(255,255,255,.5); font-family: var(--font-display);
+}
+
+/* ═══════════════════════════════════════
+   ─── SECTION 2: TYPOGRAPHY ────────────
+═══════════════════════════════════════ */
+#typography .type-demo {
+  padding: 50px 60px; border-bottom: var(--border);
+  position: relative; overflow: hidden;
+}
+#typography .type-demo h2 {
+  font-family: var(--font-display);
+  font-size: clamp(60px, 10vw, 130px);
+  line-height: .9; letter-spacing: -1px;
+  position: relative; z-index: 2;
+}
+#typography .type-label {
+  font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gray); margin-bottom: 10px;
+}
+#typography .type-scale {
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+.type-row {
+  padding: 24px 40px; border-bottom: 1px solid var(--gray-light);
+  border-right: var(--border); display: flex; align-items: baseline; gap: 20px;
+}
+.type-row:nth-child(even) { border-right: none; }
+.type-row .tsize { font-size: 9px; letter-spacing: 2px; color: var(--gray); min-width: 80px; }
+#typography .pair-demo {
+  padding: 40px 60px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+  border-top: var(--border);
+}
+.font-card { border: var(--border); padding: 30px; }
+.font-card .fname { font-family: var(--font-display); font-size: 32px; letter-spacing: 2px; }
+.font-card .fuse { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--red); margin: 8px 0 16px; }
+.font-card .fpreview-display { font-family: var(--font-display); font-size: 60px; color: rgba(0,0,0,.15); line-height: 1; }
+.font-card .fpreview-mono { font-family: var(--font-mono); font-size: 13px; line-height: 1.8; color: var(--gray); }
+.font-card .fpreview-body { font-family: var(--font-body); font-style: italic; font-size: 16px; line-height: 1.7; color: #444; }
+
+/* ═══════════════════════════════════════
+   ─── SECTION 3: SVG ANIMATION LAB ─────
+═══════════════════════════════════════ */
+#animations { background: var(--black); color: var(--white); }
+#animations .section-label { background: var(--red); }
+#animations .anim-intro {
+  padding: 50px 60px; border-bottom: 2px solid #222;
+}
+#animations .anim-intro h2 {
+  font-family: var(--font-display); font-size: clamp(50px, 8vw, 100px);
+  line-height: .85; color: var(--white);
+}
+#animations .anim-intro p { color: #666; font-size: 12px; line-height: 2; max-width: 500px; margin-top: 20px; }
+
+/* Animation cards grid */
+#animations .anim-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+}
+.anim-card {
+  border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;
+  padding: 40px; min-height: 320px; display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+  transition: background .3s;
+}
+.anim-card:hover { background: #0f0f0f; }
+.anim-card:nth-child(3n) { border-right: none; }
+.anim-card .ac-num { font-family: var(--font-display); font-size: 80px; color: #1a1a1a; line-height: 1; }
+.anim-card .ac-title { font-family: var(--font-display); font-size: 22px; letter-spacing: 2px; color: var(--red); margin: 10px 0 6px; }
+.anim-card .ac-desc { font-size: 10px; line-height: 1.8; color: #555; margin-bottom: 20px; }
+.anim-card .demo-area { flex: 1; display: flex; align-items: center; justify-content: center; }
+
+/* ── A1: SVG Stroke Draw ── */
+.stroke-path {
+  stroke-dasharray: 800;
+  stroke-dashoffset: 800;
+}
+.anim-card:hover .stroke-path {
+  animation: draw-stroke 1.5s ease forwards;
+}
+@keyframes draw-stroke {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── A2: Marquee ticker ── */
+.marquee-wrap { overflow: hidden; width: 100%; border: 1px solid #2a2a2a; }
+.marquee-inner {
+  display: inline-flex; white-space: nowrap;
+  animation: marquee-run 8s linear infinite;
+  font-family: var(--font-display); font-size: 20px; letter-spacing: 3px; color: var(--red);
+}
+.marquee-sep { margin: 0 20px; color: #333; }
+@keyframes marquee-run {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── A3: Glitch text ── */
+.glitch {
+  position: relative; font-family: var(--font-display); font-size: 50px;
+  color: var(--white); display: inline-block;
+}
+.glitch::before, .glitch::after {
+  content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%;
+}
+.glitch::before {
+  color: var(--red); clip-path: polygon(0 0,100% 0,100% 40%,0 40%);
+  animation: glitch-a 3s infinite 1s;
+}
+.glitch::after {
+  color: #0df; clip-path: polygon(0 60%,100% 60%,100% 100%,0 100%);
+  animation: glitch-b 3s infinite 1s;
+}
+@keyframes glitch-a {
+  0%,89%,100%{opacity:0;transform:none}
+  90%{opacity:1;transform:translate(-4px,0) skew(-5deg)}
+  92%{opacity:0}
+  94%{opacity:1;transform:translate(4px,0)}
+  96%{opacity:0}
+}
+@keyframes glitch-b {
+  0%,89%,100%{opacity:0;transform:none}
+  91%{opacity:1;transform:translate(4px,0)}
+  93%{opacity:0}
+  95%{opacity:1;transform:translate(-4px,0) skew(3deg)}
+  97%{opacity:0}
+}
+
+/* ── A4: SVG morphing shape ── */
+.morph-svg { display: block; }
+
+/* ── A5: Text scramble ── */
+.scramble {
+  font-family: var(--font-display); font-size: 40px; color: var(--white);
+  letter-spacing: 3px; cursor: pointer; transition: color .2s;
+}
+.scramble:hover { color: var(--red); }
+
+/* ── A6: Spotlight / cursor follow ── */
+.spotlight-wrap {
+  position: relative; width: 100%; height: 140px;
+  background: #0a0a0a; border: 1px solid #2a2a2a; overflow: hidden; cursor: none;
+}
+.spotlight-circle {
+  position: absolute; pointer-events: none;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle at center, rgba(212,43,43,.35) 0%, transparent 70%);
+  transform: translate(-50%,-50%);
+  filter: blur(10px);
+  transition: left .05s, top .05s;
+}
+.spotlight-text {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 40px; color: #222;
+  letter-spacing: 6px;
+}
+
+/* ── A7: Stagger reveal ── */
+.stagger-row { display: flex; gap: 10px; }
+.stag-item {
+  width: 36px; height: 36px; background: var(--red);
+  animation: stagger-in 0.4s ease both;
+}
+.stag-item:nth-child(1){animation-delay:.0s} .stag-item:nth-child(2){animation-delay:.08s} .stag-item:nth-child(3){animation-delay:.16s} .stag-item:nth-child(4){animation-delay:.24s} .stag-item:nth-child(5){animation-delay:.32s} .stag-item:nth-child(6){animation-delay:.40s} .stag-item:nth-child(7){animation-delay:.48s} .stag-item:nth-child(8){animation-delay:.56s}
+@keyframes stagger-in {
+  from { opacity:0; transform: scaleY(0) translateY(20px); }
+  to { opacity:1; transform: none; }
+}
+
+/* ── A8: SVG line draw on scroll ── */
+.svg-underline path {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+}
+.svg-underline.visible path {
+  animation: draw-line 1s ease forwards;
+}
+@keyframes draw-line { to { stroke-dashoffset: 0; } }
+
+/* ── A9: Ink blot expand ── */
+.ink-svg { overflow: visible; }
+.ink-path {
+  transform-origin: center;
+  animation: ink-expand 3s ease-in-out infinite alternate;
+}
+@keyframes ink-expand {
+  from { transform: scale(.85); opacity: .5; }
+  to { transform: scale(1.1); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════
+   ─── SECTION 4: COMPONENTS ────────────
+═══════════════════════════════════════ */
+#components { background: var(--white); }
+.comp-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+.comp-cell {
+  padding: 40px; border-right: var(--border); border-bottom: var(--border);
+  position: relative;
+}
+.comp-cell:nth-child(3n) { border-right: none; }
+.comp-cell .comp-label {
+  font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--gray); margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn-primary {
+  font-family: var(--font-display); font-size: 18px; letter-spacing: 3px;
+  background: var(--black); color: var(--white); border: none;
+  padding: 14px 32px; cursor: pointer; display: inline-block;
+  position: relative; overflow: hidden; text-transform: uppercase;
+  transition: background .2s;
+}
+.btn-primary::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--red); transform: translateX(-101%);
+  transition: transform .3s cubic-bezier(.77,0,.18,1);
+  z-index: 0;
+}
+.btn-primary:hover::before { transform: translateX(0); }
+.btn-primary span { position: relative; z-index: 1; }
+
+.btn-outline {
+  font-family: var(--font-display); font-size: 18px; letter-spacing: 3px;
+  background: transparent; color: var(--black); border: 3px solid var(--black);
+  padding: 12px 30px; cursor: pointer; display: inline-block; text-transform: uppercase;
+  transition: all .2s;
+}
+.btn-outline:hover { background: var(--black); color: var(--white); }
+
+.btn-red {
+  font-family: var(--font-display); font-size: 18px; letter-spacing: 3px;
+  background: var(--red); color: var(--white); border: 3px solid var(--red);
+  padding: 12px 30px; cursor: pointer; display: inline-block; text-transform: uppercase;
+  box-shadow: 4px 4px 0 var(--black);
+  transition: all .15s;
+}
+.btn-red:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--black); }
+.btn-red:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--black); }
+
+/* Cards */
+.kit-card {
+  border: var(--border); padding: 24px;
+  box-shadow: 6px 6px 0 var(--black);
+  transition: all .15s; cursor: pointer;
+  background: var(--white);
+}
+.kit-card:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--black); }
+.kit-card .card-tag { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--red); }
+.kit-card .card-title { font-family: var(--font-display); font-size: 28px; margin: 8px 0 6px; }
+.kit-card .card-text { font-family: var(--font-body); font-style: italic; font-size: 13px; color: #555; line-height: 1.6; }
+
+/* Badge / tag */
+.badge {
+  display: inline-block; font-family: var(--font-display); font-size: 13px; letter-spacing: 2px;
+  padding: 4px 12px; text-transform: uppercase;
+}
+.badge-black { background: var(--black); color: var(--white); }
+.badge-red { background: var(--red); color: var(--white); }
+.badge-outline { border: 2px solid var(--black); color: var(--black); }
+.badge-outline-red { border: 2px solid var(--red); color: var(--red); }
+
+/* Input */
+.kit-input {
+  width: 100%; font-family: var(--font-mono); font-size: 12px;
+  border: var(--border); background: var(--white); padding: 12px 16px;
+  outline: none; letter-spacing: 1px; color: var(--black);
+  transition: border-color .2s, box-shadow .2s;
+}
+.kit-input:focus { border-color: var(--red); box-shadow: 4px 4px 0 var(--red); }
+.kit-input::placeholder { color: #aaa; }
+
+/* Table */
+.kit-table { width: 100%; border-collapse: collapse; }
+.kit-table th {
+  background: var(--black); color: var(--white);
+  font-family: var(--font-display); font-size: 14px; letter-spacing: 2px;
+  padding: 10px 14px; text-align: left; border: 2px solid var(--black);
+}
+.kit-table td {
+  padding: 10px 14px; border: 1px solid var(--gray-light);
+  font-size: 11px; line-height: 1.5;
+}
+.kit-table tr:hover td { background: #f5f0e8; }
+.kit-table .red-cell { color: var(--red); font-weight: bold; }
+
+/* Progress bar */
+.progress-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
+.progress-bar {
+  height: 12px; background: var(--gray-light); border: 2px solid var(--black); position: relative;
+}
+.progress-fill {
+  height: 100%; background: var(--black);
+  position: relative; overflow: hidden;
+}
+.progress-fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255,255,255,.3) 8px, rgba(255,255,255,.3) 10px);
+  animation: stripe-move 1s linear infinite;
+}
+@keyframes stripe-move { from{background-position:0} to{background-position:20px} }
+.progress-red .progress-fill { background: var(--red); }
+
+/* ═══════════════════════════════════════
+   ─── SECTION 5: LAYOUT PATTERNS ───────
+═══════════════════════════════════════ */
+#layouts .layout-intro { padding: 40px 60px; border-bottom: var(--border); }
+#layouts .layout-intro h2 { font-family: var(--font-display); font-size: 60px; }
+#layouts .layout-intro p { color: var(--gray); font-size: 11px; line-height: 2; max-width: 500px; margin-top: 16px; }
+
+.layout-demo {
+  padding: 40px; border-bottom: var(--border);
+  position: relative;
+}
+.layout-demo h3 {
+  font-family: var(--font-display); font-size: 20px; letter-spacing: 3px; color: var(--red);
+  margin-bottom: 6px;
+}
+.layout-demo p.desc { font-size: 10px; color: var(--gray); letter-spacing: 2px; margin-bottom: 20px; }
+
+/* Wire: Asymmetric hero */
+.wire-hero {
+  border: 2px dashed var(--gray-light); height: 180px;
+  display: grid; grid-template-columns: 2fr 1fr; gap: 0;
+}
+.wire-block {
+  border: 1px dashed rgba(0,0,0,.15); display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 12px; letter-spacing: 2px; color: rgba(0,0,0,.2);
+  text-transform: uppercase; position: relative;
+}
+.wire-block.red-wire { background: rgba(212,43,43,.06); }
+
+/* Wire: Ticker band */
+.wire-ticker {
+  height: 50px; border: 2px dashed var(--gray-light);
+  display: flex; align-items: center; overflow: hidden;
+  position: relative; margin-top: 12px;
+}
+.wire-ticker-inner { white-space: nowrap; font-family: var(--font-display); font-size: 18px; letter-spacing: 4px; color: rgba(0,0,0,.2); }
+
+/* Wire: Split layout */
+.wire-split {
+  border: 2px dashed var(--gray-light); height: 160px;
+  display: grid; grid-template-columns: 1fr 2px 1fr; gap: 0;
+}
+.wire-split-div { background: var(--gray-light); }
+
+/* ═══════════════════════════════════════
+   ─── SECTION 6: MOTION PRINCIPLES ─────
+═══════════════════════════════════════ */
+#motion { background: var(--black); color: var(--white); }
+#motion .section-label { background: var(--red); }
+.motion-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+.motion-cell {
+  padding: 30px; border-right: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;
+  min-height: 200px; display: flex; flex-direction: column; align-items: flex-start;
+}
+.motion-cell:nth-child(4n) { border-right: none; }
+.motion-cell .mc-type { font-size: 9px; letter-spacing: 4px; color: var(--gray); text-transform: uppercase; margin-bottom: 6px; }
+.motion-cell .mc-timing { font-family: var(--font-display); font-size: 22px; color: var(--red); margin-bottom: 4px; }
+.motion-cell .mc-use { font-size: 10px; color: #555; line-height: 1.8; }
+.motion-cell .mc-demo { margin-top: auto; padding-top: 20px; }
+.easing-box {
+  width: 40px; height: 40px; background: var(--red);
+  animation: ease-demo-linear 2s ease infinite;
+}
+@keyframes ease-demo-linear { 0%,100%{transform:translateX(0)} 50%{transform:translateX(60px)} }
+
+/* Timing table */
+#motion .timing-table { margin: 0; border-top: 2px solid #1a1a1a; }
+.timing-row {
+  display: grid; grid-template-columns: 200px 1fr 200px;
+  border-bottom: 1px solid #1a1a1a; padding: 16px 40px;
+  align-items: center;
+}
+.timing-row .t-name { font-family: var(--font-display); font-size: 16px; letter-spacing: 2px; color: var(--white); }
+.timing-row .t-bar { height: 4px; background: #1a1a1a; position: relative; }
+.timing-row .t-fill { height: 100%; background: var(--red); }
+.timing-row .t-val { font-family: var(--font-mono); font-size: 11px; color: var(--gray); text-align: right; }
+
+/* ═══════════════════════════════════════
+   ─── SECTION 7: RULES & DON'TS ────────
+═══════════════════════════════════════ */
+#rules .rules-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.rules-col { padding: 50px; }
+.rules-col:first-child { border-right: var(--border); }
+.rules-col h3 { font-family: var(--font-display); font-size: 40px; margin-bottom: 24px; }
+.rules-col h3.do { color: var(--black); }
+.rules-col h3.dont-title { color: var(--red); }
+.rule-item {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 14px 0; border-bottom: 1px solid var(--gray-light);
+}
+.rule-item .ri-icon { font-family: var(--font-display); font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.rule-item .ri-text { font-size: 11px; line-height: 1.8; color: #444; }
+.rule-item.good .ri-icon { color: var(--black); }
+.rule-item.bad .ri-icon { color: var(--red); }
+
+/* ═══════════════════════════════════════
+   ─── SECTION 8: TICKER DEMO ───────────
+═══════════════════════════════════════ */
+#ticker-section {
+  overflow: hidden; border-bottom: var(--border);
+}
+.ticker-band {
+  padding: 16px 0; border-bottom: 2px solid rgba(0,0,0,.1);
+  overflow: hidden; white-space: nowrap;
+}
+.ticker-band:last-child { border-bottom: none; }
+.ticker-content {
+  display: inline-flex; gap: 0; white-space: nowrap;
+  font-family: var(--font-display); letter-spacing: 4px;
+}
+.ticker-band.t1 .ticker-content { font-size: 28px; color: var(--black); animation: tick1 18s linear infinite; }
+.ticker-band.t2 .ticker-content { font-size: 18px; color: var(--red); animation: tick2 12s linear infinite reverse; }
+.ticker-band.t3 .ticker-content { font-size: 14px; color: var(--gray); animation: tick1 24s linear infinite; }
+.ticker-sep { margin: 0 30px; opacity: .3; }
+@keyframes tick1 { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+@keyframes tick2 { from{transform:translateX(-50%)} to{transform:translateX(0)} }
+
+/* ═══════════════════════════════════════
+   ─── FOOTER ───────────────────────────
+═══════════════════════════════════════ */
+footer {
+  background: var(--black); color: var(--white);
+  padding: 60px; display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px; border-top: 6px solid var(--red);
+}
+footer h3 { font-family: var(--font-display); font-size: 40px; margin-bottom: 16px; }
+footer p { font-size: 10px; line-height: 2; color: #555; }
+footer .f-val { font-family: var(--font-mono); font-size: 12px; color: var(--red); margin-top: 6px; }
+footer .credit { grid-column: 1/4; border-top: 1px solid #1a1a1a; padding-top: 20px; font-size: 10px; color: #333; text-align: center; letter-spacing: 2px; }
+
+/* ═══════════════════════════════════════
+   SCROLL REVEAL
+═══════════════════════════════════════ */
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">КИТ20</div>
+  <div class="links">
+    <a href="#cover">Обзор</a>
+    <a href="#colours">Цвета</a>
+    <a href="#typography">Типографика</a>
+    <a href="#animations">SVG Анимации</a>
+    <a href="#components">Компоненты</a>
+    <a href="#layouts">Раскладки</a>
+    <a href="#motion">Принципы motion</a>
+    <a href="#rules">Правила</a>
+  </div>
+  <div class="chapter-num" id="chapter-num">01</div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     0. COVER
+══════════════════════════════════════ -->
+<section class="section" id="cover">
+  <div class="section-label">БРЕНД-БУК · V.1</div>
+  <div class="left">
+    <div class="title-block">
+      <div style="font-size:10px;letter-spacing:5px;text-transform:uppercase;color:var(--gray);margin-bottom:20px">Парт Академия · Театр и Кино</div>
+      <h1>
+        <span class="red-block">КИТ</span><br>
+        ДВАДЦАТЬ<br>
+        <span style="color:rgba(0,0,0,.15)">БРЕНД</span>
+      </h1>
+      <div class="subtitle">
+        Брутальный стиль · Neo-Brutalism · 2024<br>
+        Официальный гайд для группы КИТ20
+      </div>
+    </div>
+    <div class="meta-block">
+      <p>
+        Версия: 1.0.0<br>
+        Стиль: Brutalist / Neo-Brutal<br>
+        Шрифты: Bebas Neue · Space Mono · Libre Baskerville<br>
+        Главный цвет: #D42B2B · #0A0A0A · #F0EBE0<br>
+        Вдохновение: Bloomberg · Théâtre Saint-Gervais · Radical Everything
+      </p>
+    </div>
+  </div>
+  <div class="right">
+    <div class="right-top">
+      <div class="bg-20">20</div>
+      <!-- SVG: Animated draw of theatre masks -->
+      <svg width="280" height="200" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Tragedy -->
+        <path class="stroke-path" d="M60 40 Q100 20 140 40 Q170 55 170 100 Q170 150 120 165 Q80 180 50 160 Q10 140 10 100 Q10 60 60 40Z" stroke="#0a0a0a" stroke-width="2.5" fill="none" style="stroke-dasharray:600;stroke-dashoffset:0;animation:draw-stroke 2s ease 0.3s both"/>
+        <path class="stroke-path" d="M40 85 Q60 70 80 85" stroke="#0a0a0a" stroke-width="2" fill="none" style="stroke-dasharray:200;stroke-dashoffset:0;animation:draw-stroke 0.8s ease 1.2s both"/>
+        <circle cx="50" cy="100" r="8" fill="#0a0a0a" opacity=".8" style="animation:scale-in .4s ease 2s both;transform-origin:50px 100px"/>
+        <circle cx="100" cy="100" r="8" fill="#0a0a0a" opacity=".8" style="animation:scale-in .4s ease 2.1s both;transform-origin:100px 100px"/>
+        <path d="M50 130 Q80 150 110 130" stroke="#0a0a0a" stroke-width="2.5" fill="none" style="animation:draw-stroke 0.8s ease 2.2s both;stroke-dasharray:200;stroke-dashoffset:200"/>
+        <!-- Comedy -->
+        <path d="M180 30 Q220 10 260 30 Q290 45 285 90 Q280 140 240 158 Q200 175 175 155 Q145 130 145 90 Q145 50 180 30Z" stroke="#d42b2b" stroke-width="2.5" fill="none" style="stroke-dasharray:600;stroke-dashoffset:0;animation:draw-stroke 2s ease 0.6s both"/>
+        <path d="M163 75 Q183 90 203 75" stroke="#d42b2b" stroke-width="2" fill="none" style="stroke-dasharray:200;stroke-dashoffset:0;animation:draw-stroke 0.8s ease 1.5s both"/>
+        <circle cx="175" cy="93" r="8" fill="#d42b2b" opacity=".8" style="animation:scale-in .4s ease 2.3s both;transform-origin:175px 93px"/>
+        <circle cx="225" cy="93" r="8" fill="#d42b2b" opacity=".8" style="animation:scale-in .4s ease 2.4s both;transform-origin:225px 93px"/>
+        <path d="M168 128 Q200 110 232 128" stroke="#d42b2b" stroke-width="2.5" fill="none" style="stroke-dasharray:200;stroke-dashoffset:200;animation:draw-stroke 0.8s ease 2.5s both"/>
+        <!-- Decorative lines -->
+        <line x1="140" y1="10" x2="140" y2="190" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="4 4" opacity=".2"/>
+      </svg>
+      <style>
+        @keyframes scale-in { from{transform:scale(0)} to{transform:scale(1)} }
+      </style>
+    </div>
+    <div class="right-bottom">
+      <span class="tag">НЕИЗМЕННО СЫРОЙ</span>
+      <span style="font-size:10px;letter-spacing:3px;color:var(--gray)">ТЕАТР · КИНО · ПАРТ</span>
+      <span class="tag" style="color:var(--black)">КИТ · 20</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     1. COLOURS
+══════════════════════════════════════ -->
+<section class="section" id="colours">
+  <div class="section-label">01 · ЦВЕТА</div>
+  <div class="section-num">01</div>
+
+  <div class="swatch-row">
+    <div class="swatch swatch-black" data-hover>
+      <div class="sname">УГОЛЬ</div>
+      <div class="shex">#0A0A0A</div>
+      <div class="srole">Основной · Фон тёмных блоков · Текст</div>
+    </div>
+    <div class="swatch swatch-red" data-hover>
+      <!-- SVG: Animated star accent -->
+      <svg style="position:absolute;top:20px;right:20px;animation:spin-star 8s linear infinite" width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <polygon points="20,3 23,15 36,15 26,23 29,36 20,28 11,36 14,23 4,15 17,15" fill="rgba(255,255,255,.25)"/>
+      </svg>
+      <div class="sname">КРАСНЫЙ ЗАНАВЕС</div>
+      <div class="shex">#D42B2B</div>
+      <div class="srole">Акцент · CTA · Заголовки-акценты</div>
+    </div>
+    <div class="swatch swatch-white" data-hover>
+      <div class="sname">ПЕРГАМЕНТ</div>
+      <div class="shex">#F0EBE0</div>
+      <div class="srole">Фон · Светлые блоки · Подложки</div>
+    </div>
+    <div class="swatch swatch-gray" data-hover>
+      <div class="sname">СЦЕНА</div>
+      <div class="shex">#888888</div>
+      <div class="srole">Вторичный текст · Метки · Подписи</div>
+    </div>
+    <div class="swatch swatch-cream" data-hover>
+      <div class="sname">КРЕМ</div>
+      <div class="shex">#E0DBD0</div>
+      <div class="srole">Разделители · Hover-фоны · Бордеры</div>
+    </div>
+  </div>
+  <style>@keyframes spin-star { to { transform: rotate(360deg); } }</style>
+
+  <!-- Colour usage chart with SVG -->
+  <div style="padding:40px 60px;border-top:var(--border);display:grid;grid-template-columns:1fr 1fr;gap:40px">
+    <div>
+      <div style="font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--gray);margin-bottom:16px">Распределение цветов на странице</div>
+      <svg width="100%" height="120" viewBox="0 0 400 40">
+        <!-- Usage bar: 60% black, 20% cream, 15% red, 5% gray -->
+        <rect x="0" y="0" width="240" height="40" fill="#0a0a0a"/>
+        <rect x="240" y="0" width="80" height="40" fill="#f0ebe0" stroke="#e0dbd0" stroke-width="1"/>
+        <rect x="320" y="0" width="60" height="40" fill="#d42b2b"/>
+        <rect x="380" y="0" width="20" height="40" fill="#888"/>
+        <text x="120" y="25" fill="#f0ebe0" font-family="'Bebas Neue',sans-serif" font-size="14" letter-spacing="2" text-anchor="middle">60% УГОЛЬ</text>
+        <text x="280" y="25" fill="#0a0a0a" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="1" text-anchor="middle">20%</text>
+        <text x="350" y="25" fill="#f0ebe0" font-family="'Bebas Neue',sans-serif" font-size="11" letter-spacing="1" text-anchor="middle">15%</text>
+        <text x="390" y="25" fill="#f0ebe0" font-family="'Bebas Neue',sans-serif" font-size="8" text-anchor="middle">5%</text>
+      </svg>
+    </div>
+    <div>
+      <div class="dont">
+        <h4>НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ</h4>
+        <p>Пастельные градиенты, фиолетовый, синий без необходимости, rgba-прозрачности в основных элементах. Брутализм = уверенность цвета.</p>
+        <div class="bad-palette">
+          <div class="bad-swatch" style="background:linear-gradient(135deg,#667eea,#764ba2)"></div>
+          <div class="bad-swatch" style="background:linear-gradient(135deg,#f093fb,#f5576c)"></div>
+          <div class="bad-swatch" style="background:linear-gradient(135deg,#4facfe,#00f2fe)"></div>
+          <div class="bad-swatch" style="background:#e8e8f0"></div>
+          <div class="bad-swatch" style="background:#ffffff"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     2. TYPOGRAPHY
+══════════════════════════════════════ -->
+<section class="section" id="typography">
+  <div class="section-label">02 · ТИПОГРАФИКА</div>
+  <div class="section-num">02</div>
+
+  <div class="type-demo">
+    <div class="type-label">Display · Bebas Neue · Bold</div>
+    <h2>ГРУППА КИТ<br><span style="color:var(--red)">ДВАДЦАТЬ</span></h2>
+    <!-- SVG underline animate -->
+    <svg class="svg-underline" width="500" height="12" viewBox="0 0 500 12" fill="none" style="display:block;margin-top:-4px">
+      <path d="M0 6 Q125 0 250 6 Q375 12 500 6" stroke="#d42b2b" stroke-width="3" fill="none"/>
+    </svg>
+  </div>
+
+  <div class="type-scale">
+    <div class="type-row"><span class="tsize">Display · 130px</span><span style="font-family:'Bebas Neue';font-size:60px;line-height:1">КИТ 20</span></div>
+    <div class="type-row"><span class="tsize">H1 · 80px</span><span style="font-family:'Bebas Neue';font-size:45px;line-height:1">Театр и Кино</span></div>
+    <div class="type-row"><span class="tsize">H2 · 48px</span><span style="font-family:'Bebas Neue';font-size:32px;line-height:1">Парт Академия</span></div>
+    <div class="type-row"><span class="tsize">H3 · 28px</span><span style="font-family:'Bebas Neue';font-size:22px;line-height:1">Расписание занятий</span></div>
+    <div class="type-row"><span class="tsize">Body · 16px</span><span style="font-family:'Libre Baskerville';font-style:italic;font-size:15px;line-height:1.5;color:#555">Будущие актёры театра и кино учатся жить правдой роли.</span></div>
+    <div class="type-row"><span class="tsize">Mono · 12px</span><span style="font-family:'Space Mono';font-size:11px;letter-spacing:3px;color:var(--gray)">КИТ · 20 · 2024–2028 · ПАРТ</span></div>
+  </div>
+
+  <div class="pair-demo">
+    <div class="font-card" data-hover>
+      <div class="fname">Bebas Neue</div>
+      <div class="fuse">▶ Заголовки · Display · CTA</div>
+      <div class="fpreview-display">КИТ20</div>
+      <div style="font-size:10px;color:var(--gray);margin-top:10px">Импакт. Монументальность. Сцена. Использовать для всего крупного.</div>
+    </div>
+    <div class="font-card" data-hover>
+      <div class="fname">Space Mono</div>
+      <div class="fuse" style="color:var(--black)">▶ UI · Labels · Метаданные · Код</div>
+      <div class="fpreview-mono">kit20.ru · #парт_академия<br>группа · театр · кино · 2024</div>
+      <div style="font-size:10px;color:var(--gray);margin-top:10px">Техничность. Равноширинность. Машинопись. Для технических меток и навигации.</div>
+    </div>
+    <div class="font-card" data-hover>
+      <div class="fname">Libre Baskerville</div>
+      <div class="fuse" style="color:var(--gray)">▶ Цитаты · Описания · Биографии</div>
+      <div class="fpreview-body">«Жить на сцене — значит дышать правдой каждую секунду спектакля.»</div>
+      <div style="font-size:10px;color:var(--gray);margin-top:10px">Тепло. Литературность. Театральность. Курсив для выделений и цитат.</div>
+    </div>
+    <div class="font-card" style="background:var(--black);color:var(--white)" data-hover>
+      <div class="fname" style="color:var(--white)">Система</div>
+      <div class="fuse" style="color:var(--red)">▶ Комбинирование шрифтов</div>
+      <div style="font-family:'Bebas Neue';font-size:36px;line-height:1;margin-top:10px">РОЛЬ ПЕРВОГО ПЛАНА</div>
+      <div style="font-family:'Space Mono';font-size:10px;letter-spacing:3px;color:#555;margin:8px 0">ТЕАТР · ПАРТ · 2024</div>
+      <div style="font-family:'Libre Baskerville';font-style:italic;font-size:13px;color:#777;line-height:1.6">Когда три шрифта работают вместе — это хор, а не соло.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     3. SVG ANIMATION LAB
+══════════════════════════════════════ -->
+<section class="section" id="animations">
+  <div class="section-label">03 · SVG АНИМАЦИИ</div>
+  <div class="section-num" style="color:rgba(255,255,255,.03)">03</div>
+
+  <div class="anim-intro reveal">
+    <h2>9 ТЕХНИК<br><span style="color:var(--red)">SVG АНИМАЦИИ</span></h2>
+    <p>Все техники исследованы с рынка (Awwwards, Codrops, Smashing Magazine). Hover над каждой карточкой — смотри живую демонстрацию.</p>
+  </div>
+
+  <div class="anim-grid">
+
+    <!-- A1: Stroke Draw -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">01</div>
+      <div class="ac-title">STROKE DRAW</div>
+      <div class="ac-desc">SVG stroke-dashoffset. Линии «рисуются» на hover или по scroll. Идеально для масок и иконок. Источник: LogRocket SVG Guide.</div>
+      <div class="demo-area">
+        <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
+          <path class="stroke-path" d="M10 40 Q30 10 60 40 Q90 70 110 40" stroke="#d42b2b" stroke-width="3" fill="none" style="stroke-dasharray:300;stroke-dashoffset:300"/>
+          <path class="stroke-path" d="M20 60 Q60 20 100 60" stroke="rgba(255,255,255,.2)" stroke-width="1.5" fill="none" style="stroke-dasharray:300;stroke-dashoffset:300;animation-delay:.3s"/>
+        </svg>
+      </div>
+      <div style="font-size:9px;color:#333;letter-spacing:2px;margin-top:10px">← HOVER ДЛЯ ДЕМО</div>
+    </div>
+
+    <!-- A2: Marquee Ticker -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">02</div>
+      <div class="ac-title">БЕГУЩАЯ СТРОКА</div>
+      <div class="ac-desc">CSS-only marquee без deprecated тега. Smashing Magazine: дублируем контент для бесшовного цикла. Работает везде.</div>
+      <div class="demo-area" style="width:100%;flex-direction:column;gap:12px">
+        <div class="marquee-wrap" style="padding:10px 0">
+          <div class="marquee-inner">
+            КИТ<span class="marquee-sep">·</span>ТЕАТР<span class="marquee-sep">·</span>КИНО<span class="marquee-sep">·</span>ПАРТ<span class="marquee-sep">·</span>
+            КИТ<span class="marquee-sep">·</span>ТЕАТР<span class="marquee-sep">·</span>КИНО<span class="marquee-sep">·</span>ПАРТ<span class="marquee-sep">·</span>
+          </div>
+        </div>
+        <div class="marquee-wrap" style="padding:8px 0;background:#111">
+          <div class="marquee-inner" style="animation-direction:reverse;font-size:16px;color:rgba(255,255,255,.3)">
+            АКТЁРЫ<span class="marquee-sep" style="color:#333">★</span>СТУДЕНТЫ<span class="marquee-sep" style="color:#333">★</span>РОЛИ<span class="marquee-sep" style="color:#333">★</span>СЦЕНА<span class="marquee-sep" style="color:#333">★</span>
+            АКТЁРЫ<span class="marquee-sep" style="color:#333">★</span>СТУДЕНТЫ<span class="marquee-sep" style="color:#333">★</span>РОЛИ<span class="marquee-sep" style="color:#333">★</span>СЦЕНА<span class="marquee-sep" style="color:#333">★</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A3: Glitch -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">03</div>
+      <div class="ac-title">GLITCH ЭФФЕКТ</div>
+      <div class="ac-desc">CSS clip-path + pseudo-elements. RGB-сдвиг на двух слоях. Популярен в Awwwards brutalist collection. Смотри на hover.</div>
+      <div class="demo-area">
+        <div class="glitch" data-text="КИТ20">КИТ20</div>
+      </div>
+    </div>
+
+    <!-- A4: SVG Morph -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">04</div>
+      <div class="ac-title">SVG МОРФИНГ</div>
+      <div class="ac-desc">SMIL animate attributeName="d". Форма перетекает между состояниями. Используется для blob-элементов и лого-анимаций.</div>
+      <div class="demo-area">
+        <svg class="morph-svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
+          <path fill="#d42b2b" opacity=".8">
+            <animate attributeName="d"
+              values="
+                M50 10 Q80 20 90 50 Q100 80 70 90 Q50 100 30 90 Q0 80 10 50 Q20 20 50 10Z;
+                M50 5 Q90 15 95 50 Q100 85 65 95 Q50 100 35 95 Q0 85 5 50 Q10 15 50 5Z;
+                M50 10 Q80 20 90 50 Q100 80 70 90 Q50 100 30 90 Q0 80 10 50 Q20 20 50 10Z"
+              dur="4s" repeatCount="indefinite"/>
+          </path>
+          <text x="50" y="56" font-family="'Bebas Neue'" font-size="22" fill="white" text-anchor="middle" letter-spacing="2">КИТ</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- A5: Text Scramble -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">05</div>
+      <div class="ac-title">SCRAMBLE TEXT</div>
+      <div class="ac-desc">JS-техника: символы хаотично меняются перед раскрытием слова. Популярна в GSAP-сообществе (freefrontend.com). Hover = триггер.</div>
+      <div class="demo-area" style="flex-direction:column;gap:8px">
+        <div class="scramble" id="scr1" data-original="ТЕАТР" data-hover>ТЕАТР</div>
+        <div class="scramble" id="scr2" data-original="КИНО" data-hover>КИНО</div>
+      </div>
+    </div>
+
+    <!-- A6: Spotlight cursor -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">06</div>
+      <div class="ac-title">SPOTLIGHT CURSOR</div>
+      <div class="ac-desc">Луч следует за мышью внутри блока. Техника из Awwwards: SVG/CSS radial-gradient + mousemove. Двигай мышью по блоку.</div>
+      <div class="demo-area" style="width:100%">
+        <div class="spotlight-wrap" id="spotlight">
+          <div class="spotlight-circle" id="spot-circle"></div>
+          <div class="spotlight-text">КИТ 20</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- A7: Stagger -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">07</div>
+      <div class="ac-title">STAGGER REVEAL</div>
+      <div class="ac-desc">animation-delay со смещением. Простейший паттерн с высоким визуальным импактом. Рекомендация из Smashing Magazine и CSS-Tricks.</div>
+      <div class="demo-area" style="flex-direction:column;gap:12px">
+        <div class="stagger-row" id="stagger-demo">
+          <div class="stag-item"></div>
+          <div class="stag-item" style="background:#888"></div>
+          <div class="stag-item"></div>
+          <div class="stag-item" style="background:#888"></div>
+          <div class="stag-item"></div>
+          <div class="stag-item" style="background:#888"></div>
+          <div class="stag-item"></div>
+          <div class="stag-item" style="background:#888"></div>
+        </div>
+        <button onclick="restartStagger()" style="font-family:'Bebas Neue';font-size:14px;letter-spacing:3px;background:transparent;color:#555;border:1px solid #333;padding:6px 16px;cursor:pointer">↺ ПОВТОР</button>
+      </div>
+    </div>
+
+    <!-- A8: SVG Line on scroll -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">08</div>
+      <div class="ac-title">LINE ON SCROLL</div>
+      <div class="ac-desc">IntersectionObserver + stroke-dashoffset. Линии рисуются при попадании в viewport. Техника из Medium/Trapti, CodePen. Проскролли до блока.</div>
+      <div class="demo-area" style="flex-direction:column;align-items:flex-start;width:100%;gap:10px">
+        <div style="font-family:'Bebas Neue';font-size:28px;color:var(--white)">ГРУППА КИТ</div>
+        <svg class="svg-underline" id="scroll-line" width="200" height="16" viewBox="0 0 200 16" fill="none">
+          <path d="M0 8 L200 8" stroke="#d42b2b" stroke-width="4" fill="none"/>
+        </svg>
+        <div style="font-family:'Bebas Neue';font-size:28px;color:var(--white)">ДВАДЦАТЬ</div>
+        <svg class="svg-underline" id="scroll-line2" width="140" height="16" viewBox="0 0 140 16" fill="none">
+          <path d="M0 8 L140 8" stroke="rgba(255,255,255,.3)" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- A9: Ink Blot -->
+    <div class="anim-card" data-hover>
+      <div class="ac-num">09</div>
+      <div class="ac-title">INK BLOT EXPAND</div>
+      <div class="ac-desc">SVG path + CSS scale animation. Органичное расширение чернильного пятна. Применяется как фоновый акцент на брутальных сайтах типа Radical Everything.</div>
+      <div class="demo-area">
+        <svg class="ink-svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+          <path class="ink-path" d="M60 15 Q90 20 100 45 Q115 70 95 90 Q75 115 50 105 Q20 98 12 72 Q2 48 20 28 Q38 8 60 15Z" fill="#d42b2b" opacity=".7"/>
+          <path class="ink-path" d="M60 30 Q78 35 85 55 Q92 72 78 84 Q62 98 44 90 Q26 82 24 62 Q22 44 36 36 Q50 28 60 30Z" fill="rgba(255,255,255,.1)" style="animation-delay:.5s"/>
+          <text x="60" y="66" font-family="'Bebas Neue'" font-size="18" fill="white" text-anchor="middle" letter-spacing="3">КИТ</text>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     4. COMPONENTS
+══════════════════════════════════════ -->
+<section class="section" id="components">
+  <div class="section-label">04 · КОМПОНЕНТЫ</div>
+  <div class="section-num">04</div>
+
+  <div style="padding:40px 60px;border-bottom:var(--border)">
+    <h2 style="font-family:var(--font-display);font-size:60px;line-height:.9">СИСТЕМА<br>КОМПОНЕНТОВ</h2>
+    <p style="margin-top:16px;color:var(--gray);font-size:11px;line-height:2">Все компоненты строятся на трёх принципах: честный border, жёсткая тень (box-shadow offset), крупная типографика.</p>
+  </div>
+
+  <div class="comp-grid">
+    <!-- Buttons -->
+    <div class="comp-cell">
+      <div class="comp-label">Кнопки</div>
+      <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+        <button class="btn-primary" data-hover><span>Смотреть расписание</span></button>
+        <button class="btn-outline" data-hover>Открыть класс</button>
+        <button class="btn-red" data-hover>Войти в группу</button>
+        <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:4px;line-height:2">
+          Primary: slide-fill из #D42B2B<br>
+          Outline: fill on hover<br>
+          Red: box-shadow offset 4px
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="comp-cell">
+      <div class="comp-label">Карточка</div>
+      <div class="kit-card" data-hover>
+        <div class="card-tag">Расписание · Пн–Пт</div>
+        <div class="card-title">Мастерство актёра</div>
+        <div class="card-text">Практические занятия по сценической речи, движению и работе с ролью.</div>
+      </div>
+      <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:12px;line-height:2">
+        border: 3px solid #0A0A0A<br>
+        box-shadow: 6px 6px 0 #0A0A0A<br>
+        hover: translate(-3px, -3px)
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <div class="comp-cell">
+      <div class="comp-label">Бейджи и метки</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <span class="badge badge-black">КИТ 20</span>
+        <span class="badge badge-red">Театр</span>
+        <span class="badge badge-outline">Кино</span>
+        <span class="badge badge-outline-red">Парт</span>
+        <span class="badge badge-black" style="background:var(--gray)">2024</span>
+      </div>
+      <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:16px;line-height:2">
+        Всегда Bebas Neue<br>
+        letter-spacing: 2–4px<br>
+        text-transform: uppercase
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="comp-cell">
+      <div class="comp-label">Поле ввода</div>
+      <input class="kit-input" type="text" placeholder="Имя студента…" data-hover>
+      <input class="kit-input" type="text" placeholder="Номер группы…" style="margin-top:12px" data-hover>
+      <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:12px;line-height:2">
+        focus: border-color #D42B2B<br>
+        box-shadow: 4px 4px 0 #D42B2B
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="comp-cell" style="grid-column:span 2">
+      <div class="comp-label">Таблица</div>
+      <table class="kit-table">
+        <thead>
+          <tr>
+            <th>ДИСЦИПЛИНА</th>
+            <th>ДЕНЬ</th>
+            <th>ВРЕМЯ</th>
+            <th>АУДИТ.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="red-cell">Мастерство актёра</td><td>Понедельник</td><td>10:00–13:00</td><td>101</td></tr>
+          <tr><td class="red-cell">Сценическая речь</td><td>Вторник</td><td>09:00–11:00</td><td>204</td></tr>
+          <tr><td class="red-cell">Пластика · Движение</td><td>Среда</td><td>11:00–13:00</td><td>Зал</td></tr>
+          <tr><td class="red-cell">Основы кинорежиссуры</td><td>Четверг</td><td>14:00–16:00</td><td>302</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Progress bars -->
+    <div class="comp-cell">
+      <div class="comp-label">Прогресс</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <div class="progress-label">Мастерство · Курс 1</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div>
+        </div>
+        <div>
+          <div class="progress-label">Речь · Завершено</div>
+          <div class="progress-bar progress-red"><div class="progress-fill" style="width:88%"></div></div>
+        </div>
+        <div>
+          <div class="progress-label">Пластика · Начало</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:30%"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     5. LAYOUT PATTERNS
+══════════════════════════════════════ -->
+<section class="section" id="layouts">
+  <div class="section-label">05 · РАСКЛАДКИ</div>
+  <div class="layout-intro reveal">
+    <h2 style="font-family:var(--font-display);font-size:60px">ПАТТЕРНЫ<br>РАСКЛАДОК</h2>
+    <p>Брутализм строится на честной сетке и её намеренном нарушении. Жирные бордеры = границы блоков. Нет скруглений.</p>
+  </div>
+
+  <div class="layout-demo">
+    <h3>A. АССИМЕТРИЧНЫЙ ГЕРОЙ</h3>
+    <p class="desc">2/3 + 1/3 · Большой текстовый блок слева, акцентный справа</p>
+    <div class="wire-hero">
+      <div class="wire-block">
+        <span>HERO TEXT<br>БольшОЙ заголовок</span>
+      </div>
+      <div class="wire-block red-wire">АКЦЕНТ<br>ФОТО/SVG</div>
+    </div>
+    <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:10px">grid-template-columns: 2fr 1fr · border-right между колонками</div>
+  </div>
+
+  <div class="layout-demo" style="border-bottom:var(--border)">
+    <h3>B. БЕГУЩАЯ СТРОКА + СЕТКА</h3>
+    <p class="desc">Тикер как разделитель разделов · Всегда контрастный фон</p>
+    <div style="border:2px dashed var(--gray-light);height:50px;background:rgba(0,0,0,.03);display:flex;align-items:center;padding:0 20px">
+      <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:4px;color:rgba(0,0,0,.15)">КОНТЕНТ ВЫШЕ ↑</div>
+    </div>
+    <div class="wire-ticker">
+      <div class="wire-ticker-inner">КИТ 20 · ТЕАТР · КИНО · ПАРТ АКАДЕМИЯ · КИТ 20 · ТЕАТР · КИНО · ПАРТ АКАДЕМИЯ · КИТ 20 · ТЕАТР · КИНО ·</div>
+    </div>
+    <div style="border:2px dashed var(--gray-light);height:50px;background:rgba(0,0,0,.03);display:flex;align-items:center;padding:0 20px">
+      <div style="font-family:'Bebas Neue';font-size:13px;letter-spacing:4px;color:rgba(0,0,0,.15)">КОНТЕНТ НИЖЕ ↓</div>
+    </div>
+    <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:10px">Тикер = разделитель. background: #D42B2B или #0A0A0A. Никогда белый.</div>
+  </div>
+
+  <div class="layout-demo">
+    <h3>C. SPLIT LAYOUT (50/50)</h3>
+    <p class="desc">Левая колонка тёмная, правая светлая · Жёсткий разделитель</p>
+    <div class="wire-split">
+      <div class="wire-block" style="background:rgba(0,0,0,.04)">ТЁМНАЯ<br>ПАНЕЛЬ</div>
+      <div class="wire-split-div"></div>
+      <div class="wire-block">СВЕТЛАЯ<br>ПАНЕЛЬ</div>
+    </div>
+    <div style="font-size:9px;color:var(--gray);letter-spacing:2px;margin-top:10px">grid-template-columns: 1fr 2px 1fr · разделитель = border, не padding</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     TICKER SECTION
+══════════════════════════════════════ -->
+<div class="section" id="ticker-section">
+  <div class="section-label">ТИКЕР · DEMO</div>
+  <div class="ticker-band t1">
+    <div class="ticker-content">
+      ГРУППА КИТ<span class="ticker-sep">◆</span>ТЕАТР<span class="ticker-sep">◆</span>КИНО<span class="ticker-sep">◆</span>ПАРТ АКАДЕМИЯ<span class="ticker-sep">◆</span>АКТЁРЫ<span class="ticker-sep">◆</span>
+      ГРУППА КИТ<span class="ticker-sep">◆</span>ТЕАТР<span class="ticker-sep">◆</span>КИНО<span class="ticker-sep">◆</span>ПАРТ АКАДЕМИЯ<span class="ticker-sep">◆</span>АКТЁРЫ<span class="ticker-sep">◆</span>
+    </div>
+  </div>
+  <div class="ticker-band t2">
+    <div class="ticker-content">
+      РОЛЬ ✦ СЦЕНА ✦ ПРАВДА ✦ ПРИСУТСТВИЕ ✦ МАСТЕРСТВО ✦ РЕПЕТИЦИЯ ✦
+      РОЛЬ ✦ СЦЕНА ✦ ПРАВДА ✦ ПРИСУТСТВИЕ ✦ МАСТЕРСТВО ✦ РЕПЕТИЦИЯ ✦
+    </div>
+  </div>
+  <div class="ticker-band t3">
+    <div class="ticker-content">
+      kit20.ru · парт_академия · группа КИТ 20 · 2024–2028 · театр и кино ·&nbsp;
+      kit20.ru · парт_академия · группа КИТ 20 · 2024–2028 · театр и кино ·&nbsp;
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     6. MOTION PRINCIPLES
+══════════════════════════════════════ -->
+<section class="section" id="motion">
+  <div class="section-label">06 · MOTION</div>
+  <div class="section-num" style="color:rgba(255,255,255,.02)">06</div>
+
+  <div style="padding:50px 60px;border-bottom:2px solid #1a1a1a">
+    <h2 style="font-family:var(--font-display);font-size:70px;line-height:.85">ПРИНЦИПЫ<br><span style="color:var(--red)">ДВИЖЕНИЯ</span></h2>
+    <p style="color:#555;font-size:11px;line-height:2;max-width:600px;margin-top:20px">
+      Брутализм не боится анимации — но анимация должна быть ТОЧНОЙ. Не плавной ради плавности — быстрой, резкой, уверенной. Рекомендации из исследований Awwwards 2024.
+    </p>
+  </div>
+
+  <div class="motion-grid">
+    <div class="motion-cell">
+      <div class="mc-type">Тип 1</div>
+      <div class="mc-timing">ВХОД</div>
+      <div class="mc-use">Появление элементов. Быстро: 0.3–0.5s. Кубическая кривая ease-out. Элемент влетает снизу/сбоку.</div>
+      <div class="mc-demo">
+        <div class="easing-box" style="animation:ease-demo-linear 2s cubic-bezier(.17,.67,.33,.99) infinite alternate;width:30px;height:30px"></div>
+      </div>
+    </div>
+    <div class="motion-cell">
+      <div class="mc-type">Тип 2</div>
+      <div class="mc-timing">HOVER</div>
+      <div class="mc-use">Мгновенный отклик. 0.15–0.2s. Линейная или ease. box-shadow смещение, translate offset — не масштаб.</div>
+      <div class="mc-demo">
+        <div style="width:60px;height:30px;background:var(--red);box-shadow:3px 3px 0 #fff;transition:all .15s;cursor:pointer"
+          onmouseenter="this.style.transform='translate(-2px,-2px)';this.style.boxShadow='5px 5px 0 #fff'"
+          onmouseleave="this.style.transform='';this.style.boxShadow='3px 3px 0 #fff'"></div>
+      </div>
+    </div>
+    <div class="motion-cell">
+      <div class="mc-type">Тип 3</div>
+      <div class="mc-timing">ТИКЕР</div>
+      <div class="mc-use">Бесконечный loop. 10–20s linear. Дублируй контент × 2 для seamless loop без JS. CSS-only.</div>
+      <div class="mc-demo">
+        <div style="overflow:hidden;width:100%;height:24px;border:1px solid #2a2a2a">
+          <div style="display:inline-flex;animation:marquee-run 6s linear infinite;font-family:'Bebas Neue';font-size:14px;letter-spacing:2px;color:var(--red);white-space:nowrap">
+            КИТ · ТЕАТР · КИНО · &nbsp;&nbsp;КИТ · ТЕАТР · КИНО ·
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="motion-cell">
+      <div class="mc-type">Тип 4</div>
+      <div class="mc-timing">STAGGER</div>
+      <div class="mc-use">animation-delay +0.08s на каждый элемент. Визуальный каскад без JS. Максимум 8–10 элементов.</div>
+      <div class="mc-demo">
+        <div style="display:flex;gap:4px">
+          <div style="width:8px;height:24px;background:var(--red);animation:stagger-in .4s ease .0s both"></div>
+          <div style="width:8px;height:24px;background:#888;animation:stagger-in .4s ease .08s both"></div>
+          <div style="width:8px;height:24px;background:var(--red);animation:stagger-in .4s ease .16s both"></div>
+          <div style="width:8px;height:24px;background:#888;animation:stagger-in .4s ease .24s both"></div>
+          <div style="width:8px;height:24px;background:var(--red);animation:stagger-in .4s ease .32s both"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timing table -->
+  <div class="timing-table">
+    <div class="timing-row" style="border-bottom:1px solid #111;padding:12px 40px;background:#0a0a0a">
+      <div style="font-size:9px;letter-spacing:3px;color:#333;text-transform:uppercase">ДЕЙСТВИЕ</div>
+      <div style="font-size:9px;letter-spacing:3px;color:#333;text-transform:uppercase">СКОРОСТЬ</div>
+      <div style="font-size:9px;letter-spacing:3px;color:#333;text-transform:uppercase;text-align:right">КРИВАЯ</div>
+    </div>
+    <div class="timing-row"><div class="t-name">Hover кнопки</div><div class="t-bar"><div class="t-fill" style="width:15%"></div></div><div class="t-val">0.15s linear</div></div>
+    <div class="timing-row"><div class="t-name">Появление блока</div><div class="t-bar"><div class="t-fill" style="width:45%"></div></div><div class="t-val">0.5s ease-out</div></div>
+    <div class="timing-row"><div class="t-name">Stroke draw</div><div class="t-bar"><div class="t-fill" style="width:90%"></div></div><div class="t-val">1.2s ease</div></div>
+    <div class="timing-row"><div class="t-name">Glitch вспышка</div><div class="t-bar"><div class="t-fill" style="width:8%;background:#d42b2b"></div></div><div class="t-val">0.06s step(1)</div></div>
+    <div class="timing-row"><div class="t-name">Морфинг формы</div><div class="t-bar"><div class="t-fill" style="width:70%"></div></div><div class="t-val">4s ease-in-out ∞</div></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     7. RULES
+══════════════════════════════════════ -->
+<section class="section" id="rules">
+  <div class="section-label">07 · ПРАВИЛА</div>
+  <div class="section-num">07</div>
+  <div class="rules-grid">
+    <div class="rules-col">
+      <h3 class="do">✓ ДЕЛАТЬ</h3>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">Bebas Neue для всех заголовков. Крупно. Без скруглений. Буквы = архитектура.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">border: 3px solid #0A0A0A. Жирные видимые бордеры = структура, которую не прячут.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">box-shadow offset (4–8px) без blur. Геометрическая тень = псевдо-3D без иллюзий.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">Бегущая строка как полноценный UI-элемент — разделитель секций, носитель информации.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">Красный только как акцент. Максимум 15% экрана. Он должен обжигать взгляд.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">SVG-анимации: draw, morph, glitch. Честная векторная графика — брутальная и масштабируемая.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">Кастомный курсор с mix-blend-mode: multiply. Как на всех топовых Awwwards сайтах.</div></div>
+      <div class="rule-item good"><div class="ri-icon">▶</div><div class="ri-text">Огромные фоновые числа (-webkit-text-stroke) как текстурный элемент заднего плана.</div></div>
+    </div>
+    <div class="rules-col" style="background:#fdf9f4">
+      <h3 class="dont-title">✗ НЕ ДЕЛАТЬ</h3>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">Градиенты как основной приём. Особенно purple-to-pink. Это Anti-brutal по определению.</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">border-radius больше 0px на ключевых элементах. Никаких «пузырей» и «пилюль».</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">box-shadow с blur (0px 4px 20px rgba...). Это делает дизайн «воздушным» — против духа.</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">Inter, Roboto, Arial как основные шрифты. Они нейтральны — а брутализм это всегда позиция.</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">Hamburger-меню. Брутализм показывает структуру открыто. Навигация = часть дизайна.</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">Анимации longer than 0.6s для hover. Браузер должен отвечать мгновенно — уверенно, как актёр.</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">Пастельные цвета без причины. Пергамент (#F0EBE0) — это наш нейтральный. Ниже него не идти.</div></div>
+      <div class="rule-item bad"><div class="ri-icon">✕</div><div class="ri-text">Карусели и слайдеры. Контент должен быть виден. Прокрутка = пользователь, не автоплей.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <h3>КИТ 20</h3>
+    <p>Учебная группа театра и кино<br>Парт Академии</p>
+    <div class="f-val">kit20.ru</div>
+  </div>
+  <div>
+    <h3>СТИЛЬ</h3>
+    <p>Neo-Brutalism<br>Источники: Awwwards, Codrops,<br>Smashing Magazine, NN/g</p>
+    <div class="f-val">Версия 1.0.0</div>
+  </div>
+  <div>
+    <h3>СТЕК</h3>
+    <p>HTML5 · CSS Custom Properties<br>SVG SMIL · CSS Animations<br>Vanilla JS · IntersectionObserver</p>
+    <div class="f-val">#D42B2B · #0A0A0A · #F0EBE0</div>
+  </div>
+  <div class="credit">КИТ20 БРЕНД-БУК · BRUTALIST EDITION · ПАРТ АКАДЕМИЯ · ТЕАТР И КИНО · 2024</div>
+</footer>
+
+<script>
+/* ─── CURSOR ─────────────────────────────── */
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+(function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('[data-hover], a, button, input').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+});
+
+/* ─── CHAPTER NUM in NAV ─────────────────── */
+const sections = document.querySelectorAll('.section[id]');
+const chNum = document.getElementById('chapter-num');
+const navNums = {'cover':'00','colours':'01','typography':'02','animations':'03','components':'04','layouts':'05','ticker-section':'06','motion':'06','rules':'07'};
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) chNum.textContent = navNums[e.target.id] || '00';
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => io.observe(s));
+
+/* ─── SCROLL REVEAL ──────────────────────── */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+/* ─── SVG LINE ON SCROLL ─────────────────── */
+const lineObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('path').forEach(p => {
+        const len = p.getTotalLength ? p.getTotalLength() : 300;
+        p.style.strokeDasharray = len;
+        p.style.strokeDashoffset = len;
+        p.style.animation = 'draw-line 1.2s ease forwards';
+      });
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.svg-underline').forEach(el => lineObs.observe(el));
+
+/* ─── SPOTLIGHT CURSOR ───────────────────── */
+const spotWrap = document.getElementById('spotlight');
+const spotCircle = document.getElementById('spot-circle');
+if (spotWrap && spotCircle) {
+  spotWrap.addEventListener('mousemove', e => {
+    const r = spotWrap.getBoundingClientRect();
+    spotCircle.style.left = (e.clientX - r.left) + 'px';
+    spotCircle.style.top = (e.clientY - r.top) + 'px';
+    spotCircle.style.opacity = '1';
+  });
+  spotWrap.addEventListener('mouseleave', () => { spotCircle.style.opacity = '0'; });
+}
+
+/* ─── TEXT SCRAMBLE ──────────────────────── */
+const CHARS = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЫЬЭЮЯabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
+function scramble(el) {
+  const original = el.dataset.original || el.textContent;
+  let iter = 0;
+  const interval = setInterval(() => {
+    el.textContent = original.split('').map((c, i) => {
+      if (c === ' ') return ' ';
+      if (i < iter) return original[i];
+      return CHARS[Math.floor(Math.random() * CHARS.length)];
+    }).join('');
+    if (iter >= original.length) clearInterval(interval);
+    iter += 0.4;
+  }, 30);
+}
+
+document.querySelectorAll('.scramble').forEach(el => {
+  el.addEventListener('mouseenter', () => scramble(el));
+});
+
+/* ─── STAGGER RESTART ────────────────────── */
+function restartStagger() {
+  const items = document.querySelectorAll('#stagger-demo .stag-item');
+  items.forEach(el => {
+    el.style.animation = 'none';
+    el.offsetHeight; // reflow
+    el.style.animation = '';
+  });
+}
+
+/* ─── STROKE DRAW ON HOVER ───────────────── */
+document.querySelectorAll('.anim-card').forEach(card => {
+  card.addEventListener('mouseenter', () => {
+    card.querySelectorAll('.stroke-path').forEach((p, i) => {
+      p.style.animation = `draw-stroke 1.2s ease ${i * 0.2}s forwards`;
+    });
+  });
+  card.addEventListener('mouseleave', () => {
+    card.querySelectorAll('.stroke-path').forEach(p => {
+      p.style.animation = 'none';
+      p.style.strokeDashoffset = p.style.strokeDasharray || '800';
+    });
+  });
+});
+</script>
+</body>
+</html>
