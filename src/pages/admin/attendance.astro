@@ -64,7 +64,7 @@ const initialJson = JSON.stringify({ lessons });
 						УЧЕНИК
 					</th>
 					{lessons.map((lesson, li) => (
-					<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+					<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 						<button type="button" class="remove-lesson-btn absolute right-1 top-1 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li={String(li)} title="Удалить занятие">✕</button>
 						<div class="text-[10px] text-accent cursor-pointer hover:underline sm:text-xs" data-edit-date data-li={String(li)} title="Изменить дату">{lesson.date}</div>
 						<div class="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-canvas/70 cursor-pointer hover:underline sm:mt-1 sm:text-[10px] sm:tracking-wider" data-edit-label data-li={String(li)} title="Изменить название">
@@ -85,7 +85,7 @@ const initialJson = JSON.stringify({ lessons });
 							const absent = st === 'absent';
 							const label = absent ? 'Н' : 'Б';
 							return (
-								<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+								<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 									<button
 										type="button"
 										class:list={[
