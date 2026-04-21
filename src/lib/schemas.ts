@@ -4,6 +4,7 @@ export const etudeSchema = z.object({
 	title: z.string(),
 	passed: z.boolean(),
 	date: z.string().optional(),
+	teacherComment: z.string().optional(),
 });
 
 export const attendanceStatus = z.enum(['present', 'absent', 'excused']);
@@ -36,15 +37,33 @@ export const lessonSchema = z.object({
 	records: z.array(attendanceRecordSchema).optional(),
 });
 
+export const homeProgressColorSchema = z.enum(['ink', 'accent', 'muted', 'mono']);
+
 export const homeSemesterBarSchema = z.object({
 	label: z.string(),
 	progress: z.number().min(0).max(100),
+	/** Цвет заливки полосы: ink — чёрный, accent — красный, muted — серый, mono — тёмно-серый */
+	color: homeProgressColorSchema.optional().default('ink'),
 });
+
+export const homeTitleFontSchema = z.enum(['display', 'sans', 'serif']);
+export const homeTypographyWeightSchema = z.enum(['normal', 'bold']);
 
 export const homeFrontmatterSchema = z.object({
 	title: z.string(),
 	subtitle: z.string().optional(),
 	photo: z.string().optional(),
+	/** Тексты бегущих строк (верх / низ). Пусто — подставятся значения по умолчанию из макета. */
+	tickerTop: z.string().optional(),
+	tickerBottom: z.string().optional(),
+	/** Типографика заголовка главной */
+	titleFont: homeTitleFontSchema.optional().default('display'),
+	titleWeight: homeTypographyWeightSchema.optional().default('normal'),
+	titleItalic: z.boolean().optional().default(false),
+	/** Типографика подзаголовка */
+	subtitleFont: homeTitleFontSchema.optional().default('sans'),
+	subtitleWeight: homeTypographyWeightSchema.optional().default('normal'),
+	subtitleItalic: z.boolean().optional().default(false),
 	/** Прогресс по семестрам (до 2 учебных лет); см. бренд-бук «Прогресс» */
 	semesters: z.array(homeSemesterBarSchema).optional(),
 });
@@ -63,7 +82,6 @@ export const studentFrontmatterSchema = z.object({
 
 export const attendanceFrontmatterSchema = z.object({
 	lessons: z.array(lessonSchema).default([]),
-	demo: z.boolean().optional().default(false),
 });
 
 export type HomeFrontmatter = z.infer<typeof homeFrontmatterSchema>;

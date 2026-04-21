@@ -3,18 +3,49 @@ export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import { readHome } from '../lib/siteContent';
 import { renderMarkdownToHtml } from '../lib/renderMarkdown';
+import type { HomeFrontmatter } from '../lib/schemas';
 
 const { data, body } = await readHome();
 const bodyHtml = renderMarkdownToHtml(body);
 const title = data.title;
 
 const defaultSemesters = [
-	{ label: '2026/27 · семестр 1', progress: 20 },
-	{ label: '2026/27 · семестр 2', progress: 10 },
-	{ label: '2027/28 · семестр 1', progress: 10 },
-	{ label: '2027/28 · семестр 2', progress: 10 },
+	{ label: '2026/27 · семестр 1', progress: 20, color: 'accent' as const },
+	{ label: '2026/27 · семестр 2', progress: 10, color: 'ink' as const },
+	{ label: '2027/28 · семестр 1', progress: 10, color: 'ink' as const },
+	{ label: '2027/28 · семестр 2', progress: 10, color: 'ink' as const },
 ];
 const semesters = data.semesters?.length ? data.semesters : defaultSemesters;
+
+function fontFamilyClass(f: HomeFrontmatter['titleFont']): string {
+	if (f === 'sans') return 'font-sans';
+	if (f === 'serif') return 'font-serif';
+	return 'font-display';
+}
+
+function weightClass(w: HomeFrontmatter['titleWeight']): string {
+	return w === 'bold' ? 'font-bold' : 'font-normal';
+}
+
+function progressFillClass(color: string | undefined): string {
+	switch (color) {
+		case 'accent':
+			return 'bb-progress-fill--accent';
+		case 'muted':
+			return 'bb-progress-fill--muted';
+		case 'mono':
+			return 'bb-progress-fill--mono';
+		default:
+			return '';
+	}
+}
+
+const titleFont = data.titleFont ?? 'display';
+const titleWeight = data.titleWeight ?? 'normal';
+const titleItalic = data.titleItalic ?? false;
+const subtitleFont = data.subtitleFont ?? 'sans';
+const subtitleWeight = data.subtitleWeight ?? 'normal';
+const subtitleItalic = data.subtitleItalic ?? false;
 ---
 
 <Layout title={title}>
@@ -22,7 +53,12 @@ const semesters = data.semesters?.length ? data.semesters : defaultSemesters;
 		class="relative mb-12 overflow-hidden border-[3px] border-ink bg-surface p-8 shadow-[var(--shadow-card)] sm:p-12"
 	>
 		<h1
-			class="font-display text-balance text-5xl uppercase leading-[0.95] tracking-[-0.02em] text-ink sm:text-6xl lg:text-7xl"
+			class:list={[
+				'text-balance text-5xl uppercase leading-[0.95] tracking-[-0.02em] text-ink sm:text-6xl lg:text-7xl',
+				fontFamilyClass(titleFont),
+				weightClass(titleWeight),
+				titleItalic ? 'italic' : 'not-italic',
+			]}
 		>
 			<span id="home-hero-title" class="inline-block tracking-[0.08em]">
 				{data.title}
@@ -30,7 +66,17 @@ const semesters = data.semesters?.length ? data.semesters : defaultSemesters;
 		</h1>
 		{
 			data.subtitle && (
-				<p class="type-cta mt-4 max-w-2xl text-2xl leading-tight text-accent sm:text-3xl">{data.subtitle}</p>
+				<p
+					class:list={[
+						'mt-4 max-w-2xl text-2xl leading-tight text-accent sm:text-3xl',
+						fontFamilyClass(subtitleFont),
+						weightClass(subtitleWeight),
+						subtitleItalic ? 'italic' : 'not-italic',
+						subtitleFont === 'display' ? 'type-cta uppercase tracking-[0.18em]' : '',
+					]}
+				>
+					{data.subtitle}
+				</p>
 			)
 		}
 
@@ -50,12 +96,12 @@ const semesters = data.semesters?.length ? data.semesters : defaultSemesters;
 			<h2 class="mb-4 font-display text-lg uppercase tracking-[0.18em] text-ink font-normal">Учебные семестры (2 года)</h2>
 			<div class="flex flex-col gap-5">
 				{
-					semesters.map((s, i) => (
+					semesters.map((s) => (
 						<div>
 							<div class="bb-progress-label text-ink/85">{s.label}</div>
 							<div class="bb-progress-bar">
 								<div
-									class:list={['bb-progress-fill h-full', i % 2 === 1 ? 'bb-progress-fill--accent' : '']}
+									class:list={['bb-progress-fill h-full', progressFillClass(s.color)]}
 									style={`width: ${s.progress}%`}
 								/>
 							</div>

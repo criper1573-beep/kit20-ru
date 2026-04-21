@@ -315,6 +315,12 @@
 	.bb-progress-fill--accent {
 		background: var(--bb-red);
 	}
+	.bb-progress-fill--muted {
+		background: var(--bb-gray);
+	}
+	.bb-progress-fill--mono {
+		background: #3a3a3a;
+	}
 	@keyframes bb-stripe-move {
 		from {
 			background-position: 0 0;

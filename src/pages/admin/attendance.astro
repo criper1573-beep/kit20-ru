@@ -12,6 +12,7 @@ if (!hasValidAdminSession(Astro.cookies)) {
 const students = await readStudentsSorted();
 const { data: att } = await readAttendance();
 
+
 // Сортируем занятия: самые новые слева (по убыванию даты)
 const lessons = (att.lessons ?? []).sort((a, b) => {
 	return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -32,7 +33,7 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 	return 'absent';
 }
 
-const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
+const initialJson = JSON.stringify({ lessons });
 ---
 
 <Layout admin title="Посещаемость · редактирование">
@@ -52,23 +53,21 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 		</button>
 	</div>
 
-	<label class="mb-6 flex items-center gap-3 font-sans text-sm uppercase tracking-wider text-ink">
-		<input type="checkbox" id="att-demo" checked={att.demo} class="h-5 w-5 border-[2px] border-ink accent-accent" />
-		Демо-режим (флаг <code class="border-[2px] border-ink bg-muted-surface px-1.5 py-0.5 text-ink">demo</code>)
-	</label>
-
-	<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
-		<table class="w-max min-w-[640px] border-collapse text-left font-sans text-sm" id="att-table">
+	<div
+		class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
+		style="--att-name-col-w:5.6rem; --att-name-col-w-sm:6.4rem; --att-cell-w:5.6rem; --att-cell-w-sm:6.4rem;"
+	>
+		<table class="w-max table-fixed border-collapse text-left font-sans text-[10px] sm:text-sm" id="att-table">
 			<thead>
 				<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-					<th class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-ink px-4 py-3.5 font-display text-xl font-normal tracking-widest">
+					<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-1 py-2 text-[11px] font-display font-normal tracking-normal sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3.5 sm:text-xl sm:tracking-widest">
 						УЧЕНИК
 					</th>
 					{lessons.map((lesson, li) => (
-					<th class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0 relative group/th">
+					<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 						<button type="button" class="remove-lesson-btn absolute right-1 top-1 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li={String(li)} title="Удалить занятие">✕</button>
-						<div class="text-xs text-accent cursor-pointer hover:underline" data-edit-date data-li={String(li)} title="Изменить дату">{lesson.date}</div>
-						<div class="mt-1 text-[10px] uppercase tracking-wider text-canvas/70 cursor-pointer hover:underline" data-edit-label data-li={String(li)} title="Изменить название">
+						<div class="text-[10px] text-accent cursor-pointer hover:underline sm:text-xs" data-edit-date data-li={String(li)} title="Изменить дату">{lesson.date}</div>
+						<div class="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-canvas/70 cursor-pointer hover:underline sm:mt-1 sm:text-[10px] sm:tracking-wider" data-edit-label data-li={String(li)} title="Изменить название">
 							{lesson.label || '—'}
 						</div>
 					</th>
@@ -78,7 +77,7 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 			<tbody>
 				{students.map((s) => (
 					<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors" data-slug={s.data.slug}>
-						<td class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-surface px-4 py-3 uppercase tracking-wider text-ink group-hover:bg-muted-surface transition-colors">
+						<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden text-ellipsis whitespace-nowrap border-r-[3px] border-ink bg-surface px-1 py-2 uppercase tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
 							{s.data.displayName}
 						</td>
 						{lessons.map((lesson, li) => {
@@ -86,11 +85,11 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 							const absent = st === 'absent';
 							const label = absent ? 'Н' : 'Б';
 							return (
-								<td class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0">
+								<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 									<button
 										type="button"
 										class:list={[
-											'cell-att inline-flex min-w-[2.5rem] justify-center border-[2px] border-ink px-1.5 py-1 text-xs transition-colors active-shift',
+											'cell-att inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] transition-colors active-shift sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
 											absent ? 'bg-surface text-ink' : 'bg-accent text-canvas',
 										]}
 										data-li={String(li)}
@@ -122,17 +121,27 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 	<script id="att-initial" type="application/json" set:html={initialJson} />
 
 	<script>
+		const dbgTable = document.getElementById('att-table');
+		const dbgWrapper = dbgTable?.closest('.bb-scrollbar') as HTMLElement | null;
+		const dbgHeadRow = dbgTable?.querySelector('thead tr');
+		const dbgFirstHead = dbgHeadRow?.children?.[0] as HTMLElement | undefined;
+		const dbgSecondHead = dbgHeadRow?.children?.[1] as HTMLElement | undefined;
+		const dbgFirstData = dbgTable?.querySelector('tbody tr td') as HTMLElement | null;
+		// #region agent log
+		const debugPayload = {sessionId:'cdc693',runId:'attendance-width-v2',hypothesisId:'H1_H2_H4_H9',location:'src/pages/admin/attendance.astro:script',message:'Admin attendance runtime width snapshot',data:{viewportWidth:window.innerWidth,isSm:window.matchMedia('(min-width: 640px)').matches,cssVarNameCol:dbgWrapper?getComputedStyle(dbgWrapper).getPropertyValue('--att-name-col-w').trim():'',cssVarNameColSm:dbgWrapper?getComputedStyle(dbgWrapper).getPropertyValue('--att-name-col-w-sm').trim():'',tableClientWidth:dbgTable?.clientWidth??null,tableScrollWidth:dbgTable?.scrollWidth??null,wrapperClientWidth:dbgWrapper?.clientWidth??null,wrapperScrollWidth:dbgWrapper?.scrollWidth??null,firstHeadClientWidth:dbgFirstHead?.clientWidth??null,firstHeadScrollWidth:dbgFirstHead?.scrollWidth??null,secondHeadClientWidth:dbgSecondHead?.clientWidth??null,secondHeadScrollWidth:dbgSecondHead?.scrollWidth??null,firstDataClientWidth:dbgFirstData?.clientWidth??null,firstDataScrollWidth:dbgFirstData?.scrollWidth??null,firstDataText:dbgFirstData?.textContent?.trim()?.slice(0,32)??''},timestamp:Date.now()};
+		fetch('http://127.0.0.1:7285/ingest/cd037db6-f3b9-4893-a32f-5e239cf83106',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cdc693'},body:JSON.stringify(debugPayload)}).catch(()=>{});
+		fetch('/api/debug/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(debugPayload)}).catch(()=>{});
+		// #endregion
 		const initialEl = document.getElementById('att-initial');
 		const saveBtn = document.getElementById('att-save');
 		const status = document.getElementById('att-status');
-		const demoEl = document.getElementById('att-demo') as HTMLInputElement | null;
 		const addLessonBtn = document.getElementById('add-lesson-btn');
 		let autosaveTimer: number | null = null;
 		let saveRequestId = 0;
 		let latestSavedId = 0;
 
-		function readInitial(): { lessons: { date: string; label?: string; exceptions?: { student: string }[] }[]; demo: boolean } {
-			if (!initialEl?.textContent) return { lessons: [], demo: false };
+		function readInitial(): { lessons: { date: string; label?: string; exceptions?: { student: string }[] }[] } {
+			if (!initialEl?.textContent) return { lessons: [] };
 			return JSON.parse(initialEl.textContent);
 		}
 
@@ -270,7 +279,6 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 
 			return {
 				lessons,
-				demo: Boolean(demoEl?.checked),
 				body: '',
 			};
 		}
@@ -371,7 +379,7 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 			const theadTr = document.querySelector('#att-table thead tr');
 			if (theadTr) {
 				const th = document.createElement('th');
-				th.className = "w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0 relative group/th";
+				th.className = "w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2";
 				th.innerHTML = `
 					<button type="button" class="remove-lesson-btn absolute right-1 top-1 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li="${newIndex}" title="Удалить занятие">✕</button>
 					<div class="text-xs text-accent cursor-pointer hover:underline" data-edit-date data-li="${newIndex}" title="Изменить дату">${date}</div>
@@ -383,11 +391,11 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 			document.querySelectorAll('#att-table tbody tr').forEach(tr => {
 				const slug = tr.getAttribute('data-slug');
 				const td = document.createElement('td');
-				td.className = "w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0";
+				td.className = "w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2";
 				td.innerHTML = `
 					<button
 						type="button"
-						class="cell-att inline-flex min-w-[2.5rem] justify-center border-[2px] border-ink px-1.5 py-1 text-xs transition-colors active-shift bg-accent text-canvas"
+						class="cell-att inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] transition-colors active-shift bg-accent text-canvas"
 						data-li="${newIndex}"
 						data-slug="${slug}"
 						data-absent="0"
@@ -401,8 +409,6 @@ const initialJson = JSON.stringify({ lessons, demo: att.demo ?? false });
 			bindEditEvents();
 			scheduleAutoSave();
 		});
-
-		demoEl?.addEventListener('change', scheduleAutoSave);
 
 		saveBtn?.addEventListener('click', async () => {
 			await persistAttendance('manual');

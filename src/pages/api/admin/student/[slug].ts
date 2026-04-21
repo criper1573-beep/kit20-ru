@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { studentFrontmatterSchema } from '../../../../lib/schemas';
 import { readStudent, writeStudent } from '../../../../lib/siteContent';
 import { hasValidAdminSession, unauthorizedJson } from '../../../../lib/adminApiAuth';
+import { readFile } from 'node:fs/promises';
+import { logAdminContentChange } from '../../../../lib/adminChangeLog';
 
 export const prerender = false;
 
@@ -59,8 +61,19 @@ export const PUT: APIRoute = async ({ params, request, cookies }) => {
 		});
 	}
 	const mdBody = typeof payload.body === 'string' ? payload.body : '';
+	const targetPath = `src/content/students/${slug}.md`;
+	let beforeRaw = '';
 	try {
+		beforeRaw = await readFile(targetPath, 'utf8');
 		await writeStudent(parsed.data, mdBody);
+		const afterRaw = await readFile(targetPath, 'utf8');
+		await logAdminContentChange({
+			entity: 'student',
+			targetPath,
+			beforeContent: beforeRaw,
+			afterContent: afterRaw,
+			slug,
+		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : 'Ошибка записи';
 		return new Response(JSON.stringify({ error: msg }), {

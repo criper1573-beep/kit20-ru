@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { attendanceFrontmatterSchema } from '../../../lib/schemas';
 import { readAttendance, writeAttendance } from '../../../lib/siteContent';
 import { hasValidAdminSession, unauthorizedJson } from '../../../lib/adminApiAuth';
+import { readFile } from 'node:fs/promises';
+import { logAdminContentChange } from '../../../lib/adminChangeLog';
 
 export const prerender = false;
 
@@ -18,10 +20,9 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 		});
 	}
-	const payload = json as { lessons?: unknown; demo?: unknown; body?: unknown };
+	const payload = json as { lessons?: unknown; body?: unknown };
 	const parsed = attendanceFrontmatterSchema.safeParse({
 		lessons: payload.lessons,
-		demo: payload.demo,
 	});
 	if (!parsed.success) {
 		return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
@@ -30,9 +31,19 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 		});
 	}
 	const mdBody = typeof payload.body === 'string' ? payload.body : '';
+	const targetPath = 'src/content/attendance.md';
+	let beforeRaw = '';
 	try {
+		beforeRaw = await readFile(targetPath, 'utf8');
 		const current = await readAttendance();
 		await writeAttendance(parsed.data, mdBody || current.body);
+		const afterRaw = await readFile(targetPath, 'utf8');
+		await logAdminContentChange({
+			entity: 'attendance',
+			targetPath,
+			beforeContent: beforeRaw,
+			afterContent: afterRaw,
+		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : 'Ошибка записи';
 		return new Response(JSON.stringify({ error: msg }), {

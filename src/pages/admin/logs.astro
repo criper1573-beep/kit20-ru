@@ -1,0 +1,104 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { hasValidAdminSession } from '../../lib/adminApiAuth';
+import { listAdminChangeLog } from '../../lib/adminChangeLog';
+
+if (!hasValidAdminSession(Astro.cookies)) {
+	const nextUrl = Astro.url.pathname + Astro.url.search;
+	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
+}
+
+const entries = await listAdminChangeLog(200);
+---
+
+<Layout admin title="Логи изменений">
+	<section class="border-[3px] border-ink bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8">
+		<div class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b-[3px] border-ink pb-4">
+			<h1 class="font-display text-3xl font-normal tracking-widest text-ink uppercase">Логи изменений</h1>
+			<a
+				href="/admin/logs"
+				class="type-cta border-[2px] border-ink bg-surface px-3 py-1.5 text-xs text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift transition-colors"
+			>
+				Обновить
+			</a>
+		</div>
+		<p class="mb-6 font-sans text-xs uppercase tracking-wider text-muted">
+			Каждое сохранение из админки пишет снимки ДО/ПОСЛЕ в `storage/admin-change-log`. Откат применяет состояние «ДО».
+		</p>
+
+		{
+			entries.length === 0 ? (
+				<div class="border-[3px] border-dashed border-ink bg-muted-surface p-6 text-center font-sans text-sm uppercase text-muted">
+					Пока нет записей в журнале.
+				</div>
+			) : (
+				<div class="space-y-3">
+					{entries.map((entry) => (
+						<div class="border-[3px] border-ink bg-muted-surface p-4 shadow-[var(--shadow-card)]">
+							<div class="flex flex-wrap items-start justify-between gap-3">
+								<div class="min-w-0">
+									<div class="font-mono text-[11px] uppercase tracking-wide text-muted">{entry.createdAt}</div>
+									<div class="mt-1 font-display text-xl font-normal tracking-wider text-ink uppercase">
+										{entry.entity}
+										{entry.slug ? ` · ${entry.slug}` : ''}
+										{entry.kind === 'rollback' ? ' · rollback' : ''}
+									</div>
+									<div class="mt-1 break-all font-mono text-[11px] text-ink">{entry.targetPath}</div>
+									<div class="mt-1 break-all font-mono text-[10px] text-muted">
+										id: {entry.id}
+										{entry.sourceChangeId ? ` · source: ${entry.sourceChangeId}` : ''}
+									</div>
+								</div>
+								<button
+									type="button"
+									data-rollback-id={entry.id}
+									class="type-cta border-[2px] border-ink bg-accent px-3 py-1.5 text-xs text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover active-shift transition-colors"
+								>
+									Откатить этот шаг
+								</button>
+							</div>
+						</div>
+					))}
+				</div>
+			)
+		}
+
+		<p id="logs-status" class="mt-6 font-sans text-sm uppercase tracking-wider text-muted"></p>
+	</section>
+
+	<script>
+		const status = document.getElementById('logs-status');
+
+		async function rollbackById(id: string) {
+			if (!status) return;
+			const ok = window.confirm('Откатить выбранное изменение? Будет записан новый rollback-лог.');
+			if (!ok) return;
+			status.textContent = 'Откатываю…';
+			try {
+				const res = await fetch('/api/admin/change-log', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ id }),
+				});
+				const j = await res.json().catch(() => ({}));
+				if (!res.ok) {
+					status.textContent = j.error ? String(j.error) : 'Ошибка отката';
+					return;
+				}
+				status.textContent = 'Откат выполнен. Обновляю список…';
+				window.location.reload();
+			} catch {
+				status.textContent = 'Ошибка сети при откате';
+			}
+		}
+
+		document.querySelectorAll('[data-rollback-id]').forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const id = btn.getAttribute('data-rollback-id') ?? '';
+				if (!id) return;
+				rollbackById(id);
+			});
+		});
+	</script>
+</Layout>

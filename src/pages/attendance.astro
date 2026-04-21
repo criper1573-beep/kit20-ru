@@ -6,6 +6,7 @@ import { readStudentsSorted, readAttendance } from '../lib/siteContent';
 const students = await readStudentsSorted();
 const { data: att } = await readAttendance();
 
+
 // Сортируем занятия: самые новые слева (по убыванию даты)
 const lessons = (att.lessons ?? []).sort((a, b) => {
 	return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -50,17 +51,20 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 			</div>
 		) : (
 			<>
-				<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
-					<table class="w-max min-w-[640px] border-collapse text-left font-sans text-sm" id="att-table">
+				<div
+					class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
+					style="--att-name-col-w:5.6rem; --att-name-col-w-sm:6.4rem; --att-cell-w:5.6rem; --att-cell-w-sm:6.4rem;"
+				>
+					<table class="w-max table-fixed border-collapse text-left font-sans text-[10px] sm:text-sm" id="att-table">
 						<thead>
 							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-								<th class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-ink px-4 py-3.5 font-display text-xl font-normal tracking-widest">
+								<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-1 py-2 text-[11px] font-display font-normal tracking-normal sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3.5 sm:text-xl sm:tracking-widest">
 									УЧЕНИК
 								</th>
 								{lessons.map((lesson) => (
-									<th class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0">
-										<div class="text-xs text-accent">{lesson.date}</div>
-										<div class="mt-1 text-[10px] uppercase tracking-wider text-canvas/70">
+									<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+										<div class="text-[10px] text-accent sm:text-xs">{lesson.date}</div>
+										<div class="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-canvas/70 sm:mt-1 sm:text-[10px] sm:tracking-wider">
 											{lesson.label ?? '—'}
 										</div>
 									</th>
@@ -70,7 +74,7 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 						<tbody>
 							{students.map((s) => (
 								<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors">
-									<td class="sticky left-0 z-10 w-[6.5rem] min-w-[6.5rem] max-w-[6.5rem] border-r-[3px] border-ink bg-surface px-4 py-3 uppercase tracking-wider text-ink group-hover:bg-muted-surface transition-colors">
+									<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden text-ellipsis whitespace-nowrap border-r-[3px] border-ink bg-surface px-1 py-2 uppercase tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
 										{s.data.displayName}
 									</td>
 									{lessons.map((lesson) => {
@@ -78,10 +82,10 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 										const label = statusLabel[st];
 										const t = statusTitle[st];
 										return (
-											<td class="w-[5.5rem] min-w-[5.5rem] max-w-[5.5rem] border-r-[2px] border-ink/20 px-2 py-3 text-center last:border-r-0">
+											<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 												<span
 													class:list={[
-														'inline-flex min-w-[2.5rem] justify-center border-[2px] border-ink px-1.5 py-1 text-xs',
+														'inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
 														st === 'present' ? 'bg-accent text-canvas' : 'bg-surface text-ink',
 													]}
 													title={t}
@@ -113,6 +117,16 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 		(() => {
 			const table = document.getElementById('att-table');
 			if (!table) return;
+			const wrapper = table.closest('.bb-scrollbar') as HTMLElement | null;
+			const headRow = table.querySelector('thead tr');
+			const firstHead = headRow?.children?.[0] as HTMLElement | undefined;
+			const secondHead = headRow?.children?.[1] as HTMLElement | undefined;
+			const firstData = table.querySelector('tbody tr td') as HTMLElement | null;
+			// #region agent log
+			const debugPayload = {sessionId:'cdc693',runId:'attendance-width-v2',hypothesisId:'H1_H2_H3_H9',location:'src/pages/attendance.astro:script',message:'Public attendance runtime width snapshot',data:{viewportWidth:window.innerWidth,isSm:window.matchMedia('(min-width: 640px)').matches,cssVarNameCol:wrapper?getComputedStyle(wrapper).getPropertyValue('--att-name-col-w').trim():'',cssVarNameColSm:wrapper?getComputedStyle(wrapper).getPropertyValue('--att-name-col-w-sm').trim():'',tableClientWidth:table.clientWidth,tableScrollWidth:table.scrollWidth,wrapperClientWidth:wrapper?.clientWidth??null,wrapperScrollWidth:wrapper?.scrollWidth??null,firstHeadClientWidth:firstHead?.clientWidth??null,firstHeadScrollWidth:firstHead?.scrollWidth??null,secondHeadClientWidth:secondHead?.clientWidth??null,secondHeadScrollWidth:secondHead?.scrollWidth??null,firstDataClientWidth:firstData?.clientWidth??null,firstDataScrollWidth:firstData?.scrollWidth??null,firstDataText:firstData?.textContent?.trim()?.slice(0,32)??''},timestamp:Date.now()};
+			fetch('http://127.0.0.1:7285/ingest/cd037db6-f3b9-4893-a32f-5e239cf83106',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cdc693'},body:JSON.stringify(debugPayload)}).catch(()=>{});
+			fetch('/api/debug/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(debugPayload)}).catch(()=>{});
+			// #endregion
 			const tbody = table.querySelector('tbody');
 			const thead = table.querySelector('thead');
 			if (!tbody || !thead) return;

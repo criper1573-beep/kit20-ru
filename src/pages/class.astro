@@ -49,7 +49,16 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 				<div class="max-h-[min(70vh,32rem)] overflow-y-auto px-5 py-6">
 					<div class="mb-6 flex gap-5">
 						<div class="h-28 w-24 shrink-0 border-[3px] border-ink bg-muted-surface overflow-hidden">
-							<StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" />
+							{data.photo ? (
+								<img
+									src={data.photo}
+									alt={`Фото: ${data.displayName}`}
+									class="h-full w-full object-cover object-top"
+									loading="lazy"
+								/>
+							) : (
+								<StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" />
+							)}
 						</div>
 						<dl class="grid flex-1 gap-2 text-sm font-sans">
 							{data.fullName && (
@@ -78,14 +87,6 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 							)}
 						</dl>
 					</div>
-					{data.photo && (
-						<img
-							src={data.photo}
-							alt=""
-							class="mb-6 max-h-56 w-full border-[3px] border-ink object-cover object-top shadow-[var(--shadow-card)] grayscale hover:grayscale-0 transition-all duration-500"
-							loading="lazy"
-						/>
-					)}
 					{data.etudes.length > 0 && (
 						<>
 							<h3 class="mb-3 font-display text-xl font-normal tracking-widest text-accent uppercase">Этюды</h3>
@@ -105,6 +106,9 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 										</div>
 										{e.date && (
 											<p class="kit-etude-shift kit-etude-shift--date mt-2 text-xs font-bold text-muted">{e.date}</p>
+										)}
+										{e.teacherComment && (
+											<p class="kit-etude-shift mt-2 text-xs text-ink/80">{e.teacherComment}</p>
 										)}
 									</li>
 								))}

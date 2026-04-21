@@ -26,11 +26,19 @@ export const POST: APIRoute = async (ctx) => {
 			});
 		}
 
+		if (!file.type.startsWith('image/')) {
+			return new Response(JSON.stringify({ error: 'Разрешены только изображения' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+
 		const buffer = Buffer.from(await file.arrayBuffer());
-		const ext = extname(file.name) || '.jpg';
+		const ext = (extname(file.name) || '.jpg').toLowerCase();
 		const filename = `${randomUUID()}${ext}`;
 
-		const uploadDir = join(process.cwd(), 'public', 'uploads');
+		// Папка вне dist/client, чтобы файлы не терялись при пересборке.
+		const uploadDir = join(process.cwd(), 'storage', 'uploads');
 		await mkdir(uploadDir, { recursive: true });
 
 		const filePath = join(uploadDir, filename);

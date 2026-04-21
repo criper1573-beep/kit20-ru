@@ -24,7 +24,7 @@ try {
 	return Astro.redirect('/admin/class');
 }
 
-const padEtudes = [...data.etudes, ...Array.from({ length: 6 }, () => ({ title: '', passed: false, date: '' }))];
+const padEtudes = [...data.etudes, ...Array.from({ length: 6 }, () => ({ title: '', passed: false, date: '', teacherComment: '' }))];
 const title = `Ученик · ${data.displayName}`;
 ---
 
@@ -154,6 +154,13 @@ const title = `Ученик · ${data.displayName}`;
 									value={e.date ?? ''}
 								/>
 							</label>
+							<label class="font-sans text-xs uppercase tracking-wider text-ink sm:col-span-3">
+								Комментарий преподавателя
+								<textarea
+									class="et-comment mt-2 w-full border-[2px] border-ink bg-surface px-3 py-2 font-sans text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent"
+									rows="2"
+								>{e.teacherComment ?? ''}</textarea>
+							</label>
 						</div>
 					))
 				}
@@ -191,14 +198,16 @@ const title = `Ученик · ${data.displayName}`;
 
 		function collectPayload() {
 			const slug = (document.getElementById('slug') as HTMLInputElement)?.value;
-			const etudes: { title: string; passed: boolean; date?: string }[] = [];
+			const etudes: { title: string; passed: boolean; date?: string; teacherComment?: string }[] = [];
 			document.querySelectorAll('.etude-row').forEach((row) => {
 				const title = (row.querySelector('.et-title') as HTMLInputElement)?.value?.trim() ?? '';
 				if (!title) return;
 				const passed = Boolean((row.querySelector('.et-passed') as HTMLInputElement)?.checked);
 				const dateRaw = (row.querySelector('.et-date') as HTMLInputElement)?.value?.trim() ?? '';
-				const o: { title: string; passed: boolean; date?: string } = { title, passed };
+				const commentRaw = (row.querySelector('.et-comment') as HTMLTextAreaElement)?.value?.trim() ?? '';
+				const o: { title: string; passed: boolean; date?: string; teacherComment?: string } = { title, passed };
 				if (dateRaw) o.date = dateRaw;
+				if (commentRaw) o.teacherComment = commentRaw;
 				etudes.push(o);
 			});
 			const orderRaw = Number((document.getElementById('order') as HTMLInputElement)?.value);
@@ -314,6 +323,10 @@ const title = `Ученик · ${data.displayName}`;
 				<label class="font-sans text-xs uppercase tracking-wider text-ink">
 					Дата
 					<input type="text" class="et-date mt-2 w-full border-[2px] border-ink bg-surface px-3 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent" value="" />
+				</label>
+				<label class="font-sans text-xs uppercase tracking-wider text-ink sm:col-span-3">
+					Комментарий преподавателя
+					<textarea class="et-comment mt-2 w-full border-[2px] border-ink bg-surface px-3 py-2 font-sans text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-accent" rows="2"></textarea>
 				</label>
 			`;
 			etudeRows.appendChild(div);

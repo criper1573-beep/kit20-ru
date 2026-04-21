@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import { readHome } from '../../lib/siteContent';
 import { renderMarkdownToHtml } from '../../lib/renderMarkdown';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
+import type { HomeFrontmatter } from '../../lib/schemas';
 
 if (!hasValidAdminSession(Astro.cookies)) {
 	const nextUrl = Astro.url.pathname + Astro.url.search;
@@ -13,6 +14,24 @@ if (!hasValidAdminSession(Astro.cookies)) {
 const { data, body } = await readHome();
 const previewHtml = renderMarkdownToHtml(body);
 const title = `Редактор · ${data.title}`;
+
+type SemRow = NonNullable<HomeFrontmatter['semesters']>[number];
+const defaultSemesters: SemRow[] = [
+	{ label: '2026/27 · семестр 1', progress: 20, color: 'accent' },
+	{ label: '2026/27 · семестр 2', progress: 10, color: 'ink' },
+	{ label: '2027/28 · семестр 1', progress: 10, color: 'ink' },
+	{ label: '2027/28 · семестр 2', progress: 10, color: 'ink' },
+];
+const semEditorList = data.semesters?.length ? data.semesters : defaultSemesters;
+
+const tickerTop = data.tickerTop ?? '';
+const tickerBottom = data.tickerBottom ?? '';
+const titleFont = data.titleFont ?? 'display';
+const titleWeight = data.titleWeight ?? 'normal';
+const titleItalic = data.titleItalic ?? false;
+const subtitleFont = data.subtitleFont ?? 'sans';
+const subtitleWeight = data.subtitleWeight ?? 'normal';
+const subtitleItalic = data.subtitleItalic ?? false;
 ---
 
 <Layout admin title={title}>
@@ -20,7 +39,7 @@ const title = `Редактор · ${data.title}`;
 		class="relative overflow-hidden border-[3px] border-ink bg-surface p-6 shadow-[var(--shadow-card)] sm:p-8"
 	>
 		<p class="mb-6 font-sans text-sm uppercase text-accent">Черновик главной — сохраняется в `src/content/home.md`</p>
-		<form id="home-form" class="space-y-6">
+		<form id="home-form" class="space-y-8">
 			<label class="block font-sans text-sm uppercase tracking-wider">
 				Заголовок
 				<input
@@ -39,12 +58,163 @@ const title = `Редактор · ${data.title}`;
 					class="mt-2 w-full border-[3px] border-ink bg-surface px-3 py-2 font-sans text-base shadow-[var(--shadow-card)] focus:outline-none focus:ring-2 focus:ring-accent"
 				/>
 			</label>
-			
+
+			<div class="border-t-[3px] border-ink pt-6">
+				<h3 class="font-display text-xl uppercase tracking-widest text-ink">Бегущие строки</h3>
+				<p class="mt-1 font-sans text-xs text-muted">Пустое поле — текст по умолчанию из макета.</p>
+				<label class="mt-4 block font-sans text-sm uppercase tracking-wider">
+					Верхняя строка
+					<textarea
+						name="tickerTop"
+						rows="2"
+						class="mt-2 w-full border-[3px] border-ink bg-surface px-3 py-2 font-sans text-sm shadow-[var(--shadow-card)] focus:outline-none focus:ring-2 focus:ring-accent"
+					>{tickerTop}</textarea>
+				</label>
+				<label class="mt-4 block font-sans text-sm uppercase tracking-wider">
+					Нижняя строка
+					<textarea
+						name="tickerBottom"
+						rows="2"
+						class="mt-2 w-full border-[3px] border-ink bg-surface px-3 py-2 font-sans text-sm shadow-[var(--shadow-card)] focus:outline-none focus:ring-2 focus:ring-accent"
+					>{tickerBottom}</textarea>
+				</label>
+			</div>
+
+			<div class="border-t-[3px] border-ink pt-6">
+				<h3 class="font-display text-xl uppercase tracking-widest text-ink">Типографика главной</h3>
+				<div class="mt-4 grid gap-6 sm:grid-cols-2">
+					<fieldset class="space-y-3 border-[3px] border-ink bg-canvas/30 p-4 shadow-[var(--shadow-card)]">
+						<legend class="px-1 font-sans text-xs uppercase text-muted">Заголовок (H1)</legend>
+						<label class="block font-sans text-xs uppercase tracking-wider text-muted">
+							Шрифт
+							<select
+								name="titleFont"
+								class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+							>
+								<option value="display" selected={titleFont === 'display'}>Display (бренд)</option>
+								<option value="sans" selected={titleFont === 'sans'}>Sans</option>
+								<option value="serif" selected={titleFont === 'serif'}>Serif</option>
+							</select>
+						</label>
+						<label class="block font-sans text-xs uppercase tracking-wider text-muted">
+							Начертание
+							<select
+								name="titleWeight"
+								class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+							>
+								<option value="normal" selected={titleWeight === 'normal'}>Обычный</option>
+								<option value="bold" selected={titleWeight === 'bold'}>Жирный</option>
+							</select>
+						</label>
+						<label class="flex items-center gap-2 font-sans text-xs uppercase tracking-wider text-muted">
+							<input type="checkbox" name="titleItalic" checked={titleItalic} class="h-4 w-4 border-2 border-ink" />
+							Курсив
+						</label>
+					</fieldset>
+					<fieldset class="space-y-3 border-[3px] border-ink bg-canvas/30 p-4 shadow-[var(--shadow-card)]">
+						<legend class="px-1 font-sans text-xs uppercase text-muted">Подзаголовок</legend>
+						<label class="block font-sans text-xs uppercase tracking-wider text-muted">
+							Шрифт
+							<select
+								name="subtitleFont"
+								class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+							>
+								<option value="display" selected={subtitleFont === 'display'}>Display</option>
+								<option value="sans" selected={subtitleFont === 'sans'}>Sans</option>
+								<option value="serif" selected={subtitleFont === 'serif'}>Serif</option>
+							</select>
+						</label>
+						<label class="block font-sans text-xs uppercase tracking-wider text-muted">
+							Начертание
+							<select
+								name="subtitleWeight"
+								class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+							>
+								<option value="normal" selected={subtitleWeight === 'normal'}>Обычный</option>
+								<option value="bold" selected={subtitleWeight === 'bold'}>Жирный</option>
+							</select>
+						</label>
+						<label class="flex items-center gap-2 font-sans text-xs uppercase tracking-wider text-muted">
+							<input type="checkbox" name="subtitleItalic" checked={subtitleItalic} class="h-4 w-4 border-2 border-ink" />
+							Курсив
+						</label>
+					</fieldset>
+				</div>
+			</div>
+
+			<div class="border-t-[3px] border-ink pt-6">
+				<h3 class="font-display text-xl uppercase tracking-widest text-ink">Прогресс-бары</h3>
+				<p class="mt-1 font-sans text-xs text-muted">Подпись, заполнение 0–100%, цвет заливки.</p>
+				<div id="semester-list" class="mt-4 space-y-4">
+					{
+						semEditorList.map((s) => (
+							<div
+								class="sem-row flex flex-col gap-3 border-[3px] border-ink bg-canvas/20 p-4 shadow-[var(--shadow-card)] sm:flex-row sm:flex-wrap sm:items-end"
+								data-sem-row
+							>
+								<label class="min-w-[12rem] flex-1 font-sans text-xs uppercase tracking-wider text-muted">
+									Подпись
+									<input
+										type="text"
+										data-sem-label
+										value={s.label}
+										class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+									/>
+								</label>
+								<label class="w-full font-sans text-xs uppercase tracking-wider text-muted sm:w-24">
+									%
+									<input
+										type="number"
+										data-sem-progress
+										min="0"
+										max="100"
+										step="1"
+										value={s.progress}
+										class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+									/>
+								</label>
+								<label class="w-full font-sans text-xs uppercase tracking-wider text-muted sm:w-40">
+									Цвет
+									<select
+										data-sem-color
+										class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+									>
+										<option value="ink" selected={s.color === 'ink' || !s.color}>Чёрный (ink)</option>
+										<option value="accent" selected={s.color === 'accent'}>Акцент</option>
+										<option value="muted" selected={s.color === 'muted'}>Серый</option>
+										<option value="mono" selected={s.color === 'mono'}>Тёмно-серый</option>
+									</select>
+								</label>
+								<button
+									type="button"
+									data-sem-remove
+									class="border-[3px] border-ink bg-surface px-3 py-2 font-sans text-xs uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift"
+								>
+									Удалить
+								</button>
+							</div>
+						))
+					}
+				</div>
+				<button
+					type="button"
+					id="sem-add"
+					class="mt-4 border-[3px] border-ink bg-surface px-4 py-2 font-sans text-sm uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift"
+				>
+					Добавить полосу
+				</button>
+			</div>
+
 			<div class="block font-sans text-sm uppercase tracking-wider">
 				Фото группы
 				<div class="mt-2 flex items-center gap-4">
 					<input type="hidden" name="photo" id="photo-input" value={data.photo ?? ''} />
-					<img id="photo-preview" src={data.photo ?? ''} class="h-20 w-20 border-[3px] border-ink object-cover shadow-[var(--shadow-card)]" style={data.photo ? '' : 'display:none;'} />
+					<img
+						id="photo-preview"
+						src={data.photo ?? ''}
+						class="h-20 w-20 border-[3px] border-ink object-cover shadow-[var(--shadow-card)]"
+						style={data.photo ? '' : 'display:none;'}
+					/>
 					<label class="cursor-pointer border-[3px] border-ink bg-surface px-4 py-2 uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift transition-colors">
 						Загрузить фото
 						<input type="file" id="photo-upload" accept="image/*" class="hidden" />
@@ -85,9 +255,112 @@ const title = `Редактор · ${data.title}`;
 		const photoInput = document.getElementById('photo-input') as HTMLInputElement;
 		const photoPreview = document.getElementById('photo-preview') as HTMLImageElement;
 		const uploadStatus = document.getElementById('upload-status');
+		const semesterList = document.getElementById('semester-list');
+		const semAdd = document.getElementById('sem-add');
 		let autosaveTimer: number | null = null;
 		let saveRequestId = 0;
 		let latestSavedId = 0;
+
+		function clampProgress(n: number): number {
+			if (Number.isNaN(n)) return 0;
+			return Math.min(100, Math.max(0, Math.round(n)));
+		}
+
+		function collectSemesters(): { label: string; progress: number; color: string }[] {
+			if (!semesterList) return [];
+			const rows = semesterList.querySelectorAll('[data-sem-row]');
+			const out: { label: string; progress: number; color: string }[] = [];
+			rows.forEach((row) => {
+				const label = (row.querySelector('[data-sem-label]') as HTMLInputElement)?.value ?? '';
+				const progressRaw = Number((row.querySelector('[data-sem-progress]') as HTMLInputElement)?.value);
+				const color = (row.querySelector('[data-sem-color]') as HTMLSelectElement)?.value ?? 'ink';
+				out.push({ label, progress: clampProgress(progressRaw), color });
+			});
+			return out;
+		}
+
+		function createSemRow(label = '', progress = 0, color = 'ink'): HTMLElement {
+			const wrap = document.createElement('div');
+			wrap.setAttribute('data-sem-row', '');
+			wrap.className =
+				'sem-row flex flex-col gap-3 border-[3px] border-ink bg-canvas/20 p-4 shadow-[var(--shadow-card)] sm:flex-row sm:flex-wrap sm:items-end';
+
+			const mkLabel = (title: string, input: HTMLElement) => {
+				const lb = document.createElement('label');
+				lb.className = 'block font-sans text-xs uppercase tracking-wider text-muted';
+				const t = document.createElement('span');
+				t.className = 'block';
+				t.textContent = title;
+				lb.append(t, input);
+				return lb;
+			};
+
+			const labelInp = document.createElement('input');
+			labelInp.type = 'text';
+			labelInp.setAttribute('data-sem-label', '');
+			labelInp.value = label;
+			labelInp.className =
+				'mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent';
+			const lb1 = mkLabel('Подпись', labelInp);
+			lb1.className = 'min-w-[12rem] flex-1 font-sans text-xs uppercase tracking-wider text-muted';
+
+			const progInp = document.createElement('input');
+			progInp.type = 'number';
+			progInp.setAttribute('data-sem-progress', '');
+			progInp.min = '0';
+			progInp.max = '100';
+			progInp.step = '1';
+			progInp.value = String(clampProgress(progress));
+			progInp.className =
+				'mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-accent';
+			const lb2 = mkLabel('%', progInp);
+			lb2.className = 'w-full font-sans text-xs uppercase tracking-wider text-muted sm:w-24';
+
+			const sel = document.createElement('select');
+			sel.setAttribute('data-sem-color', '');
+			sel.className =
+				'mt-1 w-full border-[3px] border-ink bg-surface px-2 py-2 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-accent';
+			for (const [val, cap] of [
+				['ink', 'Чёрный (ink)'],
+				['accent', 'Акцент'],
+				['muted', 'Серый'],
+				['mono', 'Тёмно-серый'],
+			] as const) {
+				const opt = document.createElement('option');
+				opt.value = val;
+				opt.textContent = cap;
+				if (val === color) opt.selected = true;
+				sel.appendChild(opt);
+			}
+			const lb3 = mkLabel('Цвет', sel);
+			lb3.className = 'w-full font-sans text-xs uppercase tracking-wider text-muted sm:w-40';
+
+			const rm = document.createElement('button');
+			rm.type = 'button';
+			rm.setAttribute('data-sem-remove', '');
+			rm.className =
+				'border-[3px] border-ink bg-surface px-3 py-2 font-sans text-xs uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift';
+			rm.textContent = 'Удалить';
+
+			wrap.append(lb1, lb2, lb3, rm);
+			return wrap;
+		}
+
+		semesterList?.addEventListener('click', (e) => {
+			const t = e.target as HTMLElement;
+			if (t.closest('[data-sem-remove]')) {
+				const row = t.closest('[data-sem-row]');
+				if (row && semesterList.querySelectorAll('[data-sem-row]').length > 1) {
+					row.remove();
+					scheduleAutoSave();
+				}
+			}
+		});
+
+		semAdd?.addEventListener('click', () => {
+			semesterList?.appendChild(createSemRow('', 0, 'ink'));
+			scheduleAutoSave();
+		});
 
 		async function saveHome(mode: 'manual' | 'auto') {
 			if (!form || !status) return false;
@@ -98,11 +371,34 @@ const title = `Редактор · ${data.title}`;
 			const subtitle = String(fd.get('subtitle') ?? '');
 			const photo = String(fd.get('photo') ?? '');
 			const body = String(fd.get('body') ?? '');
+			const tickerTop = String(fd.get('tickerTop') ?? '');
+			const tickerBottom = String(fd.get('tickerBottom') ?? '');
+			const titleFont = String(fd.get('titleFont') ?? 'display');
+			const titleWeight = String(fd.get('titleWeight') ?? 'normal');
+			const titleItalic = Boolean((form.querySelector('[name="titleItalic"]') as HTMLInputElement)?.checked);
+			const subtitleFont = String(fd.get('subtitleFont') ?? 'sans');
+			const subtitleWeight = String(fd.get('subtitleWeight') ?? 'normal');
+			const subtitleItalic = Boolean((form.querySelector('[name="subtitleItalic"]') as HTMLInputElement)?.checked);
+			const semesters = collectSemesters();
 			try {
 				const res = await fetch('/api/admin/home', {
 					method: 'PUT',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ title, subtitle, photo, body }),
+					body: JSON.stringify({
+						title,
+						subtitle,
+						photo,
+						body,
+						tickerTop,
+						tickerBottom,
+						titleFont,
+						titleWeight,
+						titleItalic,
+						subtitleFont,
+						subtitleWeight,
+						subtitleItalic,
+						semesters,
+					}),
 				});
 				const j = await res.json().catch(() => ({}));
 				if (requestId < latestSavedId) return false;
@@ -130,19 +426,19 @@ const title = `Редактор · ${data.title}`;
 		photoUpload?.addEventListener('change', async () => {
 			const file = photoUpload.files?.[0];
 			if (!file) return;
-			
+
 			if (uploadStatus) uploadStatus.textContent = 'Загрузка...';
-			
+
 			const fd = new FormData();
 			fd.append('file', file);
-			
+
 			try {
 				const res = await fetch('/api/admin/upload', {
 					method: 'POST',
 					body: fd,
 				});
 				const data = await res.json();
-				
+
 				if (res.ok && data.url) {
 					photoInput.value = data.url;
 					photoPreview.src = data.url;
@@ -152,15 +448,18 @@ const title = `Редактор · ${data.title}`;
 				} else {
 					if (uploadStatus) uploadStatus.textContent = 'Ошибка загрузки';
 				}
-			} catch (e) {
+			} catch {
 				if (uploadStatus) uploadStatus.textContent = 'Ошибка загрузки';
 			}
 		});
 
-		form?.querySelectorAll('input, textarea').forEach((el) => {
+		form?.querySelectorAll('input, textarea, select').forEach((el) => {
 			el.addEventListener('input', scheduleAutoSave);
 			el.addEventListener('change', scheduleAutoSave);
 		});
+
+		semesterList?.addEventListener('input', scheduleAutoSave);
+		semesterList?.addEventListener('change', scheduleAutoSave);
 
 		form?.addEventListener('submit', async (e) => {
 			e.preventDefault();
