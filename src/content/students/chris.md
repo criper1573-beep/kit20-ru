@@ -1,20 +1,9 @@
 ---
 slug: chris
 displayName: Крис
-fullName: 'Смит Кристофер Дэниел'
-birthday: '22.08.2001'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Кулинич Кристина Александровна
+birthday: 31.05.1990
+photo: /uploads/a4d242b9-6ab4-4150-94f9-28de5faf9950.jpg
 order: 16
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

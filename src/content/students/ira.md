@@ -1,17 +1,9 @@
 ---
 slug: ira
 displayName: Ира
-fullName: Орлова Ирина Михайловна
-birthday: 22.05.2003
+fullName: Овчинникова Ирина Владимировна
+birthday: 09.08.1977
+photo: /uploads/dd45ff93-7068-409e-aa1e-977abd4fe9d6.jpg
 order: 4
-etudes:
-  - title: Монолог
-    passed: false
-    teacherComment: Молодец
-  - title: Этюд внимания
-    passed: true
-    date: 15.09.2025
-  - title: Сценка в парах
-    passed: false
-    date: 01.10.2025
+etudes: []
 ---

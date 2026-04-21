@@ -1,20 +1,9 @@
 ---
 slug: yulya-1
 displayName: Юля
-fullName: 'Лебедева Юлия Викторовна'
-birthday: '02.08.2002'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Биктимирова Юлия Рашидовна
+birthday: 11.11.1997
+photo: /uploads/8e84d36c-52f3-49e9-bbe0-9cee797454a4.jpg
 order: 10
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-
