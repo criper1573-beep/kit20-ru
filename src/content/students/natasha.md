@@ -1,20 +1,9 @@
 ---
 slug: natasha
 displayName: Наташа
-fullName: 'Егорова Наталья Олеговна'
-birthday: '05.01.2002'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Круглова Наталья Андреевна
+birthday: 10.11.1989
+photo: /uploads/4d0465c8-d1d6-48b0-94e4-1a0385e0b331.jpg
 order: 14
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

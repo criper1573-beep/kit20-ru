@@ -1,20 +1,9 @@
 ---
 slug: katya-2
-displayName: Катя
-fullName: 'Козлова Екатерина Андреевна'
-birthday: '09.11.2002'
-nickname: ''
-phone: ''
-photo: ''
+displayName: "Катя М. "
+fullName: Мальская Екатерина Александровна
+birthday: 01.06.2000
+photo: /uploads/b584b9dc-391b-4a26-bd51-133722602bd1.jpg
 order: 3
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

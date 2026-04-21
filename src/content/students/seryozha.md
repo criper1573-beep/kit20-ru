@@ -1,20 +1,9 @@
 ---
 slug: seryozha
 displayName: Серёжа
-fullName: 'Морозов Сергей Александрович'
-birthday: '25.03.2002'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Теймуров Сергей Фаикович
+birthday: 02.06.1993
+photo: /uploads/58fa5708-0030-446a-88b9-ea0d24128cbc.jpg
 order: 8
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

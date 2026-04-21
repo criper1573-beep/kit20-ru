@@ -1,20 +1,9 @@
 ---
 slug: kolya
 displayName: Коля
-fullName: 'Соколов Николай Павлович'
-birthday: '11.06.2001'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Экволс Николай Петрович
+birthday: 04.01.1985
+photo: /uploads/621e9f9d-fbc3-422a-98e1-66640a9798ac.jpg
 order: 9
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

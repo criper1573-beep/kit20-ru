@@ -1,20 +1,9 @@
 ---
 slug: nastya
 displayName: Настя
-fullName: 'Иванова Настасья Павловна'
-birthday: '03.02.2002'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Важева Анастасия Александровна
+birthday: 12.06.2001
+photo: /uploads/23cbfb4f-ec82-4d84-beed-8794b16243bb.jpg
 order: 1
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

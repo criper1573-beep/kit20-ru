@@ -1,20 +1,9 @@
 ---
 slug: valeria
 displayName: Валерия
-fullName: 'Кузнецова Валерия Игоревна'
-birthday: '28.10.2001'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Танклаева Валерия Аслановна
+birthday: 20.07.2002
+photo: /uploads/84a1b221-acc0-42c2-996f-80cbbefe5968.jpg
 order: 13
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-

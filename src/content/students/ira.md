@@ -1,20 +1,17 @@
 ---
 slug: ira
 displayName: Ира
-fullName: 'Орлова Ирина Михайловна'
-birthday: '22.05.2003'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Орлова Ирина Михайловна
+birthday: 22.05.2003
 order: 4
 etudes:
-  - title: 'Монолог'
+  - title: Монолог
     passed: false
-  - title: 'Этюд внимания'
+    teacherComment: Молодец
+  - title: Этюд внимания
     passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
+    date: 15.09.2025
+  - title: Сценка в парах
     passed: false
-    date: '01.10.2025'
+    date: 01.10.2025
 ---
-

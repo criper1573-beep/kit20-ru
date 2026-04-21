@@ -1,20 +1,9 @@
 ---
 slug: anya
 displayName: Аня
-fullName: 'Петрова Анна Сергеевна'
-birthday: '15.04.2002'
-nickname: ''
-phone: ''
-photo: ''
+fullName: Рыбникова Анна Сергеевна
+birthday: 22.09.2003
+photo: /uploads/fd6c56b9-e961-4adf-91e6-09ca6086039b.jpg
 order: 12
-etudes:
-  - title: 'Монолог'
-    passed: false
-  - title: 'Этюд внимания'
-    passed: true
-    date: '15.09.2025'
-  - title: 'Сценка в парах'
-    passed: false
-    date: '01.10.2025'
+etudes: []
 ---
-
