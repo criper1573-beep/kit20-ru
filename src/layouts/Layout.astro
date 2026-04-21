@@ -61,12 +61,11 @@ const links = admin
 		<div class="relative z-10 flex min-h-dvh flex-col pb-[var(--site-ticker-h)]">
 			<div class="sticky top-0 z-40 bg-canvas">
 				<header class="flex h-14 items-stretch overflow-hidden border-b-[3px] border-accent bg-ink text-canvas">
-				<a
-					href={admin ? '/admin' : '/'}
-					class="glitch-brand-wrap flex w-[5.8rem] shrink-0 items-center justify-center bg-accent px-2 font-display tracking-[0.12em] text-canvas transition-colors hover:bg-accent-hover sm:w-auto sm:px-6"
+				<div
+					class="glitch-brand-wrap flex w-[5.8rem] shrink-0 select-none items-center justify-center bg-accent px-2 font-display tracking-[0.12em] text-canvas sm:w-auto sm:px-6"
 				>
 					<span class="glitch-brand text-3xl" data-text="КИТ20">КИТ20</span>
-				</a>
+				</div>
 				<nav class="flex flex-1 items-center overflow-hidden" aria-label="Основная навигация">
 					{
 						links.map(({ href, label, match }) => (
@@ -104,7 +103,6 @@ const links = admin
 			</header>
 				<Ticker band="top" text={tickerTop} />
 			</div>
-			<slot name="class-overlay" />
 			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
 				<slot />
 			</main>
@@ -159,18 +157,10 @@ const links = admin
 							)
 						}
 					</p>
-					<p class="font-mono text-[10px] tracking-widest text-[#444]">2024–2028</p>
+					<p class="font-mono text-[10px] tracking-widest text-[#444]">2026–2028</p>
 				</div>
 				<div class:list={['col-span-1 border-t border-[#1a1a1a] pt-4 text-center text-[9px] tracking-[0.2em] text-[#444]', showFooterGame ? 'sm:col-span-3' : 'sm:col-span-2']}>
-					КИТ20 · Парт Академия · театр и кино ·{' '}
-					<a
-						href="/kit20-brandbook.html"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="text-muted underline decoration-[#333] underline-offset-2 transition-colors hover:text-canvas"
-					>
-						Бренд-бук
-					</a>
+					КИТ20 · Парт Академия · театр и кино
 				</div>
 			</footer>
 		</div>

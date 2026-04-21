@@ -29,12 +29,12 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 ---
 
 <Layout admin title="Класс · редактирование">
-	<ClassPageOverlay
-		slot="class-overlay"
-		blocks={stageBlocks}
-		pageLead="Нажмите на фигуру, как на сайте. В карточке есть ссылка «Редактировать данные»."
-	/>
-	<div class="min-h-[min(88vh,52rem)] w-full" aria-hidden="true"></div>
+	<div class="relative left-1/2 z-[1] w-screen -translate-x-1/2">
+		<ClassPageOverlay
+			blocks={stageBlocks}
+			pageLead="Нажмите на фигуру, как на сайте. В карточке есть ссылка «Редактировать данные»."
+		/>
+	</div>
 	{
 		blocks.map(({ slug, data, bodyHtml, variant }) => (
 			<dialog

@@ -23,8 +23,9 @@ const stageBlocks = blocks.map(({ slug, data, variant }) => ({
 ---
 
 <Layout title="Класс" description="Карточки группы и этюды">
-	<ClassPageOverlay slot="class-overlay" blocks={stageBlocks} />
-	<div class="min-h-[min(88vh,52rem)] w-full" aria-hidden="true"></div>
+	<div class="relative left-1/2 z-[1] w-screen -translate-x-1/2">
+		<ClassPageOverlay blocks={stageBlocks} />
+	</div>
 	{
 		blocks.map(({ slug, data, bodyHtml, variant }) => (
 			<dialog

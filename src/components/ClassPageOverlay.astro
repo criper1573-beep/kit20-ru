@@ -63,11 +63,14 @@ const speechLines = [
 ---
 
 <!--
-  Рендерится слотом между шапкой (z-40) и main — z-[45] выше хедера; не внутри main, иначе весь main рисуется под sticky.
+  Блок сцены в потоке документа (внутри main): при скролле уезжает вверх вместе со страницей, хитбоксы совпадают с фигурами.
 -->
-<div class="class-page-overlay-root pointer-events-none relative z-[45] min-h-0 w-full" data-class-stage="">
+<div
+	class="class-page-overlay-root pointer-events-none relative z-[1] min-h-[min(88vh,52rem)] w-full"
+	data-class-stage=""
+>
 	<div
-		class="class-stage-roam-shell pointer-events-none fixed inset-0 z-[55] overflow-hidden"
+		class="class-stage-roam-shell pointer-events-none relative z-[55] min-h-[min(88vh,52rem)] w-full overflow-visible"
 		style="padding: max(0.5rem, env(safe-area-inset-top, 0px)) max(0.5rem, env(safe-area-inset-right, 0px)) max(0.5rem, env(safe-area-inset-bottom, 0px)) max(0.5rem, env(safe-area-inset-left, 0px));"
 	>
 		<svg
@@ -85,7 +88,7 @@ const speechLines = [
 		</svg>
 
 		<div
-			class="class-stage-watermark pointer-events-none absolute inset-0 z-[12] flex flex-col items-center justify-end px-4 pb-[max(14vh,4.5rem)] text-center sm:justify-center sm:pb-0"
+			class="class-stage-watermark pointer-events-none absolute inset-0 z-[12] flex flex-col items-center justify-center px-4 py-6 text-center sm:py-0"
 		>
 			{
 				pageLead && (
@@ -96,7 +99,7 @@ const speechLines = [
 			}
 		</div>
 
-		<div class="relative z-20 h-full min-h-[12rem] w-full">
+		<div class="relative z-20 min-h-[min(88vh,52rem)] w-full">
 			{
 				blocks.map((b, i) => {
 					const [lx, ty] = anchors[i] ?? [50, 50];
@@ -111,10 +114,10 @@ const speechLines = [
 								`class-stage-walker-${i}`,
 								'pointer-events-auto active:bg-ink/[0.05] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent md:hover:border-ink md:hover:bg-muted-surface md:hover:shadow-[var(--shadow-card)]',
 							]}
-							style={`left:${lx}%; top:${ty}%;`}
+							style={`left:${lx}%;--ty-pct:${ty};`}
 						>
 							<div
-								class="class-stage-bubble pointer-events-none absolute bottom-[calc(100%-2px)] left-0 right-0 z-[25] flex justify-center opacity-0 transition-opacity duration-500 ease-out sm:bottom-[calc(100%-4px)]"
+								class="class-stage-bubble pointer-events-none absolute bottom-[calc(100%-2px)] left-0 right-0 top-auto z-[25] flex justify-center opacity-0 transition-opacity duration-500 ease-out sm:bottom-[calc(100%-4px)]"
 								data-stage-bubble=""
 								aria-hidden="true"
 							>
@@ -142,12 +145,6 @@ const speechLines = [
 <style is:global set:html={roamCss}></style>
 
 <style>
-	.class-page-overlay-root.is-footer-active .class-stage-roam-shell,
-	.class-page-overlay-root.is-footer-active > .fixed.bottom-0 {
-		opacity: 0;
-		pointer-events: none;
-	}
-
 	.class-stage-watermark-lead {
 		color: rgb(82 82 91 / 0.55);
 	}
@@ -165,6 +162,89 @@ const speechLines = [
 	.class-stage-bubble-panel--compact::after {
 		margin-left: -5px;
 		border-width: 5px;
+	}
+
+	/* Фигуры: поднять выше на узких экранах */
+	.class-stage-walker-page {
+		top: calc(var(--ty-pct) * 1%);
+	}
+
+	@media (max-width: 767px) {
+		.class-stage-walker-page {
+			top: calc(var(--ty-pct) * 1% - 7vmin);
+		}
+	}
+
+	/* Пузырь снизу от фигуры (стрелка вверх) */
+	.class-stage-bubble.bubble--below {
+		top: calc(100% - 2px);
+		bottom: auto;
+		left: 0;
+		right: 0;
+		transform: none;
+	}
+
+	.class-stage-bubble.bubble--below .class-stage-bubble-panel::after {
+		top: auto;
+		bottom: 100%;
+		margin-top: 0;
+		margin-bottom: 0;
+		border-top-color: transparent;
+		border-bottom-color: var(--color-surface);
+	}
+
+	.class-stage-bubble.bubble--below .class-stage-bubble-panel--compact::after {
+		margin-left: -5px;
+		border-width: 5px;
+	}
+
+	/* Пузырь справа от фигуры */
+	.class-stage-bubble.bubble--side-right {
+		left: calc(100% + 6px);
+		right: auto;
+		top: 50%;
+		bottom: auto;
+		width: max-content;
+		max-width: min(11rem, calc(100vw - 2.5rem));
+		transform: translateY(-50%);
+		justify-content: flex-start;
+	}
+
+	.class-stage-bubble.bubble--side-right .class-stage-bubble-panel::after {
+		left: -10px;
+		top: 50%;
+		margin-left: 0;
+		margin-top: -6px;
+		border-width: 6px;
+		border-top-color: transparent;
+		border-bottom-color: transparent;
+		border-left-color: transparent;
+		border-right-color: var(--color-surface);
+	}
+
+	/* Пузырь слева от фигуры */
+	.class-stage-bubble.bubble--side-left {
+		right: calc(100% + 6px);
+		left: auto;
+		top: 50%;
+		bottom: auto;
+		width: max-content;
+		max-width: min(11rem, calc(100vw - 2.5rem));
+		transform: translateY(-50%);
+		justify-content: flex-end;
+	}
+
+	.class-stage-bubble.bubble--side-left .class-stage-bubble-panel::after {
+		left: auto;
+		right: -10px;
+		top: 50%;
+		margin-left: 0;
+		margin-top: -6px;
+		border-width: 6px;
+		border-top-color: transparent;
+		border-bottom-color: transparent;
+		border-right-color: transparent;
+		border-left-color: var(--color-surface);
 	}
 
 	.class-stage-walker-page.is-speaking {
@@ -211,6 +291,50 @@ const speechLines = [
 	(function () {
 		const mqReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+		function clearBubblePlacement() {
+			document.querySelectorAll('[data-stage-bubble]').forEach((b) => {
+				b.classList.remove('bubble--below', 'bubble--side-right', 'bubble--side-left');
+			});
+		}
+
+		function adjustBubblePlacement() {
+			clearBubblePlacement();
+			const speaking = document.querySelector('[data-stage-roam="page"].is-speaking');
+			if (!speaking) return;
+
+			const bubbleHost = speaking.querySelector('[data-stage-bubble]');
+			if (!bubbleHost || !(bubbleHost instanceof HTMLElement)) return;
+			const panel = bubbleHost.querySelector('.class-stage-bubble-panel');
+			if (!panel || !(panel instanceof HTMLElement)) return;
+
+			const sticky = document.querySelector('.sticky.top-0.z-40');
+			const safeY = sticky instanceof HTMLElement ? sticky.getBoundingClientRect().bottom + 8 : 88;
+
+			const fitsAbove = () => panel.getBoundingClientRect().top >= safeY;
+			const fitsViewport = () => {
+				const pr = panel.getBoundingClientRect();
+				return pr.bottom <= window.innerHeight - 8 && pr.top >= safeY;
+			};
+
+			void bubbleHost.offsetHeight;
+			if (fitsAbove()) return;
+
+			bubbleHost.classList.add('bubble--below');
+			void panel.offsetHeight;
+			if (fitsViewport()) return;
+
+			bubbleHost.classList.remove('bubble--below');
+			const figRect = speaking.getBoundingClientRect();
+			const preferRight = figRect.left + figRect.width / 2 < window.innerWidth * 0.46;
+			bubbleHost.classList.add(preferRight ? 'bubble--side-right' : 'bubble--side-left');
+			void panel.offsetHeight;
+			const pr = panel.getBoundingClientRect();
+			if (pr.top < safeY || pr.bottom > window.innerHeight - 8) {
+				bubbleHost.classList.remove('bubble--side-right', 'bubble--side-left');
+				bubbleHost.classList.add('bubble--below');
+			}
+		}
+
 		function tick() {
 			const figures = [...document.querySelectorAll('[data-stage-roam="page"]')];
 
@@ -222,6 +346,7 @@ const speechLines = [
 
 			if (mqReduce.matches || !figures.length) {
 				clearAll();
+				clearBubblePlacement();
 				return;
 			}
 
@@ -241,15 +366,29 @@ const speechLines = [
 					el.classList.remove('is-speaking');
 				}
 			});
+
+			requestAnimationFrame(() => {
+				requestAnimationFrame(adjustBubblePlacement);
+			});
+		}
+
+		let resizeT = 0;
+		function onResize() {
+			window.clearTimeout(resizeT);
+			resizeT = window.setTimeout(() => {
+				requestAnimationFrame(adjustBubblePlacement);
+			}, 100);
 		}
 
 		const id = window.setInterval(tick, 120);
 		tick();
 		mqReduce.addEventListener('change', tick);
+		window.addEventListener('resize', onResize);
 		document.addEventListener(
 			'astro:before-swap',
 			() => {
 				window.clearInterval(id);
+				window.removeEventListener('resize', onResize);
 			},
 			{ once: true }
 		);
@@ -281,11 +420,14 @@ const speechLines = [
 			if (!t || !root.contains(t)) return;
 			const id = t.getAttribute('data-open-dialog');
 			if (!id || !id.startsWith('dlg-')) return;
+			const shell = root.querySelector('.class-stage-roam-shell');
+			if (!(shell instanceof HTMLElement)) return;
 			const rect = t.getBoundingClientRect();
 			const tx = rect.left + rect.width / 2;
 			const ty = rect.top + rect.height / 2;
-			const sx = window.innerWidth * 0.5;
-			const sy = window.innerHeight + 24;
+			const sr = shell.getBoundingClientRect();
+			const sx = sr.left + sr.width / 2;
+			const sy = sr.bottom + 24;
 			const cx = (sx + tx) / 2;
 			const cy = (sy + ty) / 2 - 100;
 			path.setAttribute('d', `M ${sx} ${sy} Q ${cx} ${cy} ${tx} ${ty}`);
@@ -311,43 +453,3 @@ const speechLines = [
 	})();
 </script>
 
-<script is:inline>
-	(function () {
-		const root = document.querySelector('[data-class-stage]');
-		if (!root) return;
-
-		function initFooterObserver() {
-			const footer = document.querySelector('footer');
-			if (!footer) return false;
-
-			const io = new IntersectionObserver(
-				(entries) => {
-					for (const entry of entries) {
-						root.classList.toggle('is-footer-active', entry.isIntersecting);
-					}
-				},
-				{ threshold: 0.01 }
-			);
-
-			io.observe(footer);
-			document.addEventListener(
-				'astro:before-swap',
-				() => {
-					io.disconnect();
-				},
-				{ once: true }
-			);
-			return true;
-		}
-
-		// Компонент рендерится раньше футера, поэтому делаем ленивую инициализацию.
-		if (initFooterObserver()) return;
-		window.addEventListener(
-			'load',
-			() => {
-				initFooterObserver();
-			},
-			{ once: true }
-		);
-	})();
-</script>

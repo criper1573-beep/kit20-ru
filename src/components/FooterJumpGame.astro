@@ -1,48 +1,81 @@
 ---
+/* Спрайты: Noto Emoji (OFL) — /public/game/jump-*.png */
 ---
 
-<section class="border-[3px] border-ink bg-surface p-3 shadow-[var(--shadow-card)]">
-	<div class="flex items-center justify-between gap-2">
-		<h3 class="font-display text-lg uppercase tracking-[0.2em] text-ink">Прыжок</h3>
-		<button id="footer-jump-open-rating-top" type="button" class="font-mono text-[10px] uppercase tracking-[0.2em] text-accent hover:text-accent-hover">
+<section
+	class="footer-jump-game relative overflow-hidden border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
+	aria-label="Мини-игра «Прыжок»"
+>
+	<div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-accent" aria-hidden="true"></div>
+
+	<div class="flex items-start justify-between gap-3 px-3 pt-3 sm:px-4 sm:pt-4">
+		<div>
+			<h3 class="font-display text-lg uppercase tracking-[0.2em] text-ink sm:text-xl">Прыжок</h3>
+			<p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted sm:text-[10px]">Уклоняйся · театр и кино</p>
+		</div>
+		<button
+			id="footer-jump-open-rating-top"
+			type="button"
+			class="shrink-0 border-[2px] border-ink bg-canvas px-2 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-accent shadow-[var(--shadow-card)] transition-colors hover:border-accent hover:text-accent-hover sm:text-[10px]"
+		>
 			Рейтинг
 		</button>
 	</div>
 
-	<div class="mt-2 border-[2px] border-ink bg-canvas p-1">
-		<canvas id="footer-jump-canvas" width="300" height="110" class="h-[110px] w-full"></canvas>
+	<div
+		class="mx-3 mt-3 border-[3px] border-ink bg-[#e4ddd4] p-1 shadow-[inset_0_2px_0_rgb(255_255_255/0.45)] sm:mx-4"
+	>
+		<div
+			id="footer-jump-viewport"
+			class="relative w-full overflow-hidden bg-[linear-gradient(180deg,#f0ebe0_0%,#e8e1d6_50%,#f0ebe0_100%)] aspect-[30/11]"
+		>
+			<div
+				class="pointer-events-none absolute inset-0 opacity-[0.35]"
+				style="background-image: linear-gradient(#0a0a0a08 1px, transparent 1px), linear-gradient(90deg, #0a0a0a08 1px, transparent 1px); background-size: 14px 14px;"
+				aria-hidden="true"
+			></div>
+			<canvas id="footer-jump-canvas" class="relative z-[1] block h-full w-full" width="300" height="110"></canvas>
+		</div>
 	</div>
 
-	<p id="footer-jump-status" class="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+	<p id="footer-jump-status" class="mx-3 mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink sm:mx-4 sm:text-[11px]">
 		Пробел или клик — прыжок
 	</p>
-	<p id="footer-jump-coach" class="mt-1 hidden font-serif text-[12px] italic leading-relaxed text-muted"></p>
+	<p id="footer-jump-coach" class="mx-3 mt-1 hidden font-serif text-[12px] italic leading-relaxed text-muted sm:mx-4"></p>
 
-	<form id="footer-jump-form" class="mt-2 hidden items-end gap-2">
-		<label class="flex-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+	<form id="footer-jump-form" class="mx-3 mt-3 hidden items-end gap-2 sm:mx-4">
+		<label class="min-w-0 flex-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
 			Имя
 			<input
 				id="footer-jump-name"
 				type="text"
 				maxlength="24"
 				required
-				class="mt-1 w-full border-[2px] border-ink bg-surface px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-accent"
+				class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
 			/>
 		</label>
-		<button type="submit" class="type-cta border-[2px] border-ink bg-accent px-3 py-1.5 text-[10px] text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover">
+		<button
+			type="submit"
+			class="type-cta shrink-0 border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+		>
 			Сохранить
 		</button>
 	</form>
 
-	<div class="mt-2 flex items-center justify-between gap-2">
-		<button id="footer-jump-start" type="button" class="type-cta border-[2px] border-ink bg-surface px-3 py-1.5 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface">
+	<div class="mx-3 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:mx-4 sm:mb-4">
+		<button
+			id="footer-jump-start"
+			type="button"
+			class="type-cta border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+		>
 			Старт
 		</button>
-		<button id="footer-jump-restart" type="button" class="type-cta hidden border-[2px] border-ink bg-surface px-3 py-1.5 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface">
+		<button
+			id="footer-jump-restart"
+			type="button"
+			class="type-cta hidden border-[3px] border-ink bg-surface px-3 py-2 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-muted-surface"
+		>
 			Ещё раз
-		</button>
-		<button id="footer-jump-open-rating-bottom" type="button" class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted hover:text-ink">
-			Открыть рейтинг
 		</button>
 	</div>
 </section>
@@ -54,7 +87,11 @@
 	<div class="border-b-[3px] border-ink bg-muted-surface px-4 py-3">
 		<div class="flex items-center justify-between gap-3">
 			<h4 class="font-display text-xl uppercase tracking-[0.15em] text-ink">Рейтинг прыжка</h4>
-			<button id="footer-jump-rating-close" type="button" class="type-cta border-[2px] border-ink bg-surface px-2 py-1 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface">
+			<button
+				id="footer-jump-rating-close"
+				type="button"
+				class="type-cta border-[2px] border-ink bg-surface px-2 py-1 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface"
+			>
 				Закрыть
 			</button>
 		</div>
@@ -79,9 +116,15 @@
 <script is:inline>
 	(() => {
 		const canvas = document.getElementById('footer-jump-canvas');
-		if (!(canvas instanceof HTMLCanvasElement)) return;
+		const viewport = document.getElementById('footer-jump-viewport');
+		if (!(canvas instanceof HTMLCanvasElement) || !(viewport instanceof HTMLElement)) return;
+
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
+
+		const BASE_W = 300;
+		const BASE_H = 110;
+		const GROUND_PAD = 18;
 
 		const statusEl = document.getElementById('footer-jump-status');
 		const coachEl = document.getElementById('footer-jump-coach');
@@ -90,15 +133,21 @@
 		const startBtn = document.getElementById('footer-jump-start');
 		const restartBtn = document.getElementById('footer-jump-restart');
 		const openRatingTopBtn = document.getElementById('footer-jump-open-rating-top');
-		const openRatingBottomBtn = document.getElementById('footer-jump-open-rating-bottom');
 		const ratingDialog = document.getElementById('footer-jump-rating-dialog');
 		const ratingCloseBtn = document.getElementById('footer-jump-rating-close');
 		const ratingStatusEl = document.getElementById('footer-jump-rating-status');
 		const ratingBodyEl = document.getElementById('footer-jump-rating-body');
 
-		const W = canvas.width;
-		const H = canvas.height;
-		const groundY = H - 20;
+		const playerImg = new Image();
+		playerImg.src = '/game/jump-player.png';
+		playerImg.decoding = 'async';
+		const hazardImg = new Image();
+		hazardImg.src = '/game/jump-hazard.png';
+		hazardImg.decoding = 'async';
+
+		let scale = 1;
+		let dpr = 1;
+		let groundY = BASE_H - GROUND_PAD;
 
 		let running = false;
 		let raf = 0;
@@ -109,7 +158,8 @@
 		const sessionBestKey = 'kit20_jump_best';
 		const sessionNameKey = 'kit20_jump_name';
 		const obstacles = [];
-		const player = { x: 36, y: groundY - 16, w: 14, h: 16, vy: 0 };
+		const player = { x: 36, y: groundY - 20, w: 22, h: 22, vy: 0 };
+
 		const coachPhrases = [
 			'Маловато репетиций. Сделай упражнение «Счет до 30 на одном дыхании».',
 			'Сцена любит подготовку. Выполни «Заземление стоп» 2 минуты.',
@@ -132,6 +182,19 @@
 			'Внимание рассыпалось. Выполни «Тишина и слушание» 60 секунд.',
 			'Пора в тренинг. Сделай этюд «Препятствие и цель» на 2 минуты.',
 		];
+
+		function syncCanvasSize() {
+			const rect = viewport.getBoundingClientRect();
+			const w = Math.max(160, Math.floor(rect.width));
+			const h = Math.max(55, Math.floor(rect.height));
+			dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+			canvas.width = Math.max(1, Math.floor(w * dpr));
+			canvas.height = Math.max(1, Math.floor(h * dpr));
+			canvas.style.width = `${w}px`;
+			canvas.style.height = `${h}px`;
+			scale = w / BASE_W;
+			groundY = BASE_H - GROUND_PAD;
+		}
 
 		function renderScores(scores) {
 			if (!(ratingBodyEl instanceof HTMLElement)) return;
@@ -232,6 +295,7 @@
 		}
 
 		function startGame() {
+			syncCanvasSize();
 			resetGame();
 			running = true;
 			last = performance.now();
@@ -256,36 +320,52 @@
 			if (restartBtn) restartBtn.classList.remove('hidden');
 		}
 
-		function drawActor(x, y, w, h) {
+		function drawActorFallback(x, y, w, h) {
 			const cx = x + w / 2;
 			const cy = y + h / 2;
-			const rx = w * 0.5;
-			const ry = h * 0.55;
+			const rx = w * 0.42;
+			const ry = h * 0.42;
 
-			// Контур "маски"
 			ctx.strokeStyle = '#0a0a0a';
 			ctx.lineWidth = 2;
 			ctx.beginPath();
 			ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
 			ctx.stroke();
 
-			// Глаза
 			ctx.fillStyle = '#0a0a0a';
 			ctx.beginPath();
-			ctx.arc(cx - w * 0.18, cy - h * 0.08, 1.8, 0, Math.PI * 2);
-			ctx.arc(cx + w * 0.18, cy - h * 0.08, 1.8, 0, Math.PI * 2);
+			ctx.arc(cx - w * 0.16, cy - h * 0.1, 1.8, 0, Math.PI * 2);
+			ctx.arc(cx + w * 0.16, cy - h * 0.1, 1.8, 0, Math.PI * 2);
 			ctx.fill();
 
-			// Улыбка
 			ctx.beginPath();
-			ctx.arc(cx, cy + h * 0.07, w * 0.22, 0.2, Math.PI - 0.2, false);
+			ctx.arc(cx, cy + h * 0.06, w * 0.2, 0.2, Math.PI - 0.2, false);
 			ctx.stroke();
 		}
 
+		function drawPlayer(x, y, w, h) {
+			if (playerImg.complete && playerImg.naturalWidth > 0) {
+				const iw = playerImg.naturalWidth;
+				const ih = playerImg.naturalHeight;
+				const r = Math.min(w / iw, h / ih);
+				const dw = iw * r;
+				const dh = ih * r;
+				const dx = x + (w - dw) / 2;
+				const dy = y + (h - dh) / 2;
+				ctx.save();
+				ctx.shadowColor = 'rgba(10,10,10,0.2)';
+				ctx.shadowBlur = 3;
+				ctx.shadowOffsetY = 2;
+				ctx.drawImage(playerImg, dx, dy, dw, dh);
+				ctx.restore();
+			} else {
+				drawActorFallback(x, y, w, h);
+			}
+		}
+
 		function drawObstacleSpike(o) {
-			// Препятствие как "занавес-шип" вместо квадрата
 			ctx.fillStyle = '#d42b2b';
-			ctx.strokeStyle = '#d42b2b';
+			ctx.strokeStyle = '#7a1414';
 			ctx.lineWidth = 1.5;
 			ctx.beginPath();
 			ctx.moveTo(o.x, o.y + o.h);
@@ -293,35 +373,72 @@
 			ctx.lineTo(o.x + o.w, o.y + o.h);
 			ctx.closePath();
 			ctx.fill();
+			ctx.stroke();
 
-			// Внутренняя акцентная линия
 			ctx.strokeStyle = '#f0ebe0';
+			ctx.lineWidth = 1.25;
 			ctx.beginPath();
 			ctx.moveTo(o.x + o.w * 0.48, o.y + o.h * 0.2);
 			ctx.lineTo(o.x + o.w * 0.48, o.y + o.h * 0.82);
 			ctx.stroke();
 		}
 
-		function draw() {
-			ctx.fillStyle = '#f0ebe0';
-			ctx.fillRect(0, 0, W, H);
+		function drawObstacle(o) {
+			if (hazardImg.complete && hazardImg.naturalWidth > 0) {
+				const pad = 1;
+				const iw = hazardImg.naturalWidth;
+				const ih = hazardImg.naturalHeight;
+				const rw = Math.max(4, o.w - pad * 2);
+				const rh = Math.max(4, o.h - pad * 2);
+				const r = Math.min(rw / iw, rh / ih);
+				const dw = iw * r;
+				const dh = ih * r;
+				const dx = o.x + (o.w - dw) / 2;
+				const dy = o.y + (o.h - dh) / 2;
+				ctx.save();
+				ctx.shadowColor = 'rgba(212,43,43,0.35)';
+				ctx.shadowBlur = 4;
+				ctx.shadowOffsetY = 1;
+				ctx.drawImage(hazardImg, dx, dy, dw, dh);
+				ctx.restore();
+			} else {
+				drawObstacleSpike(o);
+			}
+		}
 
-			ctx.strokeStyle = '#0a0a0a22';
+		function draw() {
+			syncCanvasSize();
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+			ctx.imageSmoothingEnabled = true;
+			if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+
+			ctx.fillStyle = '#f0ebe0';
+			ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+			ctx.strokeStyle = '#0a0a0a18';
 			ctx.lineWidth = 1;
-			ctx.setLineDash([4, 4]);
+			ctx.setLineDash([4, 5]);
 			ctx.beginPath();
 			ctx.moveTo(0, groundY + 0.5);
-			ctx.lineTo(W, groundY + 0.5);
+			ctx.lineTo(BASE_W, groundY + 0.5);
 			ctx.stroke();
 			ctx.setLineDash([]);
 
-			drawActor(player.x, player.y, player.w, player.h);
+			ctx.strokeStyle = '#0a0a0a';
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.moveTo(0, groundY + 1);
+			ctx.lineTo(BASE_W, groundY + 1);
+			ctx.stroke();
 
-			for (const o of obstacles) drawObstacleSpike(o);
+			drawPlayer(player.x, player.y, player.w, player.h);
+			for (const o of obstacles) drawObstacle(o);
 
 			ctx.fillStyle = '#0a0a0a';
-			ctx.font = '12px "Space Mono", monospace';
-			ctx.fillText(`DIST ${Math.floor(distance)}`, W - 106, 16);
+			ctx.font = '600 11px "Space Mono", ui-monospace, monospace';
+			ctx.fillText(`DIST ${Math.floor(distance)}`, BASE_W - 102, 17);
 		}
 
 		function loop(now) {
@@ -334,7 +451,7 @@
 				if (spawn <= 0) {
 					const h = 14 + Math.random() * 16;
 					const w = 12 + Math.random() * 12;
-					obstacles.push({ x: W + 8, y: groundY - h, w, h });
+					obstacles.push({ x: BASE_W + 8, y: groundY - h, w, h });
 					spawn = 0.9 + Math.random() * 0.8;
 				}
 
@@ -369,6 +486,11 @@
 			raf = requestAnimationFrame(loop);
 		}
 
+		const ro = new ResizeObserver(() => {
+			syncCanvasSize();
+		});
+		ro.observe(viewport);
+
 		canvas.addEventListener('click', jump);
 		window.addEventListener('keydown', (e) => {
 			if (e.code === 'Space') {
@@ -379,7 +501,6 @@
 		startBtn?.addEventListener('click', startGame);
 		restartBtn?.addEventListener('click', startGame);
 		openRatingTopBtn?.addEventListener('click', openRatingDialog);
-		openRatingBottomBtn?.addEventListener('click', openRatingDialog);
 		ratingCloseBtn?.addEventListener('click', () => {
 			if (ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
 		});
@@ -418,6 +539,15 @@
 			} catch {}
 		}
 
-		draw();
+		function kickoff() {
+			syncCanvasSize();
+			draw();
+		}
+
+		playerImg.addEventListener('load', kickoff);
+		hazardImg.addEventListener('load', kickoff);
+		playerImg.addEventListener('error', kickoff);
+		hazardImg.addEventListener('error', kickoff);
+		kickoff();
 	})();
 </script>
