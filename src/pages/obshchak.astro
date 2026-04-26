@@ -94,18 +94,40 @@ const expenses = [...(data.expenses ?? [])].sort((a, b) => {
 				{other16.map((entry) => {
 					const b = balMap.get(entry.data.slug) ?? 0;
 					const neg = b < 0;
+					const idx = bySlug.get(entry.data.slug)?.i ?? 0;
 					return (
 						<div
-							class="border-[3px] border-ink bg-surface px-3 py-3 text-center shadow-[var(--shadow-card)] sm:px-4 sm:py-4"
+							class="flex flex-col overflow-hidden border-[3px] border-ink bg-surface text-center shadow-[var(--shadow-card)]"
 						>
-							<p class="font-sans text-xs font-bold uppercase tracking-wide text-ink sm:text-sm">
-								{entry.data.displayName}
-							</p>
-							<p
-								class:list={['mt-2 font-mono text-sm tabular-nums sm:text-base', neg ? 'text-accent' : 'text-ink']}
-							>
-								{formatRubKopeks(b)}
-							</p>
+							<div class="relative aspect-square w-full shrink-0 border-b-[3px] border-ink bg-muted-surface">
+								{entry.data.photo ? (
+									<img
+										src={entry.data.photo}
+										alt={entry.data.displayName}
+										class="h-full w-full object-cover object-top"
+										loading="lazy"
+									/>
+								) : (
+									<StudentAvatar
+										variant={idx}
+										displayName={entry.data.displayName}
+										class="h-full w-full"
+									/>
+								)}
+							</div>
+							<div class="flex flex-1 flex-col justify-center px-2 py-2.5 sm:px-3 sm:py-3">
+								<p class="font-sans text-xs font-bold uppercase tracking-wide text-ink sm:text-sm">
+									{entry.data.displayName}
+								</p>
+								<p
+									class:list={[
+										'mt-1.5 font-mono text-sm tabular-nums sm:text-base',
+										neg ? 'text-accent' : 'text-ink',
+									]}
+								>
+									{formatRubKopeks(b)}
+								</p>
+							</div>
 						</div>
 					);
 				})}

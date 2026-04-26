@@ -64,47 +64,129 @@ const links = admin
 		<StageBackdrop gridOnly={isClassRoute} />
 		<div class="relative z-10 flex min-h-dvh flex-col pb-[var(--site-ticker-h)]">
 			<div class="sticky top-0 z-40 bg-canvas">
-				<header class="flex h-14 items-stretch overflow-hidden border-b-[3px] border-accent bg-ink text-canvas">
-				<div
-					class="glitch-brand-wrap flex w-[5.8rem] shrink-0 select-none items-center justify-center bg-accent px-2 font-display tracking-[0.12em] text-canvas sm:w-auto sm:px-6"
+				<header
+					class="site-header flex h-14 items-center gap-0 overflow-visible border-b-[3px] border-accent bg-ink pr-1 text-canvas sm:pr-2"
 				>
-					<span class="glitch-brand text-3xl" data-text="КИТ20">КИТ20</span>
-				</div>
-				<nav class="flex flex-1 items-center overflow-hidden" aria-label="Основная навигация">
-					{
-						links.map(({ href, label, match }) => (
-								<a
-									href={href}
-								class:list={[
-									'flex h-full flex-1 items-center justify-center border-r border-[#222] px-0 font-mono text-[9px] uppercase tracking-[0.16em] transition-colors whitespace-nowrap sm:flex-none sm:px-5 sm:text-[10px] sm:tracking-[0.2em]',
-									match(pathname)
-										? 'bg-[#1a1a1a] text-canvas'
-										: 'text-muted hover:bg-[#1a1a1a] hover:text-canvas',
-								]}
-							>
-								{label}
-							</a>
-						))
-					}
-				</nav>
-				<div class="hidden shrink-0 items-center px-4 sm:flex">
-					{
-						admin ? (
-							<div class="flex items-center gap-4">
-								<span class="font-display text-xl tracking-widest text-[#555] hidden sm:block">АДМИН</span>
+					<div
+						class="glitch-brand-wrap flex h-full min-w-0 w-[5.2rem] shrink-0 select-none items-center justify-center bg-accent px-2 font-display tracking-[0.12em] text-canvas sm:w-auto sm:px-5"
+					>
+						<a href={admin ? '/admin' : '/'} class="text-canvas no-underline">
+							<span class="glitch-brand text-2xl sm:text-3xl" data-text="КИТ20">КИТ20</span>
+						</a>
+					</div>
+					<div class="ml-auto flex h-full flex-1 items-center justify-end gap-0 sm:gap-1">
+						{
+							admin && (
+								<span class="hidden max-w-0 font-display text-base tracking-widest text-[#555] sm:mr-2 sm:max-w-none sm:inline sm:text-lg">
+									АДМИН
+								</span>
+							)
+						}
+						{
+							admin ? (
 								<a
 									href="/"
-									class="text-[10px] uppercase tracking-widest text-muted hover:text-canvas transition-colors"
+									class="hidden px-2 text-[10px] uppercase tracking-widest text-muted transition-colors hover:text-canvas sm:inline"
 								>
 									На сайт
 								</a>
-							</div>
-						) : (
-							<span class="font-display text-2xl tracking-widest text-[#333] hidden sm:block">01</span>
-						)
+							) : (
+								<span class="hidden font-display text-xl tracking-widest text-[#333] sm:inline sm:text-2xl">01</span>
+							)
+						}
+						<button
+							type="button"
+							class="site-nav-toggle flex h-14 w-12 flex-col items-center justify-center gap-[5px] border-l border-[#222] bg-transparent px-2 text-canvas sm:w-14"
+							aria-expanded="false"
+							aria-controls="site-nav-panel"
+							aria-label="Открыть меню"
+						>
+							<span class="burger-line block h-0.5 w-5 origin-center bg-canvas transition-transform duration-200"></span>
+							<span class="burger-line block h-0.5 w-5 bg-canvas transition-opacity duration-200"></span>
+							<span class="burger-line block h-0.5 w-5 origin-center bg-canvas transition-transform duration-200"></span>
+						</button>
+					</div>
+				</header>
+				<nav
+					id="site-nav-panel"
+					class="site-nav-panel hidden border-b border-[#1a1a1a] bg-ink text-canvas"
+					aria-label="Основная навигация"
+					hidden
+				>
+					<ul class="flex flex-col py-1">
+						{
+							links.map(({ href, label, match }) => (
+								<li class="border-b border-[#222] last:border-0">
+									<a
+										href={href}
+										class:list={[
+											'block w-full py-3.5 pl-5 pr-4 font-mono text-xs uppercase tracking-[0.2em] transition-colors sm:py-4 sm:pl-8 sm:text-sm',
+											match(pathname)
+												? 'bg-[#1a1a1a] text-canvas'
+												: 'text-muted hover:bg-[#252525] hover:text-canvas',
+										]}
+									>
+										{label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</nav>
+				<style is:global>
+					.site-nav-toggle--open .burger-line:nth-child(1) {
+						transform: translateY(7px) rotate(45deg);
 					}
-				</div>
-			</header>
+					.site-nav-toggle--open .burger-line:nth-child(2) {
+						opacity: 0;
+					}
+					.site-nav-toggle--open .burger-line:nth-child(3) {
+						transform: translateY(-7px) rotate(-45deg);
+					}
+					#site-nav-panel:not([hidden]) {
+						max-height: min(60vh, 28rem);
+						overflow-y: auto;
+					}
+				</style>
+				<script is:inline>
+					(function () {
+						var btn = document.querySelector('.site-nav-toggle');
+						var panel = document.getElementById('site-nav-panel');
+						if (!btn || !panel) return;
+						var open = false;
+						function setOpen(should) {
+							open = should;
+							btn.setAttribute('aria-expanded', should ? 'true' : 'false');
+							btn.setAttribute('aria-label', should ? 'Закрыть меню' : 'Открыть меню');
+							btn.classList.toggle('site-nav-toggle--open', should);
+							if (should) {
+								panel.removeAttribute('hidden');
+								panel.classList.remove('hidden');
+							} else {
+								panel.setAttribute('hidden', '');
+								panel.classList.add('hidden');
+							}
+						}
+						btn.addEventListener('click', function (e) {
+							e.stopPropagation();
+							setOpen(!open);
+						});
+						panel.querySelectorAll('a').forEach(function (a) {
+							a.addEventListener('click', function () {
+								setOpen(false);
+							});
+						});
+						document.addEventListener('click', function (e) {
+							if (!open) return;
+							var t = e.target;
+							if (btn.contains(t) || panel.contains(t)) return;
+							setOpen(false);
+						});
+						document.addEventListener('keydown', function (e) {
+							if (e.key === 'Escape' && open) setOpen(false);
+						});
+					})();
+				</script>
 				<Ticker band="top" text={tickerTop} />
 			</div>
 			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
