@@ -68,13 +68,14 @@ export function getDaysInYearForBirthMonthDay(month: number, day: number): numbe
 }
 
 /**
- * Угол в градусах: 0° =верх (12:00), по часовой. Диапазон [0, 360).
- * Шкала: полный год, середина dayOfYear — серединка «сектора дня».
+ * Угол в градусах: 0° =верх (12:00), **против часовой** (год вперёд — влево от 12).
+ * Диапазон [0, 360). Шкала: полный год, середина dayOfYear — серединка «сектора дня».
  */
 export function dialAngleDegFromTop(dayOfYear: number, yearLength: number): number {
 	if (yearLength < 1) return 0;
 	const t = (dayOfYear - 0.5) / yearLength;
-	const deg = t * 360;
+	const degCw = t * 360;
+	const deg = 360 - degCw;
 	return ((deg % 360) + 360) % 360;
 }
 
