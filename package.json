@@ -15,7 +15,8 @@
     "astro": "astro",
     "extract:office-svgs": "node scripts/extract-svgs.mjs",
     "schedule:month": "node scripts/generate-lesson-month.mjs",
-    "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only"
+    "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only",
+    "verify:obshchak": "node scripts/verify-obshchak.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.5",

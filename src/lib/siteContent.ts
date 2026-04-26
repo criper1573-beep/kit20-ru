@@ -3,9 +3,11 @@ import path from 'node:path';
 import {
 	attendanceFrontmatterSchema,
 	homeFrontmatterSchema,
+	obshchakDataSchema,
 	studentFrontmatterSchema,
 	type AttendanceFrontmatter,
 	type HomeFrontmatter,
+	type ObshchakData,
 	type StudentFrontmatter,
 } from './schemas';
 import { parseMarkdownFile, stringifyMarkdownFile } from './mdFile';
@@ -103,5 +105,47 @@ export async function writeAttendance(data: AttendanceFrontmatter, body: string)
 	const p = path.join(contentRoot(), 'attendance.md');
 	attendanceFrontmatterSchema.parse(data);
 	const raw = stringifyMarkdownFile(data, body);
+	await fs.writeFile(p, raw, 'utf8');
+}
+
+export async function readObshchak(): Promise<ObshchakData> {
+	const p = path.join(contentRoot(), 'obshchak.json');
+	let raw: string;
+	try {
+		raw = await fs.readFile(p, 'utf8');
+	} catch (e) {
+		const err = e as { code?: string };
+		if (err?.code === 'ENOENT') {
+			const empty = obshchakDataSchema.parse({ watcherSlug: 'nastya' });
+			return await normalizeObshchakContribKeys(empty);
+		}
+		throw e;
+	}
+	const json = JSON.parse(raw) as unknown;
+	const parsed = obshchakDataSchema.safeParse(json);
+	if (!parsed.success) {
+		throw new Error(`obshchak.json: ${parsed.error.message}`);
+	}
+	return await normalizeObshchakContribKeys(parsed.data);
+}
+
+/**
+ * Собирает взносы только по slug'ам из `students/`: нули по умолчанию,
+ * лишние ключи (старые карточки) отбрасываем — касса и сумма балансов не «размазываются».
+ */
+async function normalizeObshchakContribKeys(data: ObshchakData): Promise<ObshchakData> {
+	const students = await readStudentsSorted();
+	const contributed: Record<string, number> = {};
+	for (const { slug } of students) {
+		contributed[slug] = data.contributedKopeks[slug] ?? 0;
+	}
+	return { ...data, contributedKopeks: contributed };
+}
+
+export async function writeObshchak(data: ObshchakData): Promise<void> {
+	const p = path.join(contentRoot(), 'obshchak.json');
+	obshchakDataSchema.parse(data);
+	const normalized = await normalizeObshchakContribKeys(data);
+	const raw = `${JSON.stringify(normalized, null, 2)}\n`;
 	await fs.writeFile(p, raw, 'utf8');
 }

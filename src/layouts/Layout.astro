@@ -31,6 +31,7 @@ const links = admin
 				match: (p: string) => p.startsWith('/admin/class') || p.startsWith('/admin/student'),
 			},
 			{ href: '/admin/attendance', label: 'Посещаемость', match: (p: string) => p.startsWith('/admin/attendance') },
+			{ href: '/admin/obschak', label: 'Общак', match: (p: string) => p.startsWith('/admin/obschak') },
 			{ href: '/admin/birthday-dial', label: 'ДР циферблат', match: (p: string) => p.startsWith('/admin/birthday-dial') },
 			{ href: '/admin/logs', label: 'Логи', match: (p: string) => p.startsWith('/admin/logs') },
 		]
@@ -38,6 +39,7 @@ const links = admin
 			{ href: '/', label: 'Главная', match: (p: string) => p === '/' },
 			{ href: '/class', label: 'Класс', match: (p: string) => p.startsWith('/class') },
 			{ href: '/attendance', label: 'Посещаемость', match: (p: string) => p.startsWith('/attendance') },
+			{ href: '/obshchak', label: 'Общак', match: (p: string) => p.startsWith('/obshchak') },
 			{ href: '/dni-rozhdeniya', label: 'Дни рождения', match: (p: string) => p.startsWith('/dni-rozhdeniya') },
 		];
 ---

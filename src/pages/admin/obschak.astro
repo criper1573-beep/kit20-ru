@@ -1,0 +1,244 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { readObshchak, readStudentsSorted } from '../../lib/siteContent';
+import { hasValidAdminSession } from '../../lib/adminApiAuth';
+import { formatRubKopeks, totalPotKopeks } from '../../lib/obshchakMath';
+
+if (!hasValidAdminSession(Astro.cookies)) {
+	const nextUrl = Astro.url.pathname + Astro.url.search;
+	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
+}
+
+const students = await readStudentsSorted();
+const data = await readObshchak();
+const potK = totalPotKopeks(data.contributedKopeks, data.expenses);
+
+function rubFromK(k: number): string {
+	if (k === 0) return '';
+	return (k / 100).toString();
+}
+---
+
+<Layout admin title="Общак · редактирование">
+	<div class="mb-8 border-b-[3px] border-ink pb-4">
+		<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Общак</h1>
+		<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">
+			Взносы (коп. в JSON), равные доли в 17, траты. Сейчас в кассе: <strong class="text-ink">{formatRubKopeks(potK)}</strong>
+		</p>
+	</div>
+
+	<form id="ob-form" class="space-y-10">
+		<section>
+			<h2 class="mb-4 font-display text-xl tracking-widest text-ink uppercase sm:text-2xl">Взносы (₽)</h2>
+			<div
+				class="grid grid-cols-1 gap-3 sm:grid-cols-2"
+				data-student-inputs
+			>
+				{students.map((s) => (
+					<label class="flex flex-col gap-1 border-[3px] border-ink bg-surface p-3 shadow-[var(--shadow-card)] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+						<span class="font-sans text-sm font-bold uppercase tracking-wide text-ink shrink-0">{s.data.displayName}</span>
+						<input
+							type="text"
+							inputmode="decimal"
+							name={'c-' + s.data.slug}
+							data-c={s.data.slug}
+							class="w-full min-w-0 border-[2px] border-ink bg-canvas px-2 py-1.5 font-mono text-sm text-ink sm:max-w-[10rem] sm:text-right"
+							placeholder="0"
+							value={rubFromK(data.contributedKopeks[s.data.slug] ?? 0)}
+						/>
+					</label>
+				))}
+			</div>
+		</section>
+
+		<section>
+			<h2 class="mb-4 font-display text-xl tracking-widest text-ink uppercase sm:text-2xl">Новая трата</h2>
+			<div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+				<label class="flex min-w-0 flex-1 flex-col gap-1 sm:min-w-[12rem]">
+					<span class="font-mono text-[10px] uppercase text-muted">Название</span>
+					<input
+						type="text"
+						id="new-label"
+						class="w-full border-[2px] border-ink bg-canvas px-2 py-2 font-sans text-sm"
+						placeholder="Что купили"
+					/>
+				</label>
+				<label class="flex w-full flex-col gap-1 sm:w-auto sm:max-w-[8rem]">
+					<span class="font-mono text-[10px] uppercase text-muted">Сумма (₽)</span>
+					<input
+						type="text"
+						inputmode="decimal"
+						id="new-amount"
+						class="w-full border-[2px] border-ink bg-canvas px-2 py-2 font-mono text-sm"
+						placeholder="0"
+					/>
+				</label>
+				<button
+					type="button"
+					id="add-expense"
+					class="border-[3px] border-ink bg-surface px-4 py-2 font-sans text-sm uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas"
+				>
+					Добавить
+				</button>
+			</div>
+		</section>
+
+		<section>
+			<h2 class="mb-4 font-display text-xl tracking-widest text-ink uppercase sm:text-2xl">Список трат</h2>
+			<ul class="space-y-2" id="expense-list"></ul>
+		</section>
+
+		<div class="flex flex-wrap items-center gap-4">
+			<button
+				type="button"
+				id="ob-save"
+				class="border-[3px] border-ink bg-accent px-6 py-3 font-display text-xl tracking-widest text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover active-shift transition-colors"
+			>
+				Сохранить
+			</button>
+			<span id="ob-status" class="font-sans text-sm uppercase text-muted"></span>
+		</div>
+	</form>
+
+	<script
+		is:inline
+		define:vars={{ initialWatcher: data.watcherSlug, initialDataJson: JSON.stringify(data) }}
+	>
+		function parseRub(s) {
+			const t = String(s).trim().replace(/\s/g, '').replace(',', '.');
+			if (t === '') return 0;
+			const n = parseFloat(t);
+			if (!isFinite(n) || n < 0) return null;
+			return Math.round(n * 100);
+		}
+
+		(function () {
+			/** @type {{ watcherSlug: string; contributedKopeks: Record<string, number>; expenses: { id: string; label: string; amountKopeks: number; createdAt?: string }[] }} */
+			let state = JSON.parse(initialDataJson);
+
+			function elExpenseRow(e) {
+				const li = document.createElement('li');
+				li.className =
+					'flex flex-wrap items-center justify-between gap-2 border-[2px] border-ink/30 bg-surface px-3 py-2 font-sans text-sm';
+				li.dataset.id = e.id;
+				const left = document.createElement('div');
+				left.className = 'min-w-0';
+				if (e.createdAt) {
+					const d = document.createElement('p');
+					d.className = 'mb-0.5 font-mono text-[10px] text-muted';
+					d.textContent = new Date(e.createdAt).toLocaleDateString('ru-RU');
+					left.appendChild(d);
+				}
+				const lab = document.createElement('p');
+				lab.className = 'text-ink';
+				lab.textContent = e.label;
+				left.appendChild(lab);
+				const right = document.createElement('div');
+				right.className = 'flex shrink-0 items-center gap-2';
+				const am = document.createElement('span');
+				am.className = 'font-mono tabular-nums';
+				am.textContent = Number((e.amountKopeks / 100).toFixed(2)) + ' ₽';
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className =
+					'border-2 border-accent px-2 py-0.5 text-xs uppercase text-accent hover:bg-accent hover:text-canvas';
+				btn.textContent = 'Удалить';
+				btn.addEventListener('click', () => {
+					state.expenses = state.expenses.filter((x) => x.id !== e.id);
+					renderList();
+				});
+				right.appendChild(am);
+				right.appendChild(btn);
+				li.appendChild(left);
+				li.appendChild(right);
+				return li;
+			}
+
+			function renderList() {
+				const ul = document.getElementById('expense-list');
+				if (!ul) return;
+				ul.innerHTML = '';
+				for (const e of state.expenses) {
+					ul.appendChild(elExpenseRow(e));
+				}
+			}
+
+			document.getElementById('add-expense')?.addEventListener('click', () => {
+				const labelEl = document.getElementById('new-label');
+				const amountEl = document.getElementById('new-amount');
+				const label = labelEl && 'value' in labelEl ? String(labelEl.value).trim() : '';
+				const raw = amountEl && 'value' in amountEl ? String(amountEl.value) : '';
+				const k = parseRub(raw);
+				if (!label) {
+					setStatus('Укажите название', true);
+					return;
+				}
+				if (k === null || k < 1) {
+					setStatus('Сумма должна быть больше 0', true);
+					return;
+				}
+				const ex = {
+					id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'e-' + Date.now(),
+					label,
+					amountKopeks: k,
+					createdAt: new Date().toISOString(),
+				};
+				state.expenses = [ex, ...state.expenses];
+				if (labelEl && 'value' in labelEl) labelEl.value = '';
+				if (amountEl && 'value' in amountEl) amountEl.value = '';
+				renderList();
+				setStatus('Трата добавлена (нажмите «Сохранить»)', false);
+			});
+
+			function collect() {
+				const cont = { ...state.contributedKopeks };
+				for (const inp of document.querySelectorAll('[data-c]')) {
+					if (!('value' in inp)) continue;
+					const slug = inp.getAttribute('data-c');
+					if (!slug) continue;
+					const k = parseRub(inp.value);
+					if (k === null) throw new Error('Некорректная сумма взноса: ' + slug);
+					cont[slug] = k;
+				}
+				return {
+					watcherSlug: initialWatcher,
+					contributedKopeks: cont,
+					expenses: state.expenses,
+				};
+			}
+
+			function setStatus(t, isErr) {
+				const s = document.getElementById('ob-status');
+				if (s) {
+					s.textContent = t;
+					s.className = 'font-sans text-sm uppercase ' + (isErr ? 'text-accent' : 'text-muted');
+				}
+			}
+
+			document.getElementById('ob-save')?.addEventListener('click', async () => {
+				setStatus('…', false);
+				let body;
+				try {
+					body = collect();
+				} catch (e) {
+					setStatus(e instanceof Error ? e.message : 'Ошибка', true);
+					return;
+				}
+				const res = await fetch('/api/admin/obshchak', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ data: body }),
+				});
+				const j = await res.json().catch(() => ({}));
+				if (!res.ok) {
+					setStatus(typeof j.error === 'string' ? j.error : 'Ошибка сохранения', true);
+					return;
+				}
+				setStatus('Сохранено', false);
+			});
+
+			renderList();
+		})();
+	</script>
+</Layout>

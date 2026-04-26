@@ -1,0 +1,151 @@
+---
+export const prerender = false;
+import Layout from '../layouts/Layout.astro';
+import StudentAvatar from '../components/StudentAvatar.astro';
+import { readObshchak, readStudentsSorted } from '../lib/siteContent';
+import {
+	balanceKopeksBySlug,
+	formatRubKopeks,
+	totalPotKopeks,
+} from '../lib/obshchakMath';
+
+const students = await readStudentsSorted();
+const slugs = students.map((s) => s.slug);
+if (slugs.length !== 17) {
+	throw new Error(`obshchak: ожидается 17 учеников, в контенте ${slugs.length}`);
+}
+
+const data = await readObshchak();
+const watcherSlug = data.watcherSlug;
+const bySlug = new Map(students.map((r, i) => [r.data.slug, { row: r, i }]));
+
+const order17 = slugs;
+const potK = totalPotKopeks(data.contributedKopeks, data.expenses);
+const balMap = balanceKopeksBySlug(order17, data.contributedKopeks, data.expenses);
+
+const watcher = bySlug.get(watcherSlug);
+if (!watcher) {
+	throw new Error(`obshchak: смотрящий «${watcherSlug}» не найден в списке учеников`);
+}
+const other16 = students.filter((s) => s.data.slug !== watcherSlug);
+if (other16.length !== 16) {
+	throw new Error(`obshchak: после исключения смотрящего должно остаться 16 человек, получено ${other16.length}`);
+}
+
+const expenses = [...(data.expenses ?? [])].sort((a, b) => {
+	const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
+	const tb = b.createdAt ? Date.parse(b.createdAt) : 0;
+	if (ta !== tb) return tb - ta;
+	return b.id.localeCompare(a.id, 'en');
+});
+---
+
+<Layout title="Общак" description="Взносы и траты группы">
+	<div class="relative pb-16 sm:pb-20">
+		<header class="mb-8 border-b-[3px] border-ink pb-4">
+			<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Общак</h1>
+			<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">Касса, взносы и равные доли в тратах</p>
+		</header>
+
+		<section
+			class="mb-6 border-[3px] border-ink bg-surface px-5 py-6 shadow-[var(--shadow-card)] sm:px-8 sm:py-8"
+			aria-label="Общий остаток кассы"
+		>
+			<p class="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">В кассе</p>
+			<p class="font-display text-4xl tabular-nums tracking-wide text-ink sm:text-5xl">{formatRubKopeks(potK)}</p>
+		</section>
+
+		<div class="mb-6 border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-card)] sm:p-5">
+			<p class="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">Смотрящий</p>
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6">
+				<div class="h-32 w-28 shrink-0 self-center border-[3px] border-ink bg-muted-surface sm:self-start">
+					{watcher.row.data.photo ? (
+						<img
+							src={watcher.row.data.photo}
+							alt={`${watcher.row.data.displayName}`}
+							class="h-full w-full object-cover object-top"
+							loading="lazy"
+						/>
+					) : (
+						<StudentAvatar variant={watcher.i} displayName={watcher.row.data.displayName} class="h-full w-full" />
+					)}
+				</div>
+				<div class="flex-1 min-w-0">
+					<h2 class="font-display text-2xl font-normal uppercase tracking-wider text-ink sm:text-3xl">
+						{watcher.row.data.displayName}
+					</h2>
+					<p class="mt-1 font-sans text-sm text-muted">Смотрящий</p>
+					<p
+						class:list={[
+							'mt-4 font-display text-2xl tabular-nums',
+							(balMap.get(watcherSlug) ?? 0) < 0 ? 'text-accent' : 'text-ink',
+						]}
+					>
+						{formatRubKopeks(balMap.get(watcherSlug) ?? 0)}
+					</p>
+					<p class="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">Личный баланс</p>
+				</div>
+			</div>
+		</div>
+
+		<section class="mb-6" aria-label="Остальные участники">
+			<p class="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">Баланс по группе</p>
+			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+				{other16.map((entry) => {
+					const b = balMap.get(entry.data.slug) ?? 0;
+					const neg = b < 0;
+					return (
+						<div
+							class="border-[3px] border-ink bg-surface px-3 py-3 text-center shadow-[var(--shadow-card)] sm:px-4 sm:py-4"
+						>
+							<p class="font-sans text-xs font-bold uppercase tracking-wide text-ink sm:text-sm">
+								{entry.data.displayName}
+							</p>
+							<p
+								class:list={['mt-2 font-mono text-sm tabular-nums sm:text-base', neg ? 'text-accent' : 'text-ink']}
+							>
+								{formatRubKopeks(b)}
+							</p>
+						</div>
+					);
+				})}
+			</div>
+		</section>
+
+		<section
+			class="border-[3px] border-ink bg-surface px-4 py-5 shadow-[var(--shadow-card)] sm:px-6 sm:py-6"
+			aria-label="Список трат"
+		>
+			<h2 class="mb-4 font-display text-xl tracking-widest text-ink uppercase sm:text-2xl">Траты</h2>
+			{expenses.length === 0 ? (
+				<p class="font-sans text-sm text-muted">Пока нет записанных трат.</p>
+			) : (
+				<ul class="divide-y-2 divide-ink/15 font-sans text-sm">
+					{expenses.map((e) => (
+						<li class="flex flex-wrap items-baseline justify-between gap-2 py-3 first:pt-0 last:pb-0">
+							<div class="min-w-0">
+								{e.createdAt && (
+									<p class="mb-0.5 font-mono text-[10px] uppercase text-muted">
+										{new Date(e.createdAt).toLocaleDateString('ru-RU', {
+											day: 'numeric',
+											month: 'long',
+											year: 'numeric',
+										})}
+									</p>
+								)}
+								<p class="text-ink">{e.label}</p>
+							</div>
+							<p class="shrink-0 font-mono tabular-nums text-ink">{formatRubKopeks(e.amountKopeks)}</p>
+						</li>
+					))}
+				</ul>
+			)}
+		</section>
+
+		<p
+			class="pointer-events-none fixed bottom-3 right-3 z-[5] max-w-[14rem] text-right font-mono text-[9px] leading-snug text-muted/80 sm:bottom-5 sm:right-5 sm:max-w-xs sm:text-[10px]"
+		>
+			Тут не Питер на развод, но честно до копейки: доля на всех, как на крыше.
+		</p>
+	</div>
+</Layout>

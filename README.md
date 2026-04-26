@@ -54,7 +54,7 @@
    Скрипт `scripts/start-prod.mjs` выставляет **`HOST=0.0.0.0`** и **`PORT=4321`**, если они не заданы — так процесс доступен за прокси и в локальной сети.
 
 6. **Права на запись** (админка пишет на диск):
-   - `src/content/` — правки **Markdown**;
+   - `src/content/` — правки **Markdown** и **`obshchak.json`**;
    - **`storage/`** — загрузки **`storage/uploads`**, циферблат ДР **`storage/birthday-dial-labels.json`**, журнал админки и т.д.
    Процесс в systemd (обычно `www-data`) должен **владеть** этими каталогами, иначе будет `EACCES` при сохранении:
    `sudo chown -R www-data:www-data /var/www/kit20/src/content /var/www/kit20/storage`
@@ -103,8 +103,12 @@ cd /var/www/kit20
 git pull
 npm ci
 npm run build
+npm run verify:obshchak
+sudo chown -R www-data:www-data /var/www/kit20/src/content /var/www/kit20/storage
 sudo systemctl restart kit20
 ```
+
+После деплоя убедитесь, что **`obshchak.json`** в репозитории/на диске не затирается: при первом выкатывании файл из git попадёт в `src/content/`; дальше актуальные цифры — только на сервере, их нужно **бэкапить** (копия или коммит с сервера) перед массовыми правками.
 
 ---
 
@@ -125,6 +129,7 @@ npm run dev
 | `src/content/home.md` | Главная (заголовок, подзаголовок, markdown-текст) |
 | `src/content/students/*.md` | Карточки учеников, этюды, опционально фото |
 | `src/content/attendance.md` | Список занятий и отметки посещаемости |
+| `src/content/obshchak.json` | Общак: взносы и траты (копейки), `watcherSlug` (смотрящий) — правки из **админки** `/admin/obschak` |
 
 Слаг ученика (`slug` в frontmatter) должен совпадать с именем файла и с отметками в посещаемости; для двух «Катя» и двух «Юля»: `katya-1` / `katya-2`, `yulya-1` / `yulya-2`.
 

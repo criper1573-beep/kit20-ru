@@ -84,6 +84,23 @@ export const attendanceFrontmatterSchema = z.object({
 	lessons: z.array(lessonSchema).default([]),
 });
 
+export const obshchakExpenseSchema = z.object({
+	id: z.string().min(1),
+	label: z.string().min(1),
+	amountKopeks: z.number().int().positive(),
+	createdAt: z.string().optional(),
+});
+
+export const obshchakDataSchema = z.object({
+	/** «Смотрящий» — отдельно от сетки 4×4 */
+	watcherSlug: z.string().default('nastya'),
+	/** Сколько внёс в кассу, коп. Ключ = slug. */
+	contributedKopeks: z.record(z.string(), z.number().int().min(0)).default({}),
+	expenses: z.array(obshchakExpenseSchema).default([]),
+});
+
 export type HomeFrontmatter = z.infer<typeof homeFrontmatterSchema>;
 export type StudentFrontmatter = z.infer<typeof studentFrontmatterSchema>;
 export type AttendanceFrontmatter = z.infer<typeof attendanceFrontmatterSchema>;
+export type ObshchakData = z.infer<typeof obshchakDataSchema>;
+export type ObshchakExpense = z.infer<typeof obshchakExpenseSchema>;
