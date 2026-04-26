@@ -17,7 +17,8 @@
     "schedule:month": "node scripts/generate-lesson-month.mjs",
     "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only",
     "verify:obshchak": "node scripts/verify-obshchak.mjs",
-    "build:lihie-asset": "node scripts/build-lihie-obshchak-asset.mjs"
+    "build:lihie-asset": "node scripts/build-lihie-obshchak-asset.mjs",
+    "fix:lihie-alpha": "node scripts/strip-checkerboard-alpha.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.5",
