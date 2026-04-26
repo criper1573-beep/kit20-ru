@@ -1,7 +1,7 @@
 /**
- * PNG с прозрачным фоном: «ЛИХИЕ» (как на постере) + снизу «90-е».
- * Источник: public/lihie-poster-source.png
- * Результат: public/obshchak-lihie-90e.png
+ * Альтернатива: PNG из официального постера (обрезка + красный → alpha).
+ * Основной ассет на сайте — сгенерированный `public/obshchak-lihie-90e.webp`.
+ * Источник: public/lihie-poster-source.png → public/obshchak-lihie-90e.png (если запустить).
  */
 import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
