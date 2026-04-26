@@ -1,0 +1,374 @@
+---
+export const prerender = false;
+import Layout from '../../layouts/Layout.astro';
+import { hasValidAdminSession } from '../../lib/adminApiAuth';
+import { readStudentsSorted } from '../../lib/siteContent';
+import { readBirthdayDialLayoutFile } from '../../lib/birthdayDialLayoutFile';
+import { parseBirthdayDmy } from '../../lib/birthdayUtils';
+
+if (!hasValidAdminSession(Astro.cookies)) {
+	return Astro.redirect('/admin/login?next=' + encodeURIComponent(Astro.url.pathname));
+}
+
+type DialRow = { displayName: string; m: number; d: number; birthday: string; slug: string };
+const rows = await readStudentsSorted();
+const payload: DialRow[] = [];
+for (const r of rows) {
+	const p = parseBirthdayDmy(r.data.birthday);
+	if (!p) continue;
+	payload.push({
+		slug: r.data.slug,
+		displayName: r.data.displayName,
+		m: p.month,
+		d: p.day,
+		birthday: r.data.birthday,
+	});
+}
+const layoutOverrides = await readBirthdayDialLayoutFile();
+---
+
+<Layout
+	title="Циферблат: дни рождения (админ)"
+	description="Расположение имён на циферблате"
+	admin={true}
+>
+	<div class="mb-6 border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-card)] sm:p-5">
+		<h1 class="mb-2 font-display text-2xl uppercase tracking-wider text-ink sm:text-3xl">Имена на циферблате</h1>
+		<p class="mb-2 max-w-2xl font-sans text-sm leading-relaxed text-muted">
+			Перетаскивайте подпись (область текста). <strong>Shift + перетаскивание</strong> — поворот вокруг центра
+			подписи, <strong>Shift + колёсико</strong> — тонкая подкрутка угла. Линия от отметки даты тянется к подписи.
+			Нажмите «Сохранить на сайт», чтобы зафиксировать раскладку на странице «Дни рождения».
+		</p>
+		<div class="mt-4 flex flex-wrap items-center gap-3">
+			<button
+				type="button"
+				id="bd-admin-save"
+				class="type-cta border-[3px] border-ink bg-surface px-4 py-2 text-sm text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-accent hover:text-canvas"
+			>
+				Сохранить на сайт
+			</button>
+			<p id="bd-admin-status" class="font-mono text-xs text-muted" aria-live="polite"></p>
+		</div>
+	</div>
+
+	<section
+		class="border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-card)] sm:p-6"
+		aria-label="Редактирование циферблата"
+	>
+		<svg
+			id="bd-dial"
+			class="bd-dial bd-dial--admin mx-auto w-full max-w-md cursor-default text-ink"
+			viewBox="-22 -22 244 244"
+			width="100%"
+			height="100%"
+		>
+			<circle
+				cx="100"
+				cy="100"
+				r="90"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="1.2"
+				class="text-ink"
+			></circle>
+			<g id="bd-months" />
+			<g id="bd-segments" />
+			<g id="bd-dots" />
+			<line
+				id="bd-hand"
+				x1="100"
+				y1="100"
+				x2="100"
+				y2="32"
+				stroke="currentColor"
+				stroke-width="2.5"
+				stroke-linecap="round"
+				class="text-accent"
+				pointer-events="none"
+			/>
+			<circle cx="100" cy="100" r="4" fill="currentColor" class="text-ink" pointer-events="none" />
+		</svg>
+	</section>
+
+	<script
+		is:inline
+		type="application/json"
+		id="bd-payload"
+		set:html={JSON.stringify(
+			payload.map((p) => ({ displayName: p.displayName, m: p.m, d: p.d, birthday: p.birthday, slug: p.slug })),
+		)}
+	></script>
+	<script
+		is:inline
+		type="application/json"
+		id="bd-layout-initial"
+		set:html={JSON.stringify(layoutOverrides)}
+	></script>
+
+	<script>
+		import { dialAngleDegFromTop, daysInYear, dayOfYearForDateInYear, dayOfYearInYear } from '../../lib/birthdayUtils';
+		import { computeBirthdayDialPlacements, polarFromTopDeg } from '../../lib/birthdayDialGeometry';
+		import { createBirthdayDialItem, setBirthdayDialItemPosition, type BirthdayDialItemNodes } from '../../lib/birthdayDialDom';
+		import type { BirthdayLabelOverride } from '../../lib/birthdayDialLayoutFile';
+		import type { BdRow } from '../../lib/birthdayDialGeometry';
+
+		const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'] as const;
+		const R_M_TICK_IN = 52;
+		const R_M_TICK_OUT = 86;
+		const R_M_LABEL = 60;
+
+		function handAngle(now: Date): { deg: number } {
+			const y = now.getFullYear();
+			const len = daysInYear(y);
+			const noon = new Date(
+				now.getFullYear(),
+				now.getMonth(),
+				now.getDate(),
+				12,
+				0,
+				0,
+				0,
+			);
+			const doy = dayOfYearInYear(noon);
+			return { deg: dialAngleDegFromTop(doy, len) };
+		}
+
+		function renderMonthMarks(y: number) {
+			const gSeg = document.getElementById('bd-segments');
+			const gMo = document.getElementById('bd-months');
+			if (!gSeg || !gMo) return;
+			gSeg.replaceChildren();
+			gMo.replaceChildren();
+			const lenY = daysInYear(y);
+			const cx = 100;
+			const cy = 100;
+			for (let m = 1; m <= 12; m++) {
+				const doy1 = dayOfYearForDateInYear(y, m, 1);
+				const a = dialAngleDegFromTop(doy1, lenY);
+				const p0 = polarFromTopDeg(a, R_M_TICK_IN, cx, cy);
+				const p1 = polarFromTopDeg(a, R_M_TICK_OUT, cx, cy);
+				const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+				el.setAttribute('x1', String(p0.x));
+				el.setAttribute('y1', String(p0.y));
+				el.setAttribute('x2', String(p1.x));
+				el.setAttribute('y2', String(p1.y));
+				el.setAttribute('stroke', 'currentColor');
+				el.setAttribute('stroke-width', '0.8');
+				el.setAttribute('opacity', '0.45');
+				gSeg.appendChild(el);
+
+				const midDoy = dayOfYearForDateInYear(y, m, 15);
+				const aLab = dialAngleDegFromTop(midDoy, lenY);
+				const tpos = polarFromTopDeg(aLab, R_M_LABEL, cx, cy);
+				const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+				t.setAttribute('x', String(tpos.x));
+				t.setAttribute('y', String(tpos.y + 1));
+				t.setAttribute('text-anchor', 'middle');
+				t.setAttribute('dominant-baseline', 'middle');
+				t.setAttribute('font-size', '8.5');
+				t.setAttribute('class', 'font-mono uppercase');
+				t.textContent = MONTHS[m - 1] ?? '';
+				gMo.appendChild(t);
+			}
+		}
+
+		function clientToSvg(svg: SVGSVGElement, clientX: number, clientY: number) {
+			const p = svg.createSVGPoint();
+			p.x = clientX;
+			p.y = clientY;
+			const ctm = svg.getScreenCTM();
+			if (!ctm) return { x: 0, y: 0 };
+			return p.matrixTransform(ctm.inverse());
+		}
+
+		function pointerAngleFromCenter(cx: number, cy: number, px: number, py: number) {
+			return (Math.atan2(py - cy, px - cx) * 180) / Math.PI;
+		}
+
+		const layoutState: Record<string, BirthdayLabelOverride> = {};
+
+		function readInitialLayoutFromDom(): Record<string, BirthdayLabelOverride> {
+			const el = document.getElementById('bd-layout-initial')?.textContent;
+			if (!el) return {};
+			try {
+				const j = JSON.parse(el) as unknown;
+				if (j && typeof j === 'object' && !Array.isArray(j)) {
+					return j as Record<string, BirthdayLabelOverride>;
+				}
+			} catch {
+				/* */
+			}
+			return {};
+		}
+
+		function attachInteraction(svg: SVGSVGElement, nodes: BirthdayDialItemNodes) {
+			const gLabel = nodes.gLabel;
+			gLabel.setAttribute('data-bd-admin', '1');
+			gLabel.style.cursor = 'grab';
+
+			let mode: 'move' | 'rot' | null = null;
+			let startSvg = { x: 0, y: 0 };
+			let startLabel = { x: 0, y: 0, rot: 0 };
+			let startAngle = 0;
+
+			const onMove = (e: PointerEvent) => {
+				if (mode == null) return;
+				const p = clientToSvg(svg, e.clientX, e.clientY);
+				if (mode === 'move') {
+					const nx = startLabel.x + (p.x - startSvg.x);
+					const ny = startLabel.y + (p.y - startSvg.y);
+					layoutState[nodes.slug] = { x: nx, y: ny, rot: startLabel.rot };
+					setBirthdayDialItemPosition(nodes, nx, ny, startLabel.rot);
+				} else {
+					const cur = pointerAngleFromCenter(startLabel.x, startLabel.y, p.x, p.y);
+					const rot = startLabel.rot + (cur - startAngle);
+					layoutState[nodes.slug] = { x: startLabel.x, y: startLabel.y, rot };
+					setBirthdayDialItemPosition(nodes, startLabel.x, startLabel.y, rot);
+				}
+			};
+
+			const onUp = (e: PointerEvent) => {
+				if (mode == null) return;
+				if (e.pointerId != null) {
+					try {
+						gLabel.releasePointerCapture(e.pointerId);
+					} catch {
+						/* */
+					}
+				}
+				mode = null;
+				gLabel.style.cursor = 'grab';
+				svg.classList.remove('select-none');
+			};
+
+			gLabel.addEventListener('pointerdown', (e) => {
+				if (e.button !== 0) return;
+				const shift = e.shiftKey;
+				e.stopPropagation();
+				e.preventDefault();
+				const p = clientToSvg(svg, e.clientX, e.clientY);
+				const s = layoutState[nodes.slug] ?? { x: 0, y: 0, rot: 0 };
+				mode = shift ? 'rot' : 'move';
+				startSvg = p;
+				startLabel = { x: s.x, y: s.y, rot: s.rot };
+				startAngle = shift
+					? pointerAngleFromCenter(s.x, s.y, p.x, p.y)
+					: 0;
+				gLabel.style.cursor = 'grabbing';
+				gLabel.setPointerCapture(e.pointerId);
+				svg.classList.add('select-none');
+			});
+
+			gLabel.addEventListener('pointermove', (e) => {
+				if (mode != null) onMove(e);
+			});
+			gLabel.addEventListener('pointerup', onUp);
+			gLabel.addEventListener('pointercancel', onUp);
+			gLabel.addEventListener('lostpointercapture', onUp);
+
+			gLabel.addEventListener(
+				'wheel',
+				(e) => {
+					if (!e.shiftKey) return;
+					e.preventDefault();
+					const s = layoutState[nodes.slug] ?? { x: 0, y: 0, rot: 0 };
+					const d = e.deltaY * -0.12;
+					const rot = s.rot + d;
+					layoutState[nodes.slug] = { x: s.x, y: s.y, rot };
+					setBirthdayDialItemPosition(nodes, s.x, s.y, rot);
+				},
+				{ passive: false },
+			);
+		}
+
+		function runDial() {
+			const raw = document.getElementById('bd-payload')?.textContent;
+			const rows: BdRow[] = raw ? (JSON.parse(raw) as BdRow[]) : [];
+			const now = new Date();
+			const y = now.getFullYear();
+			const lenY = daysInYear(y);
+			const hand = document.getElementById('bd-hand') as SVGLineElement | null;
+			if (hand) {
+				const h = handAngle(now);
+				const tip = polarFromTopDeg(h.deg, 76, 100, 100);
+				hand.setAttribute('x2', String(tip.x));
+				hand.setAttribute('y2', String(tip.y));
+			}
+			renderMonthMarks(y);
+
+			const svg = document.getElementById('bd-dial') as SVGSVGElement | null;
+			if (!svg) return;
+
+			const gDots = document.getElementById('bd-dots');
+			if (!gDots) return;
+			gDots.replaceChildren();
+
+			const placements = computeBirthdayDialPlacements(rows, y, lenY, layoutState);
+			const active = new Set(placements.map((p) => p.slug));
+			for (const k of Object.keys(layoutState)) {
+				if (!active.has(k)) delete layoutState[k];
+			}
+			for (const p of placements) {
+				if (layoutState[p.slug] == null) {
+					layoutState[p.slug] = { x: p.labelX, y: p.labelY, rot: p.labelRot };
+				}
+			}
+			for (const p of placements) {
+				const s = layoutState[p.slug]!;
+				const placed = { ...p, labelX: s.x, labelY: s.y, labelRot: s.rot, fromOverride: p.fromOverride };
+				const n = createBirthdayDialItem(placed);
+				setBirthdayDialItemPosition(n, s.x, s.y, s.rot);
+				gDots.appendChild(n.g);
+				attachInteraction(svg, n);
+			}
+		}
+
+		const rawI = readInitialLayoutFromDom();
+		for (const k of Object.keys(rawI)) {
+			const v = rawI[k]!;
+			if (Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.rot)) {
+				layoutState[k] = { x: v.x, y: v.y, rot: v.rot };
+			}
+		}
+		runDial();
+
+		const saveBtn = document.getElementById('bd-admin-save');
+		const st = document.getElementById('bd-admin-status');
+		saveBtn?.addEventListener('click', async () => {
+			if (st) st.textContent = 'Сохраняю…';
+			try {
+				const res = await fetch('/api/admin/birthday-dial-layout', {
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ layout: layoutState }),
+				});
+				const j = (await res.json().catch(() => ({}))) as { error?: unknown };
+				if (!res.ok) {
+					if (st) st.textContent = j.error ? String(JSON.stringify(j.error)) : 'Ошибка';
+					return;
+				}
+				if (st) st.textContent = 'Сохранено.';
+				/** Синхронизировать невидимый inline JSON для согласованных перезаходов */
+				const el = document.getElementById('bd-layout-initial');
+				if (el) el.textContent = JSON.stringify(layoutState);
+			} catch {
+				if (st) st.textContent = 'Сеть/ошибка';
+			}
+		});
+	</script>
+
+	<style is:global>
+		.bd-dial--admin g[data-birthday-slug] .bd-birthday-label-wrap {
+			cursor: grab;
+		}
+		.bd-dial--admin g[data-birthday-slug] .bd-birthday-label {
+			paint-order: stroke fill;
+			stroke: var(--color-canvas, #f0ebe0);
+			stroke-width: 0.5px;
+		}
+		.bd-dial--admin g[data-birthday-slug] line {
+			stroke-width: 0.45;
+			opacity: 0.4;
+		}
+	</style>
+</Layout>
