@@ -53,7 +53,12 @@
 
    Скрипт `scripts/start-prod.mjs` выставляет **`HOST=0.0.0.0`** и **`PORT=4321`**, если они не заданы — так процесс доступен за прокси и в локальной сети.
 
-6. **Права на запись** в `src/content/` (админка сохраняет `.md`): пользователь из `User=` в systemd должен иметь право записи, например `sudo chown -R www-data:www-data /var/www/kit20/src/content` (или весь каталог проекта под этим пользователем).
+6. **Права на запись** (админка пишет на диск):
+   - `src/content/` — правки **Markdown**;
+   - **`storage/`** — загрузки **`storage/uploads`**, циферблат ДР **`storage/birthday-dial-labels.json`**, журнал админки и т.д.
+   Процесс в systemd (обычно `www-data`) должен **владеть** этими каталогами, иначе будет `EACCES` при сохранении:
+   `sudo chown -R www-data:www-data /var/www/kit20/src/content /var/www/kit20/storage`
+   (после `git pull` / деплоя от **root** права снова могут «сбиться» — повторите `chown` при смене владельца).
 
 7. **systemd** (автозапуск): скопируйте `deploy/kit20.service.example` в `/etc/systemd/system/kit20.service`, исправьте `User`, `WorkingDirectory`, `ExecStart` при необходимости:
 
