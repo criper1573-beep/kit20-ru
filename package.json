@@ -16,7 +16,8 @@
     "extract:office-svgs": "node scripts/extract-svgs.mjs",
     "schedule:month": "node scripts/generate-lesson-month.mjs",
     "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only",
-    "verify:obshchak": "node scripts/verify-obshchak.mjs"
+    "verify:obshchak": "node scripts/verify-obshchak.mjs",
+    "build:lihie-asset": "node scripts/build-lihie-obshchak-asset.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^10.0.5",
@@ -25,5 +26,8 @@
     "marked": "^18.0.2",
     "tailwindcss": "^4.2.2",
     "yaml": "^2.8.3"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
   }
 }
