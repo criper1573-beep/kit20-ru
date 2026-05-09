@@ -90,7 +90,7 @@ const initialJson = JSON.stringify({ lessons });
 										type="button"
 										class:list={[
 											'cell-att inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] transition-colors active-shift sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
-											absent ? 'bg-surface text-ink' : 'bg-accent text-canvas',
+											absent ? 'bg-accent text-canvas' : 'bg-surface text-ink',
 										]}
 										data-li={String(li)}
 										data-slug={s.data.slug}
@@ -174,10 +174,10 @@ const initialJson = JSON.stringify({ lessons });
 					const next = absent ? '0' : '1';
 					newBtn.setAttribute('data-absent', next);
 					newBtn.textContent = next === '1' ? 'Н' : 'Б';
-					newBtn.classList.toggle('bg-surface', next === '1');
-					newBtn.classList.toggle('text-ink', next === '1');
-					newBtn.classList.toggle('bg-accent', next === '0');
-					newBtn.classList.toggle('text-canvas', next === '0');
+					newBtn.classList.toggle('bg-surface', next === '0');
+					newBtn.classList.toggle('text-ink', next === '0');
+					newBtn.classList.toggle('bg-accent', next === '1');
+					newBtn.classList.toggle('text-canvas', next === '1');
 					scheduleAutoSave();
 				});
 			});
@@ -395,7 +395,7 @@ const initialJson = JSON.stringify({ lessons });
 				td.innerHTML = `
 					<button
 						type="button"
-						class="cell-att inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] transition-colors active-shift bg-accent text-canvas"
+						class="cell-att inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] transition-colors active-shift bg-surface text-ink"
 						data-li="${newIndex}"
 						data-slug="${slug}"
 						data-absent="0"

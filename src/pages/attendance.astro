@@ -86,7 +86,7 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 												<span
 													class:list={[
 														'inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
-														st === 'present' ? 'bg-accent text-canvas' : 'bg-surface text-ink',
+														st === 'present' ? 'bg-surface text-ink' : 'bg-accent text-canvas',
 													]}
 													title={t}
 												>
@@ -106,10 +106,10 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 
 	<div class="mt-8 flex flex-wrap gap-6 font-sans text-xs uppercase tracking-widest text-muted">
 		<span class="flex items-center gap-2">
-			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-accent px-1.5 py-0.5 text-canvas">Б</span> — БЫЛ
+			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-surface px-1.5 py-0.5 text-ink">Б</span> — БЫЛ
 		</span>
 		<span class="flex items-center gap-2">
-			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-surface px-1.5 py-0.5 text-ink">Н</span> — НЕ БЫЛ
+			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-accent px-1.5 py-0.5 text-canvas">Н</span> — НЕ БЫЛ
 		</span>
 	</div>
 
