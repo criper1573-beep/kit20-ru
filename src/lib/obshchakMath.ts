@@ -1,22 +1,20 @@
-/** Число участников общака (группа КИТ20). */
-export const OBSHCHAK_N = 17;
-
 /**
- * Раскидать сумму траты в копейках поровну на N человек; остаток (0..N-1 коп.)
- * получают первые по списку `studentSlugsOrdered` (порядок `order` с сайта).
+ * Раскидать сумму траты в копейках поровну на всех из `studentSlugsOrdered`; остаток (0..N-1 коп.)
+ * получают первые по списку (порядок `order` с сайта).
  */
 export function splitExpenseKopeksPerPerson(
 	amountKopeks: number,
 	studentSlugsOrdered: string[],
 ): Map<string, number> {
-	if (studentSlugsOrdered.length !== OBSHCHAK_N) {
-		throw new Error(`obshchak: ожидается ${OBSHCHAK_N} slug'ов, получено ${studentSlugsOrdered.length}`);
+	const n = studentSlugsOrdered.length;
+	if (n < 1) {
+		throw new Error('obshchak: нужен хотя бы один участник');
 	}
 	if (!Number.isInteger(amountKopeks) || amountKopeks < 0) {
 		throw new Error('obshchak: amountKopeks не целое >= 0');
 	}
-	const base = Math.floor(amountKopeks / OBSHCHAK_N);
-	const rem = amountKopeks - base * OBSHCHAK_N;
+	const base = Math.floor(amountKopeks / n);
+	const rem = amountKopeks - base * n;
 	const out = new Map<string, number>();
 	for (let i = 0; i < studentSlugsOrdered.length; i++) {
 		const slug = studentSlugsOrdered[i]!;

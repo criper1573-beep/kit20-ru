@@ -1,18 +1,18 @@
 /**
  * Проверка: сумма личных балансов = касса; доли по трате = полная сумма;
- * 17 учеников. Запуск: node scripts/verify-obshchak.mjs
+ * Сходимость балансов общака. Запуск: node scripts/verify-obshchak.mjs
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const N = 17;
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 const studentsDir = join(root, 'src', 'content', 'students');
 const md = (await readdir(studentsDir)).filter((f) => f.endsWith('.md'));
-if (md.length !== N) {
-	console.error(`Ожидается ${N} .md в students/, сейчас ${md.length}`);
+const N = md.length;
+if (N < 1) {
+	console.error('Нет учеников в students/');
 	process.exit(1);
 }
 

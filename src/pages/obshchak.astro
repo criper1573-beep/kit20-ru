@@ -11,26 +11,19 @@ import {
 
 const students = await readStudentsSorted();
 const slugs = students.map((s) => s.slug);
-if (slugs.length !== 17) {
-	throw new Error(`obshchak: ожидается 17 учеников, в контенте ${slugs.length}`);
-}
 
 const data = await readObshchak();
 const watcherSlug = data.watcherSlug;
 const bySlug = new Map(students.map((r, i) => [r.data.slug, { row: r, i }]));
 
-const order17 = slugs;
 const potK = totalPotKopeks(data.contributedKopeks, data.expenses);
-const balMap = balanceKopeksBySlug(order17, data.contributedKopeks, data.expenses);
+const balMap = balanceKopeksBySlug(slugs, data.contributedKopeks, data.expenses);
 
 const watcher = bySlug.get(watcherSlug);
 if (!watcher) {
 	throw new Error(`obshchak: смотрящий «${watcherSlug}» не найден в списке учеников`);
 }
-const other16 = students.filter((s) => s.data.slug !== watcherSlug);
-if (other16.length !== 16) {
-	throw new Error(`obshchak: после исключения смотрящего должно остаться 16 человек, получено ${other16.length}`);
-}
+const otherStudents = students.filter((s) => s.data.slug !== watcherSlug);
 
 const expenses = [...(data.expenses ?? [])].sort((a, b) => {
 	const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
@@ -91,7 +84,7 @@ const expenses = [...(data.expenses ?? [])].sort((a, b) => {
 		<section class="mb-6" aria-label="Остальные участники">
 			<p class="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">Баланс по группе</p>
 			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-				{other16.map((entry) => {
+				{otherStudents.map((entry) => {
 					const b = balMap.get(entry.data.slug) ?? 0;
 					const neg = b < 0;
 					const idx = bySlug.get(entry.data.slug)?.i ?? 0;
