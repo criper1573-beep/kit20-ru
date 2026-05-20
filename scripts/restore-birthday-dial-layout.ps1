@@ -1,5 +1,4 @@
-# Обновить сайт на VPS (как в README: pull, build, chown, restart).
-# Секреты: SERVER_LV_SSH_PASSWORD и SERVER_LV_HOST в kit20-oauth.env или KIT20_KONTENT_ENV.
+# Восстановить storage/birthday-dial-labels.json на VPS из .bak (без yulya-2)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
 $localKit20Env = Join-Path $repoRoot 'kit20-oauth.env'
@@ -11,12 +10,12 @@ if ($env:KIT20_ENV_FILE -and (Test-Path -LiteralPath $env:KIT20_ENV_FILE)) { $en
 elseif (Test-Path -LiteralPath $localKit20Env) { $envFile = $localKit20Env }
 elseif ($env:KIT20_KONTENT_ENV -and (Test-Path -LiteralPath $env:KIT20_KONTENT_ENV)) { $envFile = $env:KIT20_KONTENT_ENV }
 elseif (Test-Path -LiteralPath $kontentEnv) { $envFile = $kontentEnv }
-if (-not $envFile) { throw "Нет env: kit20-oauth.env в корне репо или KIT20_ENV_FILE" }
+else { throw 'Missing env file' }
 
 function Get-EnvValue([string]$path, [string]$key) {
-  $line = Get-Content -LiteralPath $path -Encoding UTF8 | Where-Object { $_ -match "^\s*$key\s*=" } | Select-Object -First 1
-  if (-not $line) { return '' }
-  ($line -replace "^\s*$key\s*=\s*", '').Trim()
+	$line = Get-Content -LiteralPath $path -Encoding UTF8 | Where-Object { $_ -match "^\s*$key\s*=" } | Select-Object -First 1
+	if (-not $line) { return '' }
+	($line -replace "^\s*$key\s*=\s*", '').Trim()
 }
 
 $pw = Get-EnvValue $envFile 'SERVER_LV_SSH_PASSWORD'
@@ -32,26 +31,9 @@ if (-not $appDir) { $appDir = '/var/www/kit20' }
 
 $hk = 'ssh-ed25519 SHA256:HuSaSJtaQi7uJItHO0/A10c9e61lnnP4LuQXTrn/X1k'
 $plink = 'C:\Program Files\PuTTY\plink.exe'
-if (-not (Test-Path -LiteralPath $plink)) { throw "Нужен PuTTY plink: $plink" }
 
-$remote = @"
-set -e
-cd $appDir
-if [ -f storage/birthday-dial-labels.json ] && ! git ls-files --error-unmatch storage/birthday-dial-labels.json >/dev/null 2>&1; then
-  mv storage/birthday-dial-labels.json storage/birthday-dial-labels.json.bak
-fi
-git pull
-if [ -f storage/birthday-dial-labels.json.bak ]; then
-  node scripts/restore-birthday-dial-from-bak.mjs
-fi
-npm ci
-npm run build
-npm run verify:obshchak
-sudo chown -R www-data:www-data $appDir/src/content $appDir/storage
-sudo systemctl restart kit20
-systemctl is-active kit20
-"@
+$remote = "set -e; cd $appDir; test -f storage/birthday-dial-labels.json.bak; if test -f scripts/restore-birthday-dial-from-bak.mjs; then node scripts/restore-birthday-dial-from-bak.mjs; else cp storage/birthday-dial-labels.json.bak storage/birthday-dial-labels.json; fi; chown www-data:www-data storage/birthday-dial-labels.json; systemctl restart kit20; systemctl is-active kit20"
 
 & $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $remote
 if ($LASTEXITCODE -ne 0) { throw "plink failed: $LASTEXITCODE" }
-Write-Host "OK: $hostLv $appDir обновлён, kit20 перезапущен."
+Write-Host "OK: birthday dial layout restored on $hostLv"

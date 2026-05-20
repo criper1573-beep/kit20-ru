@@ -23,3 +23,7 @@ kit20-oauth.env
 
 # jetbrains setting folder
 .idea/
+
+# runtime: admin-tuned birthday dial label positions
+storage/birthday-dial-labels.json
+storage/birthday-dial-labels.json.bak
