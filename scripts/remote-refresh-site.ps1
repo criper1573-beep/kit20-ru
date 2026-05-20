@@ -37,8 +37,11 @@ if (-not (Test-Path -LiteralPath $plink)) { throw "Нужен PuTTY plink: $plin
 $remote = @"
 set -e
 cd $appDir
-if [ -f storage/birthday-dial-labels.json ] && ! git ls-files --error-unmatch storage/birthday-dial-labels.json >/dev/null 2>&1; then
-  mv storage/birthday-dial-labels.json storage/birthday-dial-labels.json.bak
+if [ -f storage/birthday-dial-labels.json ]; then
+  cp storage/birthday-dial-labels.json storage/birthday-dial-labels.json.bak
+fi
+if git ls-files --error-unmatch storage/birthday-dial-labels.json >/dev/null 2>&1; then
+  git checkout -- storage/birthday-dial-labels.json 2>/dev/null || rm -f storage/birthday-dial-labels.json
 fi
 git pull
 if [ -f storage/birthday-dial-labels.json.bak ]; then
