@@ -1,0 +1,111 @@
+---
+---
+
+<div
+	id="tower-game-promo"
+	class="tower-game-promo pointer-events-none fixed inset-x-0 z-[44] px-3 pb-2 sm:px-4"
+	style="bottom: var(--site-ticker-h);"
+	role="complementary"
+	aria-label="Новая мини-игра"
+	hidden
+>
+	<div
+		class="tower-game-promo__panel pointer-events-auto mx-auto flex max-w-lg items-center gap-2 border-[2px] border-ink bg-surface/95 px-3 py-2.5 shadow-[var(--shadow-float)] backdrop-blur-sm sm:gap-3 sm:px-4 sm:py-3"
+	>
+		<div class="min-w-0 flex-1">
+			<p class="font-display text-sm uppercase leading-tight tracking-[0.12em] text-ink sm:text-base sm:tracking-[0.14em]">
+				Помоги Илону улететь на&nbsp;Марс
+			</p>
+			<p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted sm:text-[10px]">
+				Новая игра в подвале сайта
+			</p>
+		</div>
+		<button
+			id="tower-game-promo-help"
+			type="button"
+			class="type-cta shrink-0 border-[2px] border-ink bg-accent px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover sm:px-4 sm:py-2 sm:text-[11px]"
+		>
+			Помочь
+		</button>
+		<button
+			id="tower-game-promo-close"
+			type="button"
+			class="type-cta shrink-0 border-[2px] border-transparent px-1 py-1 font-mono text-lg leading-none text-muted transition-colors hover:border-ink/20 hover:text-ink"
+			aria-label="Закрыть"
+		>
+			×
+		</button>
+	</div>
+</div>
+
+<style>
+	.tower-game-promo__panel {
+		transform: translateY(calc(100% + 0.75rem));
+		opacity: 0;
+		transition:
+			transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.35s ease;
+	}
+	.tower-game-promo--visible .tower-game-promo__panel {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	.tower-game-promo--hiding .tower-game-promo__panel {
+		transform: translateY(calc(100% + 0.75rem));
+		opacity: 0;
+	}
+</style>
+
+<script is:inline>
+	(() => {
+		const STORAGE_KEY = 'kit20_tower_promo_v1_dismissed';
+		const root = document.getElementById('tower-game-promo');
+		const helpBtn = document.getElementById('tower-game-promo-help');
+		const closeBtn = document.getElementById('tower-game-promo-close');
+		if (!root || !(helpBtn instanceof HTMLButtonElement) || !(closeBtn instanceof HTMLButtonElement)) return;
+
+		function dismissPermanent() {
+			try {
+				localStorage.setItem(STORAGE_KEY, '1');
+			} catch {}
+		}
+
+		function hideWidget() {
+			root.classList.remove('tower-game-promo--visible');
+			root.classList.add('tower-game-promo--hiding');
+			window.setTimeout(() => {
+				root.setAttribute('hidden', '');
+				root.classList.remove('tower-game-promo--hiding');
+			}, 380);
+		}
+
+		function openGame() {
+			const game = document.querySelector('.footer-tower-game');
+			const startBtn = document.getElementById('footer-tower-start');
+			if (game instanceof HTMLElement) {
+				game.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+			window.setTimeout(() => {
+				if (startBtn instanceof HTMLButtonElement) startBtn.click();
+			}, 450);
+		}
+
+		function onDismiss(openAfter) {
+			dismissPermanent();
+			hideWidget();
+			if (openAfter) openGame();
+		}
+
+		try {
+			if (localStorage.getItem(STORAGE_KEY)) return;
+		} catch {}
+
+		root.removeAttribute('hidden');
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => root.classList.add('tower-game-promo--visible'));
+		});
+
+		helpBtn.addEventListener('click', () => onDismiss(true));
+		closeBtn.addEventListener('click', () => onDismiss(false));
+	})();
+</script>
