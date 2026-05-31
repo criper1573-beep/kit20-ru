@@ -147,7 +147,7 @@ async function phasePrePull() {
 	await copyIfExists(rel(GAME_SCORES), dir, 'game-scores.json');
 
 	await writeFile(MARKER, stamp, 'utf8');
-	console.log(`OK: pre-pull backup → storage/deploy-backups/${stamp}`);
+	console.log(`OK: pre-pull backup at storage/deploy-backups/${stamp}`);
 
 	// Ротация: оставить 30 последних
 	try {
@@ -168,18 +168,18 @@ async function restoreObshchakIfNeeded() {
 	const best = await pickBestObshchak();
 
 	if (!best) {
-		console.log('OK: obshchak — нет кандидатов для восстановления');
+		console.log('OK: obshchak - no restore candidates');
 		return { restored: false, currentM, bestM: null };
 	}
 
 	if (currentM && !isRicher(best.metrics, currentM)) {
-		console.log(`OK: obshchak — текущий не хуже (${best.label})`);
+		console.log(`OK: obshchak - current is not worse (${best.label})`);
 		return { restored: false, currentM, bestM: best.metrics };
 	}
 
 	await mkdir(join(root, 'src', 'content'), { recursive: true });
 	await writeFile(currentPath, best.raw.endsWith('\n') ? best.raw : `${best.raw}\n`, 'utf8');
-	console.log(`OK: восстановлен obshchak.json из ${best.label}`);
+	console.log(`OK: restored obshchak.json from ${best.label}`);
 	console.log(formatMetricsPair('obshchak', currentM, best.metrics));
 	await updateLastKnownGoodFrom(best.raw);
 	return { restored: true, currentM, bestM: best.metrics };
@@ -201,7 +201,7 @@ async function restoreGenericIfSmaller(relPath, candidates) {
 		const { dirname } = await import('node:path');
 		await mkdir(dirname(target), { recursive: true });
 		await copyFile(bestPath, target);
-		console.log(`OK: восстановлен ${relPath} (${curBytes} → ${bestBytes} байт)`);
+		console.log(`OK: restored ${relPath} (${curBytes} -> ${bestBytes} bytes)`);
 		return true;
 	}
 	return false;

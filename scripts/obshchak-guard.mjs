@@ -66,5 +66,5 @@ export function formatMetricsPair(label, a, b) {
 		m
 			? `трат=${m.expenseCount}, расход=${m.expenseKopeks} коп., взносы=${m.contribKopeks} коп., касса=${m.potKopeks} коп.`
 			: 'нет файла';
-	return `${label}: было ${fmt(a)} → стало ${fmt(b)}`;
+	return `${label}: было ${fmt(a)} -> стало ${fmt(b)}`;
 }
