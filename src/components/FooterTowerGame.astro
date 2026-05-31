@@ -3,14 +3,18 @@
 
 <section
 	class="footer-tower-game relative overflow-hidden border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
-	aria-label="Мини-игра «Построй башню»"
+	aria-label="Мини-игра «Помоги Илону долететь на Марс»"
 >
 	<div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-accent" aria-hidden="true"></div>
 
 	<div class="flex items-start justify-between gap-3 px-3 pt-3 sm:px-4 sm:pt-4">
-		<div>
-			<h3 class="font-display text-lg uppercase tracking-[0.2em] text-ink sm:text-xl">Башня</h3>
-			<p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted sm:text-[10px]">Клик — бросить блок</p>
+		<div class="min-w-0 flex-1">
+			<h3 class="font-display text-base uppercase leading-tight tracking-[0.12em] text-ink sm:text-lg sm:tracking-[0.16em]">
+				Помоги Илону долететь на Марс
+			</h3>
+			<p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-muted sm:text-[10px]">
+				1 кирпич = 1 м · идеально = 2 м
+			</p>
 		</div>
 		<button
 			id="footer-tower-open-rating-top"
@@ -19,6 +23,18 @@
 		>
 			Рейтинг
 		</button>
+	</div>
+
+	<div class="mx-3 mt-2 sm:mx-4">
+		<div class="bb-progress-label text-ink/85">
+			<span id="footer-tower-mission-total">9 000 000</span> / 10 000 000 м
+		</div>
+		<div class="bb-progress-bar mt-1">
+			<div id="footer-tower-mission-fill" class="bb-progress-fill bb-progress-fill--accent h-full" style="width: 90%"></div>
+		</div>
+		<p id="footer-tower-mission-sub" class="mt-1.5 font-mono text-[9px] leading-relaxed tracking-[0.1em] text-muted sm:text-[10px]">
+			SpaceX: 9 000 000 м · Люди: 0 м · Осталось: 1 000 000 м
+		</p>
 	</div>
 
 	<div
@@ -40,7 +56,7 @@
 				class="absolute inset-0 z-[2] flex items-center justify-center p-3"
 			>
 				<div class="w-full max-w-[15rem] border-[3px] border-ink bg-surface p-4 text-center shadow-[var(--shadow-float)]">
-					<p class="font-display text-2xl uppercase tracking-[0.18em] text-ink">Башня</p>
+					<p class="font-display text-xl uppercase tracking-[0.14em] text-ink">На Марс</p>
 					<p class="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted">Клик или пробел — бросить блок</p>
 					<button
 						id="footer-tower-start"
@@ -102,7 +118,7 @@
 >
 	<div class="border-b-[3px] border-ink bg-muted-surface px-4 py-3">
 		<div class="flex items-center justify-between gap-3">
-			<h4 class="font-display text-xl uppercase tracking-[0.15em] text-ink">Рейтинг башни</h4>
+			<h4 class="font-display text-xl uppercase tracking-[0.15em] text-ink">Рейтинг миссии</h4>
 			<button
 				id="footer-tower-rating-close"
 				type="button"
@@ -120,7 +136,7 @@
 					<tr class="bg-ink text-canvas">
 						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">#</th>
 						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">Имя</th>
-						<th class="px-2 py-2 font-display text-sm uppercase tracking-widest">Блоки</th>
+						<th class="px-2 py-2 font-display text-sm uppercase tracking-widest">Метры</th>
 					</tr>
 				</thead>
 				<tbody id="footer-tower-rating-body"></tbody>
@@ -145,10 +161,12 @@
 		const BLOCK_H = 22;
 		const BASE_BLOCK_W = 150;
 		const PERFECT_PX = 5;
-		const PERFECT_BONUS = 2;
 		const BASE_MOVE = 88;
 
 		const statusEl = document.getElementById('footer-tower-status');
+		const missionFillEl = document.getElementById('footer-tower-mission-fill');
+		const missionTotalEl = document.getElementById('footer-tower-mission-total');
+		const missionSubEl = document.getElementById('footer-tower-mission-sub');
 		const overlayIdle = document.getElementById('footer-tower-overlay-idle');
 		const overlayEnd = document.getElementById('footer-tower-overlay-end');
 		const endScoreEl = document.getElementById('footer-tower-end-score');
@@ -215,9 +233,40 @@
 			scale = w / BASE_W;
 		}
 
-		function formatScore(value) {
+		function formatMeters(value) {
 			if (!Number.isFinite(value)) return '0';
-			return Number.isInteger(value) ? String(value) : value.toFixed(1);
+			const n = Math.round(value);
+			return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+		}
+
+		function formatScore(value) {
+			return formatMeters(value);
+		}
+
+		function updateMissionUI(mission) {
+			if (!mission || typeof mission !== 'object') return;
+			const total = Number(mission.totalBuiltM ?? 0);
+			const goal = Number(mission.goalM ?? 10_000_000);
+			const musk = Number(mission.muskBuiltM ?? 9_000_000);
+			const people = Number(mission.playerBuiltM ?? 0);
+			const remaining = Number(mission.playerRemainingM ?? 0);
+			const pct = goal > 0 ? Math.min(100, (total / goal) * 100) : 0;
+			if (missionFillEl) missionFillEl.style.width = `${pct}%`;
+			if (missionTotalEl) missionTotalEl.textContent = formatMeters(total);
+			if (missionSubEl) {
+				const complete = Boolean(mission.missionComplete);
+				missionSubEl.textContent = complete
+					? `SpaceX: ${formatMeters(musk)} м · Люди: ${formatMeters(people)} м · Миссия выполнена!`
+					: `SpaceX: ${formatMeters(musk)} м · Люди: +${formatMeters(people)} м · Осталось: ${formatMeters(remaining)} м`;
+			}
+		}
+
+		async function loadMission() {
+			try {
+				const res = await fetch('/api/game/mission');
+				const json = await res.json();
+				if (res.ok && json?.mission) updateMissionUI(json.mission);
+			} catch {}
 		}
 
 		function renderScores(scores) {
@@ -240,7 +289,7 @@
 						<tr class="border-t-[2px] border-ink/15">
 							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-mono text-xs">${i + 1}</td>
 							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-sans text-sm">${name}</td>
-							<td class="px-2 py-1.5 font-mono text-sm text-accent">${formatScore(s)}</td>
+							<td class="px-2 py-1.5 font-mono text-sm text-accent">${formatMeters(s)} м</td>
 						</tr>
 					`;
 				})
@@ -354,8 +403,8 @@
 
 		function showGameOverOverlay(result, best, coachPhrase) {
 			hideIdleOverlay();
-			if (endScoreEl) endScoreEl.textContent = `${formatScore(result)} блоков в этой партии`;
-			if (endBestEl) endBestEl.textContent = `Лучший за сессию · ${formatScore(best)}`;
+			if (endScoreEl) endScoreEl.textContent = `${formatMeters(result)} м в этой попытке`;
+			if (endBestEl) endBestEl.textContent = `Лучший за сессию · ${formatMeters(best)} м`;
 			if (endCoachEl) endCoachEl.textContent = coachPhrase;
 			if (endSavedEl) endSavedEl.textContent = '';
 			if (overlayEnd) {
@@ -393,17 +442,17 @@
 
 		function showSavedInOverlay(name, best) {
 			if (endSavedEl) {
-				endSavedEl.textContent = `В рейтинге: ${name} · ${formatScore(best)} блоков`;
+				endSavedEl.textContent = `+${formatMeters(best)} м в общий зачёт · ${name}`;
 			}
 		}
 
-		async function persistScore(customName) {
-			const best = getSessionBest();
-			if (best <= 0) return null;
+		async function persistRun(runMeters, customName) {
+			const meters = Math.max(0, Math.round(Number(runMeters) || 0));
 			const trimmed = typeof customName === 'string' ? customName.trim() : '';
-			/** @type {{ score: number, sessionId: string, name?: string }} */
-			const body = { score: best, sessionId: getSessionId() };
+			/** @type {{ runMeters: number, sessionId: string, name?: string }} */
+			const body = { runMeters: meters, sessionId: getSessionId() };
 			if (trimmed) body.name = trimmed;
+			if (meters <= 0 && !trimmed) return null;
 			try {
 				const res = await fetch('/api/game/scores', {
 					method: 'POST',
@@ -412,7 +461,12 @@
 				});
 				const json = await res.json();
 				if (!res.ok) throw new Error('save-failed');
-				if (typeof json?.name === 'string') showSavedInOverlay(json.name, best);
+				if (json?.mission) updateMissionUI(json.mission);
+				if (typeof json?.name === 'string' && meters > 0) {
+					showSavedInOverlay(json.name, meters);
+				} else if (typeof json?.name === 'string' && trimmed) {
+					if (endSavedEl) endSavedEl.textContent = `В рейтинге: ${json.name}`;
+				}
 				if (trimmed) {
 					try {
 						sessionStorage.setItem(sessionNameKey, trimmed);
@@ -420,7 +474,7 @@
 				}
 				return json;
 			} catch {
-				if (endSavedEl) endSavedEl.textContent = 'Не удалось сохранить рейтинг';
+				if (endSavedEl) endSavedEl.textContent = 'Не удалось сохранить прогресс';
 				return null;
 			}
 		}
@@ -444,10 +498,10 @@
 			const best = Math.max(result, prevBest);
 			const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
 			showGameOverOverlay(result, best, phrase);
-			if (best > 0 && improved) {
+			if (result > 0) {
 				if (endSavedEl) endSavedEl.textContent = 'Сохранение…';
 				const prefilled = nameInput instanceof HTMLInputElement ? nameInput.value : '';
-				void persistScore(prefilled);
+				void persistRun(result, prefilled);
 			}
 		}
 
@@ -515,11 +569,12 @@
 				color: cur.color,
 			});
 			level += 1;
-			score += 1;
 			if (perfect) {
-				score += PERFECT_BONUS;
-				flashText = `Идеально! +${PERFECT_BONUS}`;
+				score += 2;
+				flashText = 'Идеально! +2 м';
 				flashUntil = performance.now() + 900;
+			} else {
+				score += 1;
 			}
 
 			active = null;
@@ -580,7 +635,7 @@
 
 			ctx.fillStyle = '#0a0a0a';
 			ctx.font = '600 11px "Space Mono", ui-monospace, monospace';
-			ctx.fillText(`БЛОКИ ${formatScore(score)}`, 10, 18);
+			ctx.fillText(`МЕТРЫ ${formatMeters(score)}`, 10, 18);
 			ctx.fillText(`ЭТАЖ ${Math.max(0, stack.length - 1)}`, BASE_W - 88, 18);
 
 			if (flashText && performance.now() < flashUntil) {
@@ -671,7 +726,7 @@
 				if (!(nameInput instanceof HTMLInputElement)) return;
 				const v = nameInput.value.trim();
 				if (!v) return;
-				void persistScore(v);
+				void persistRun(0, v);
 			}, 500);
 		});
 		nameInput?.addEventListener('keydown', (e) => {
@@ -679,8 +734,10 @@
 			e.preventDefault();
 			if (!(nameInput instanceof HTMLInputElement)) return;
 			const v = nameInput.value.trim();
-			if (v) void persistScore(v);
+			if (v) void persistRun(0, v);
 		});
+
+		void loadMission();
 
 		if (nameInput instanceof HTMLInputElement) {
 			try {

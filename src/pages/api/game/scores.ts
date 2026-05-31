@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { readGameScores, saveGameScore } from '../../../lib/gameScores';
+import { readGameScores, recordTowerRun } from '../../../lib/gameScores';
 
 export const prerender = false;
 
@@ -30,9 +30,9 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	const payload = json as { name?: unknown; score?: unknown; sessionId?: unknown };
+	const payload = json as { name?: unknown; score?: unknown; runMeters?: unknown; sessionId?: unknown };
 	const nameRaw = typeof payload.name === 'string' ? payload.name : undefined;
-	const score = Number(payload.score ?? 0);
+	const runMeters = Number(payload.runMeters ?? payload.score ?? 0);
 	const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : '';
 	if (!sessionId.trim()) {
 		return new Response(JSON.stringify({ error: 'Нет sessionId' }), {
@@ -42,12 +42,14 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	try {
-		const result = await saveGameScore(score, sessionId, nameRaw);
+		const result = await recordTowerRun(runMeters, sessionId, nameRaw);
 		return new Response(
 			JSON.stringify({
 				ok: true,
 				saved: result.saved,
 				name: result.name,
+				leaderboardUpdated: result.leaderboardUpdated,
+				mission: result.mission,
 				scores: result.scores.slice(0, 20),
 			}),
 			{

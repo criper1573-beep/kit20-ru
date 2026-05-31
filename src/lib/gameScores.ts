@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pickNextActorName } from './gameActorNamePool';
+import { addPlayerMissionMeters, readTowerMissionStats, type TowerMissionStats } from './towerMission';
 
 export interface GameScore {
 	name: string;
@@ -9,10 +10,12 @@ export interface GameScore {
 	sessionId?: string;
 }
 
-export interface SaveGameScoreResult {
+export interface RecordTowerRunResult {
 	scores: GameScore[];
 	name: string;
 	saved: boolean;
+	mission: TowerMissionStats;
+	leaderboardUpdated: boolean;
 }
 
 const SCORE_FILE = path.join(process.cwd(), 'src', 'content', 'game-scores.json');
@@ -21,9 +24,10 @@ function normalizeName(input: string): string {
 	return input.replace(/\s+/g, ' ').trim().slice(0, 24);
 }
 
-function normalizeScore(input: number): number {
+/** Метры за попытку / лучший результат сессии. */
+function normalizeMeters(input: number): number {
 	if (!Number.isFinite(input)) return 0;
-	return Math.max(0, Math.min(999_999, Math.round(input * 100) / 100));
+	return Math.max(0, Math.min(99_999, Math.round(input)));
 }
 
 function normalizeSessionId(input: string): string {
@@ -40,7 +44,7 @@ export async function readGameScores(): Promise<GameScore[]> {
 				const obj = row as Partial<GameScore>;
 				return {
 					name: normalizeName(String(obj.name ?? '')),
-					score: normalizeScore(Number(obj.score ?? 0)),
+					score: normalizeMeters(Number(obj.score ?? 0)),
 					createdAt: typeof obj.createdAt === 'string' ? obj.createdAt : new Date(0).toISOString(),
 					sessionId: normalizeSessionId(String(obj.sessionId ?? '')) || undefined,
 				};
@@ -53,21 +57,28 @@ export async function readGameScores(): Promise<GameScore[]> {
 }
 
 /**
- * Сохранить лучший результат сессии.
- * nameInput пустой → имя актёра из пула (новая запись) или прежнее имя (обновление).
+ * Зафиксировать попытку: метры идут в общую миссию; в рейтинг — лучший результат сессии.
  */
-export async function saveGameScore(
-	scoreInput: number,
+export async function recordTowerRun(
+	runMetersInput: number,
 	sessionIdInput: string,
 	nameInput?: string | null,
-): Promise<SaveGameScoreResult> {
-	const score = normalizeScore(scoreInput);
+): Promise<RecordTowerRunResult> {
+	const runMeters = normalizeMeters(runMetersInput);
 	const sessionId = normalizeSessionId(sessionIdInput);
 	const userName = nameInput != null ? normalizeName(nameInput) : '';
 
-	if (!sessionId || score <= 0) {
-		return { scores: await readGameScores(), name: userName, saved: false };
+	if (!sessionId) {
+		return {
+			scores: await readGameScores(),
+			name: userName,
+			saved: false,
+			mission: await readTowerMissionStats(),
+			leaderboardUpdated: false,
+		};
 	}
+
+	const mission = runMeters > 0 ? await addPlayerMissionMeters(runMeters) : await readTowerMissionStats();
 
 	const prev = await readGameScores();
 	const existingIndex = prev.findIndex((row) => row.sessionId === sessionId);
@@ -76,37 +87,50 @@ export async function saveGameScore(
 	if (!finalName) {
 		if (existingIndex >= 0) {
 			finalName = prev[existingIndex]!.name;
-		} else {
+		} else if (runMeters > 0) {
 			finalName = await pickNextActorName();
+		} else {
+			return {
+				scores: prev,
+				name: '',
+				saved: false,
+				mission,
+				leaderboardUpdated: false,
+			};
 		}
 	}
 
 	let nextBase = [...prev];
 	let saved = false;
+	let leaderboardUpdated = false;
 
 	if (existingIndex >= 0) {
 		const row = prev[existingIndex]!;
-		const scoreImproved = score > row.score;
+		const scoreImproved = runMeters > row.score;
 		const nameChanged = Boolean(userName && userName !== row.name);
 		if (scoreImproved || nameChanged) {
 			nextBase[existingIndex] = {
 				...row,
 				name: finalName,
-				score: scoreImproved ? score : row.score,
+				score: scoreImproved ? runMeters : row.score,
 				sessionId,
 			};
 			saved = true;
+			leaderboardUpdated = scoreImproved;
 		} else {
-			return { scores: prev, name: row.name, saved: false };
+			return { scores: prev, name: row.name, saved: false, mission, leaderboardUpdated: false };
 		}
-	} else {
+	} else if (runMeters > 0) {
 		nextBase.push({
 			name: finalName,
-			score,
+			score: runMeters,
 			createdAt: new Date().toISOString(),
 			sessionId,
 		});
 		saved = true;
+		leaderboardUpdated = true;
+	} else {
+		return { scores: prev, name: finalName, saved: false, mission, leaderboardUpdated: false };
 	}
 
 	const next = nextBase
@@ -114,11 +138,21 @@ export async function saveGameScore(
 		.slice(0, 100);
 
 	await fs.writeFile(SCORE_FILE, JSON.stringify(next, null, 2), 'utf8');
-	return { scores: next, name: finalName, saved };
+	return { scores: next, name: finalName, saved, mission, leaderboardUpdated };
 }
 
-/** @deprecated используйте saveGameScore */
+/** @deprecated */
+export async function saveGameScore(
+	scoreInput: number,
+	sessionIdInput: string,
+	nameInput?: string | null,
+): Promise<{ scores: GameScore[]; name: string; saved: boolean }> {
+	const r = await recordTowerRun(scoreInput, sessionIdInput, nameInput);
+	return { scores: r.scores, name: r.name, saved: r.saved };
+}
+
+/** @deprecated */
 export async function addGameScore(nameInput: string, scoreInput: number, sessionIdInput = ''): Promise<GameScore[]> {
-	const r = await saveGameScore(scoreInput, sessionIdInput, nameInput);
+	const r = await recordTowerRun(scoreInput, sessionIdInput, nameInput);
 	return r.scores;
 }

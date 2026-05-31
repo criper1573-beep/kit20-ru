@@ -28,3 +28,4 @@ kit20-oauth.env
 storage/birthday-dial-labels.json
 storage/birthday-dial-labels.json.bak
 storage/game-actor-name-pool.json
+storage/tower-mission.json
