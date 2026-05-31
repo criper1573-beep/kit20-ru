@@ -66,33 +66,26 @@
 					<p id="footer-tower-end-score" class="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink"></p>
 					<p id="footer-tower-end-best" class="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted"></p>
 					<p id="footer-tower-end-coach" class="mt-3 font-serif text-[11px] italic leading-relaxed text-muted"></p>
-					<form id="footer-tower-form" class="mt-4 flex flex-col gap-2">
+					<p id="footer-tower-end-saved" class="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-accent"></p>
+					<div class="mt-4 flex flex-col gap-2">
 						<label class="font-mono text-[9px] uppercase tracking-[0.16em] text-ink">
-							Имя для рейтинга
+							Ваше имя <span class="normal-case tracking-normal text-muted">(необязательно)</span>
 							<input
 								id="footer-tower-name"
 								type="text"
 								maxlength="24"
-								required
+								placeholder="Пусто — имя актёра"
 								class="mt-1 w-full border-[3px] border-ink bg-canvas px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
 							/>
 						</label>
-						<div class="flex flex-col gap-2 sm:flex-row">
-							<button
-								type="submit"
-								class="type-cta flex-1 border-[3px] border-ink bg-accent px-2 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
-							>
-								Сохранить
-							</button>
-							<button
-								id="footer-tower-restart"
-								type="button"
-								class="type-cta flex-1 border-[3px] border-ink bg-surface px-2 py-2 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-muted-surface"
-							>
-								Ещё раз
-							</button>
-						</div>
-					</form>
+						<button
+							id="footer-tower-restart"
+							type="button"
+							class="type-cta w-full border-[3px] border-ink bg-accent px-2 py-2.5 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+						>
+							Ещё раз
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -160,7 +153,7 @@
 		const endScoreEl = document.getElementById('footer-tower-end-score');
 		const endBestEl = document.getElementById('footer-tower-end-best');
 		const endCoachEl = document.getElementById('footer-tower-end-coach');
-		const form = document.getElementById('footer-tower-form');
+		const endSavedEl = document.getElementById('footer-tower-end-saved');
 		const nameInput = document.getElementById('footer-tower-name');
 		const startBtn = document.getElementById('footer-tower-start');
 		const restartBtn = document.getElementById('footer-tower-restart');
@@ -351,6 +344,7 @@
 			if (endScoreEl) endScoreEl.textContent = `${formatScore(result)} блоков в этой партии`;
 			if (endBestEl) endBestEl.textContent = `Лучший за сессию · ${formatScore(best)}`;
 			if (endCoachEl) endCoachEl.textContent = coachPhrase;
+			if (endSavedEl) endSavedEl.textContent = '';
 			if (overlayEnd) {
 				overlayEnd.classList.remove('hidden');
 				overlayEnd.classList.add('flex');
@@ -384,6 +378,40 @@
 			spawnMovingBlock();
 		}
 
+		function showSavedInOverlay(name, best) {
+			if (endSavedEl) {
+				endSavedEl.textContent = `В рейтинге: ${name} · ${formatScore(best)} блоков`;
+			}
+		}
+
+		async function persistScore(customName) {
+			const best = getSessionBest();
+			if (best <= 0) return null;
+			const trimmed = typeof customName === 'string' ? customName.trim() : '';
+			/** @type {{ score: number, sessionId: string, name?: string }} */
+			const body = { score: best, sessionId: getSessionId() };
+			if (trimmed) body.name = trimmed;
+			try {
+				const res = await fetch('/api/game/scores', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(body),
+				});
+				const json = await res.json();
+				if (!res.ok) throw new Error('save-failed');
+				if (typeof json?.name === 'string') showSavedInOverlay(json.name, best);
+				if (trimmed) {
+					try {
+						sessionStorage.setItem(sessionNameKey, trimmed);
+					} catch {}
+				}
+				return json;
+			} catch {
+				if (endSavedEl) endSavedEl.textContent = 'Не удалось сохранить рейтинг';
+				return null;
+			}
+		}
+
 		function startGame() {
 			syncCanvasSize();
 			resetGame();
@@ -398,10 +426,16 @@
 			running = false;
 			const result = score;
 			const prevBest = getSessionBest();
-			if (result > prevBest) setSessionBest(result);
+			const improved = result > prevBest;
+			if (improved) setSessionBest(result);
 			const best = Math.max(result, prevBest);
 			const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
 			showGameOverOverlay(result, best, phrase);
+			if (best > 0 && improved) {
+				if (endSavedEl) endSavedEl.textContent = 'Сохранение…';
+				const prefilled = nameInput instanceof HTMLInputElement ? nameInput.value : '';
+				void persistScore(prefilled);
+			}
 		}
 
 		function dropBlock() {
@@ -614,29 +648,22 @@
 			if (e.target === ratingDialog && ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
 		});
 
-		form?.addEventListener('submit', async (e) => {
+		let nameSaveTimer = 0;
+		nameInput?.addEventListener('input', () => {
+			window.clearTimeout(nameSaveTimer);
+			nameSaveTimer = window.setTimeout(() => {
+				if (!(nameInput instanceof HTMLInputElement)) return;
+				const v = nameInput.value.trim();
+				if (!v) return;
+				void persistScore(v);
+			}, 500);
+		});
+		nameInput?.addEventListener('keydown', (e) => {
+			if (e.key !== 'Enter') return;
 			e.preventDefault();
 			if (!(nameInput instanceof HTMLInputElement)) return;
-			const name = nameInput.value.trim();
-			if (!name) return;
-			const best = getSessionBest();
-			if (!Number.isFinite(best) || best <= 0) return;
-			try {
-				sessionStorage.setItem(sessionNameKey, name);
-			} catch {}
-			try {
-				const res = await fetch('/api/game/scores', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ name, score: best, sessionId: getSessionId() }),
-				});
-				if (!res.ok) throw new Error('save-failed');
-				if (statusEl) statusEl.textContent = `Рекорд сохранён · ${formatScore(best)} блоков`;
-				if (endBestEl) endBestEl.textContent = `В рейтинге · ${formatScore(best)} блоков`;
-				openRatingDialog();
-			} catch {
-				if (statusEl) statusEl.textContent = 'Ошибка сохранения';
-			}
+			const v = nameInput.value.trim();
+			if (v) void persistScore(v);
 		});
 
 		if (nameInput instanceof HTMLInputElement) {

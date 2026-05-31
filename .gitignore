@@ -27,3 +27,4 @@ kit20-oauth.env
 # runtime: admin-tuned birthday dial label positions
 storage/birthday-dial-labels.json
 storage/birthday-dial-labels.json.bak
+storage/game-actor-name-pool.json

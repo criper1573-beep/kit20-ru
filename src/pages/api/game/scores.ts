@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { addGameScore, readGameScores } from '../../../lib/gameScores';
+import { readGameScores, saveGameScore } from '../../../lib/gameScores';
 
 export const prerender = false;
 
@@ -31,22 +31,30 @@ export const POST: APIRoute = async ({ request }) => {
 	}
 
 	const payload = json as { name?: unknown; score?: unknown; sessionId?: unknown };
-	const name = typeof payload.name === 'string' ? payload.name : '';
+	const nameRaw = typeof payload.name === 'string' ? payload.name : undefined;
 	const score = Number(payload.score ?? 0);
 	const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : '';
-	if (!name.trim()) {
-		return new Response(JSON.stringify({ error: 'Введите имя' }), {
+	if (!sessionId.trim()) {
+		return new Response(JSON.stringify({ error: 'Нет sessionId' }), {
 			status: 400,
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 		});
 	}
 
 	try {
-		const scores = await addGameScore(name, score, sessionId);
-		return new Response(JSON.stringify({ ok: true, scores: scores.slice(0, 20) }), {
-			status: 200,
-			headers: { 'Content-Type': 'application/json; charset=utf-8' },
-		});
+		const result = await saveGameScore(score, sessionId, nameRaw);
+		return new Response(
+			JSON.stringify({
+				ok: true,
+				saved: result.saved,
+				name: result.name,
+				scores: result.scores.slice(0, 20),
+			}),
+			{
+				status: 200,
+				headers: { 'Content-Type': 'application/json; charset=utf-8' },
+			},
+		);
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : 'Ошибка сохранения';
 		return new Response(JSON.stringify({ error: msg }), {

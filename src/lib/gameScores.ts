@@ -1,11 +1,18 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pickNextActorName } from './gameActorNamePool';
 
 export interface GameScore {
 	name: string;
 	score: number;
 	createdAt: string;
 	sessionId?: string;
+}
+
+export interface SaveGameScoreResult {
+	scores: GameScore[];
+	name: string;
+	saved: boolean;
 }
 
 const SCORE_FILE = path.join(process.cwd(), 'src', 'content', 'game-scores.json');
@@ -45,27 +52,61 @@ export async function readGameScores(): Promise<GameScore[]> {
 	}
 }
 
-export async function addGameScore(nameInput: string, scoreInput: number, sessionIdInput = ''): Promise<GameScore[]> {
-	const name = normalizeName(nameInput);
+/**
+ * Сохранить лучший результат сессии.
+ * nameInput пустой → имя актёра из пула (новая запись) или прежнее имя (обновление).
+ */
+export async function saveGameScore(
+	scoreInput: number,
+	sessionIdInput: string,
+	nameInput?: string | null,
+): Promise<SaveGameScoreResult> {
 	const score = normalizeScore(scoreInput);
 	const sessionId = normalizeSessionId(sessionIdInput);
-	if (!name) return readGameScores();
+	const userName = nameInput != null ? normalizeName(nameInput) : '';
+
+	if (!sessionId || score <= 0) {
+		return { scores: await readGameScores(), name: userName, saved: false };
+	}
 
 	const prev = await readGameScores();
-	const existingIndex = sessionId ? prev.findIndex((row) => row.sessionId === sessionId) : -1;
+	const existingIndex = prev.findIndex((row) => row.sessionId === sessionId);
+
+	let finalName = userName;
+	if (!finalName) {
+		if (existingIndex >= 0) {
+			finalName = prev[existingIndex]!.name;
+		} else {
+			finalName = await pickNextActorName();
+		}
+	}
+
 	let nextBase = [...prev];
+	let saved = false;
+
 	if (existingIndex >= 0) {
-		const row = prev[existingIndex];
-		if (score >= row.score) {
+		const row = prev[existingIndex]!;
+		const scoreImproved = score > row.score;
+		const nameChanged = Boolean(userName && userName !== row.name);
+		if (scoreImproved || nameChanged) {
 			nextBase[existingIndex] = {
 				...row,
-				name,
-				score,
+				name: finalName,
+				score: scoreImproved ? score : row.score,
 				sessionId,
 			};
+			saved = true;
+		} else {
+			return { scores: prev, name: row.name, saved: false };
 		}
 	} else {
-		nextBase = [...prev, { name, score, createdAt: new Date().toISOString(), sessionId: sessionId || undefined }];
+		nextBase.push({
+			name: finalName,
+			score,
+			createdAt: new Date().toISOString(),
+			sessionId,
+		});
+		saved = true;
 	}
 
 	const next = nextBase
@@ -73,5 +114,11 @@ export async function addGameScore(nameInput: string, scoreInput: number, sessio
 		.slice(0, 100);
 
 	await fs.writeFile(SCORE_FILE, JSON.stringify(next, null, 2), 'utf8');
-	return next;
+	return { scores: next, name: finalName, saved };
+}
+
+/** @deprecated используйте saveGameScore */
+export async function addGameScore(nameInput: string, scoreInput: number, sessionIdInput = ''): Promise<GameScore[]> {
+	const r = await saveGameScore(scoreInput, sessionIdInput, nameInput);
+	return r.scores;
 }
