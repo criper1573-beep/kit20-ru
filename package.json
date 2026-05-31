@@ -17,6 +17,8 @@
     "schedule:month": "node scripts/generate-lesson-month.mjs",
     "schedule:migrate": "node scripts/generate-lesson-month.mjs --migrate-only",
     "verify:obshchak": "node scripts/verify-obshchak.mjs",
+    "preserve:runtime": "node scripts/preserve-runtime-on-deploy.mjs",
+    "backup:runtime": "node scripts/backup-runtime-content.mjs",
     "build:lihie-asset": "node scripts/build-lihie-obshchak-asset.mjs",
     "fix:lihie-alpha": "node scripts/strip-checkerboard-alpha.mjs"
   },

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
-export type AdminChangeEntity = 'home' | 'attendance' | 'student';
+export type AdminChangeEntity = 'home' | 'attendance' | 'student' | 'obshchak';
 export type AdminChangeKind = 'update' | 'rollback';
 
 export interface AdminChangeEntry {
@@ -27,7 +27,13 @@ function toPosix(p: string): string {
 
 function ensureAllowedTargetPath(targetPath: string): string {
 	const normalized = toPosix(targetPath).replace(/^\/+/, '');
-	if (!normalized.startsWith('src/content/') || !normalized.endsWith('.md') || normalized.includes('..')) {
+	if (normalized.includes('..')) {
+		throw new Error('Недопустимый путь файла для журнала изменений');
+	}
+	const allowed =
+		(normalized.startsWith('src/content/') && normalized.endsWith('.md')) ||
+		normalized === 'src/content/obshchak.json';
+	if (!allowed) {
 		throw new Error('Недопустимый путь файла для журнала изменений');
 	}
 	return normalized;
@@ -45,8 +51,9 @@ function parseIdOrThrow(id: string): string {
 	return id;
 }
 
-function snapshotName(id: string, phase: 'before' | 'after'): string {
-	return `${id}-${phase}.md`;
+function snapshotName(id: string, phase: 'before' | 'after', targetPath: string): string {
+	const ext = targetPath.endsWith('.json') ? '.json' : '.md';
+	return `${id}-${phase}${ext}`;
 }
 
 async function ensureStorage(): Promise<void> {
@@ -100,8 +107,8 @@ export async function logAdminContentChange(input: {
 		kind: input.kind ?? 'update',
 		slug: input.slug,
 		targetPath,
-		beforeSnapshot: snapshotName(id, 'before'),
-		afterSnapshot: snapshotName(id, 'after'),
+		beforeSnapshot: snapshotName(id, 'before', targetPath),
+		afterSnapshot: snapshotName(id, 'after', targetPath),
 		sourceChangeId: input.sourceChangeId,
 	};
 

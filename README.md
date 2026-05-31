@@ -98,17 +98,24 @@ npm run preview:public
 
 ### 3. Обновление после правок в репозитории
 
-```bash
-cd /var/www/kit20
-git pull
-npm ci
-npm run build
-npm run verify:obshchak
-sudo chown -R www-data:www-data /var/www/kit20/src/content /var/www/kit20/storage
-sudo systemctl restart kit20
+**Только** с локальной машины (Windows):
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/remote-refresh-site.ps1
 ```
 
-После деплоя убедитесь, что **`obshchak.json`** в репозитории/на диске не затирается: при первом выкатывании файл из git попадёт в `src/content/`; дальше актуальные цифры — только на сервере, их нужно **бэкапить** (копия или коммит с сервера) перед массовыми правками.
+Скрипт сам: бэкап runtime → `git pull` → восстановление `obshchak.json` при необходимости → `verify:obshchak` → build → restart.
+
+Подробности и правила для агентов: **[DEPLOY.md](./DEPLOY.md)**.
+
+**Не делать на сервере** голый `git pull` / `git reset --hard` — так можно обнулить общак.
+
+`src/content/obshchak.json` **не в git** (шаблон: `obshchak.json.example`). Актуальные цифры — на VPS, бэкапы:
+
+- каждое сохранение в админке → `storage/admin-change-log/`;
+- каждый деплой → `storage/deploy-backups/`;
+- ежедневно (cron) → `storage/runtime-backups/`;
+- дубликат при сохранении → `storage/last-known-good/obshchak.json`.
 
 ---
 
@@ -129,7 +136,7 @@ npm run dev
 | `src/content/home.md` | Главная (заголовок, подзаголовок, markdown-текст) |
 | `src/content/students/*.md` | Карточки учеников, этюды, опционально фото |
 | `src/content/attendance.md` | Список занятий и отметки посещаемости |
-| `src/content/obshchak.json` | Общак: взносы и траты (копейки), `watcherSlug` (смотрящий) — правки из **админки** `/admin/obschak` |
+| `src/content/obshchak.json` | Общак: взносы и траты — **только на сервере**, правки из `/admin/obschak` (шаблон: `obshchak.json.example`) |
 
 Слаг ученика (`slug` в frontmatter) должен совпадать с именем файла и с отметками в посещаемости; для двух «Катя» и двух «Юля»: `katya-1` / `katya-2`, `yulya-1` / `yulya-2`.
 

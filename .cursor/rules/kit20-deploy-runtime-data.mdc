@@ -1,0 +1,28 @@
+---
+description: KIT20 — деплой VPS и защита runtime-данных (obshchak, админка). Всегда применять.
+alwaysApply: true
+---
+
+# KIT20: деплой и общак
+
+Прочитай `DEPLOY.md` в корне репозитория перед любым деплоем или правкой сервера.
+
+## Обязательные правила
+
+1. **Деплой на VPS** — только `scripts/remote-refresh-site.ps1`. Не предлагать и не выполнять голый `git pull` на сервере.
+2. **`src/content/obshchak.json`** — runtime на сервере, **не коммитить** в git. Шаблон: `obshchak.json.example`.
+3. После деплоя должен проходить `npm run verify:obshchak` на сервере.
+4. Правки общака — через админку или `scripts/upload-obshchak-json.ps1`; каждое сохранение логируется в `storage/admin-change-log/`.
+5. При подозрении на потерю данных: `/admin/logs` (rollback), `storage/last-known-good/`, `storage/deploy-backups/`, `storage/runtime-backups/`.
+
+## Восстановление obshchak
+
+- Журнал админки — полные JSON-снапшоты до/после каждого PUT `/api/admin/obshchak`.
+- `scripts/preserve-runtime-on-deploy.mjs` сравнивает «богатство» данных (число трат × суммы), не только размер файла.
+- На сервере установлен git hook `post-merge` → auto-restore после pull.
+
+## Не делать
+
+- `git reset --hard` на VPS без бэкапа
+- Добавлять `obshchak.json` обратно в git с пустым шаблоном
+- Деплоить, обходя `preserve-runtime-on-deploy.mjs`

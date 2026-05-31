@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { obshchakDataSchema } from '../../../lib/schemas';
 import { readObshchak, writeObshchak } from '../../../lib/siteContent';
 import { hasValidAdminSession, unauthorizedJson } from '../../../lib/adminApiAuth';
+import { logAdminContentChange } from '../../../lib/adminChangeLog';
 
 export const prerender = false;
 
@@ -45,8 +46,19 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 		});
 	}
+	const targetPath = 'src/content/obshchak.json';
 	try {
+		const beforeData = await readObshchak();
+		const beforeRaw = JSON.stringify(beforeData, null, 2) + '\n';
 		await writeObshchak(parsed.data);
+		const afterData = await readObshchak();
+		const afterRaw = JSON.stringify(afterData, null, 2) + '\n';
+		await logAdminContentChange({
+			entity: 'obshchak',
+			targetPath,
+			beforeContent: beforeRaw,
+			afterContent: afterRaw,
+		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : 'Ошибка записи';
 		return new Response(JSON.stringify({ error: msg }), {

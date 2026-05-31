@@ -148,4 +148,8 @@ export async function writeObshchak(data: ObshchakData): Promise<void> {
 	const normalized = await normalizeObshchakContribKeys(data);
 	const raw = `${JSON.stringify(normalized, null, 2)}\n`;
 	await fs.writeFile(p, raw, 'utf8');
+	// Дублируем на диск: восстановление после git pull / деплоя
+	const lkgDir = path.join(process.cwd(), 'storage', 'last-known-good');
+	await fs.mkdir(lkgDir, { recursive: true });
+	await fs.writeFile(path.join(lkgDir, 'obshchak.json'), raw, 'utf8');
 }

@@ -29,3 +29,18 @@ storage/birthday-dial-labels.json
 storage/birthday-dial-labels.json.bak
 storage/game-actor-name-pool.json
 storage/tower-mission.json
+# runtime: obshchak (правки только на сервере / через админку)
+src/content/obshchak.json
+src/content/obshchak.json.bak
+# runtime backups (server-only)
+storage/deploy-backups/
+storage/runtime-backups/
+storage/last-known-good/
+storage/admin-change-log/
+
+# recovery / debug artifacts (local)
+recovered-obshchak*.json
+tmp-*.html
+tmp-*.txt
+obshchak-wayback.html
+obshchak-yandex.html

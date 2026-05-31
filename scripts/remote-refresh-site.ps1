@@ -1,5 +1,8 @@
-# Обновить сайт на VPS (как в README: pull, build, chown, restart).
+# Обновить сайт на VPS (pull, build, chown, restart).
 # Секреты: SERVER_LV_SSH_PASSWORD и SERVER_LV_HOST в kit20-oauth.env или KIT20_KONTENT_ENV.
+#
+# ВАЖНО: единственный безопасный способ деплоя. Не заменять голым git pull на сервере.
+# См. DEPLOY.md
 $ErrorActionPreference = 'Stop'
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
 $localKit20Env = Join-Path $repoRoot 'kit20-oauth.env'
@@ -37,12 +40,7 @@ if (-not (Test-Path -LiteralPath $plink)) { throw "Нужен PuTTY plink: $plin
 $remote = @"
 set -e
 cd $appDir
-BACKUP_DIR=storage/deploy-backups/\$(date +%Y%m%d-%H%M%S)
-mkdir -p "\$BACKUP_DIR"
-cp -a src/content "\$BACKUP_DIR/" 2>/dev/null || true
-if [ -f storage/birthday-dial-labels.json ]; then
-  cp storage/birthday-dial-labels.json storage/birthday-dial-labels.json.bak
-fi
+node scripts/preserve-runtime-on-deploy.mjs --phase=pre-pull
 if git ls-files --error-unmatch storage/birthday-dial-labels.json >/dev/null 2>&1; then
   git checkout -- storage/birthday-dial-labels.json 2>/dev/null || rm -f storage/birthday-dial-labels.json
 fi
@@ -50,23 +48,13 @@ if git ls-files --error-unmatch src/content/game-scores.json >/dev/null 2>&1; th
   git stash push -- src/content/game-scores.json >/dev/null 2>&1 || git checkout -- src/content/game-scores.json 2>/dev/null || true
 fi
 git pull
-if [ -f storage/birthday-dial-labels.json.bak ]; then
-  node scripts/restore-birthday-dial-from-bak.mjs
-fi
-# Вернуть obshchak и прочий контент, если на сервере были правки и pull их затёр
-if [ -f "\$BACKUP_DIR/content/obshchak.json" ]; then
-  OB_OLD="\$BACKUP_DIR/content/obshchak.json"
-  OB_NEW=src/content/obshchak.json
-  OLD_BYTES=\$(wc -c < "\$OB_OLD" || echo 0)
-  NEW_BYTES=\$(wc -c < "\$OB_NEW" || echo 0)
-  if [ "\$OLD_BYTES" -gt "\$NEW_BYTES" ]; then
-    cp "\$OB_OLD" "\$OB_NEW"
-    echo "OK: restored obshchak.json from deploy backup"
-  fi
-fi
+node scripts/preserve-runtime-on-deploy.mjs --phase=post-pull
 npm ci
 npm run build
-npm run verify:obshchak
+node scripts/preserve-runtime-on-deploy.mjs --phase=verify
+node scripts/install-server-git-hooks.mjs
+node scripts/install-runtime-backup-cron.mjs 2>/dev/null || true
+node scripts/backup-runtime-content.mjs
 sudo chown -R www-data:www-data $appDir/src/content $appDir/storage
 sudo systemctl restart kit20
 systemctl is-active kit20
