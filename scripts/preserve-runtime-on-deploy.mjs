@@ -26,6 +26,7 @@ const MARKER = join(DEPLOY_BACKUPS, '.latest-pre-pull');
 const OBSHCHAK = 'src/content/obshchak.json';
 const OBSHCHAK_BAK = 'src/content/obshchak.json.bak';
 const HOME_MD = 'src/content/home.md';
+const ATTENDANCE_MD = 'src/content/attendance.md';
 const BIRTHDAY = 'storage/birthday-dial-labels.json';
 const GAME_SCORES = 'src/content/game-scores.json';
 const UPLOADS_DIR = 'storage/uploads';
@@ -150,8 +151,13 @@ async function phasePrePull() {
 	await copyIfExists(rel(BIRTHDAY), dir, 'birthday-dial-labels.json');
 	await copyIfExists(rel(GAME_SCORES), dir, 'game-scores.json');
 	await copyIfExists(rel(HOME_MD), dir, 'home.md');
+	await copyIfExists(rel(ATTENDANCE_MD), dir, 'attendance.md');
 	try {
 		const { cp } = await import('node:fs/promises');
+		const students = rel('src/content/students');
+		if (existsSync(students)) {
+			await cp(students, join(dir, 'students'), { recursive: true });
+		}
 		const up = rel(UPLOADS_DIR);
 		if (existsSync(up)) {
 			await cp(up, join(dir, 'uploads'), { recursive: true });
@@ -262,6 +268,23 @@ async function restoreHomeIfNeeded(backupDir) {
 	log('OK: restored src/content/home.md from deploy backup');
 }
 
+function countLessonDates(raw) {
+	if (!raw) return 0;
+	return (raw.match(/^\s+- date:/gm) ?? []).length;
+}
+
+async function restoreAttendanceIfNeeded(backupDir) {
+	const src = join(backupDir, 'attendance.md');
+	if (!existsSync(src)) return;
+	const curRaw = await readTextIfExists(rel(ATTENDANCE_MD));
+	const bakRaw = await readTextIfExists(src);
+	const cur = countLessonDates(curRaw);
+	const bak = countLessonDates(bakRaw);
+	if (bak <= cur) return;
+	await writeFile(rel(ATTENDANCE_MD), bakRaw.endsWith('\n') ? bakRaw : `${bakRaw}\n`, 'utf8');
+	log(`OK: restored attendance.md (${cur} -> ${bak} lessons)`);
+}
+
 async function phasePostPull() {
 	await restoreObshchakIfNeeded();
 
@@ -275,6 +298,14 @@ async function phasePostPull() {
 	if (backupDir) {
 		await restoreUploadsIfNeeded(backupDir);
 		await restoreHomeIfNeeded(backupDir);
+		await restoreAttendanceIfNeeded(backupDir);
+		const studentsBak = join(backupDir, 'students');
+		if (existsSync(studentsBak)) {
+			const names = await readdir(studentsBak);
+			for (const name of names.filter((n) => n.endsWith('.md'))) {
+				await restoreGenericIfSmaller(`src/content/students/${name}`, [join(studentsBak, name)]);
+			}
+		}
 	}
 
 	const genericCandidates = (name) => {
@@ -284,6 +315,8 @@ async function phasePostPull() {
 		return list.filter((p) => existsSync(p));
 	};
 
+	await restoreGenericIfSmaller(ATTENDANCE_MD, genericCandidates('attendance.md'));
+	await restoreGenericIfSmaller(HOME_MD, genericCandidates('home.md'));
 	await restoreGenericIfSmaller(BIRTHDAY, genericCandidates('birthday-dial-labels.json'));
 	await restoreGenericIfSmaller(GAME_SCORES, genericCandidates('game-scores.json'));
 

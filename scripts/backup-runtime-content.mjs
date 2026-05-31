@@ -16,6 +16,7 @@ const KEEP_DAYS = 60;
 const FILES = [
 	'src/content/obshchak.json',
 	'src/content/home.md',
+	'src/content/attendance.md',
 	'storage/birthday-dial-labels.json',
 	'src/content/game-scores.json',
 ];
