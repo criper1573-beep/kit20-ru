@@ -36,6 +36,45 @@ export interface RecordTowerRunResult {
 
 const SCORE_FILE = path.join(process.cwd(), 'src', 'content', 'game-scores.json');
 
+/** Сериализация записей — без очереди параллельные игры затирают друг друга. */
+let scoresWriteChain: Promise<unknown> = Promise.resolve();
+
+async function withScoresWrite<T>(fn: () => Promise<T>): Promise<T> {
+	const run = scoresWriteChain.then(() => fn(), () => fn());
+	scoresWriteChain = run.then(
+		() => undefined,
+		() => undefined,
+	);
+	return run;
+}
+
+/** Слить дубликаты sessionId (на случай старых гонок записи). */
+function dedupeBySession(players: GameScore[]): GameScore[] {
+	const bySession = new Map<string, GameScore>();
+	const rest: GameScore[] = [];
+	for (const row of players) {
+		const sid = row.sessionId?.trim();
+		if (!sid) {
+			rest.push(row);
+			continue;
+		}
+		const prev = bySession.get(sid);
+		if (!prev) {
+			bySession.set(sid, { ...row, sessionId: sid });
+			continue;
+		}
+		bySession.set(sid, {
+			...prev,
+			name: prev.name,
+			totalMeters: prev.totalMeters + row.totalMeters,
+			bestMeters: Math.max(prev.bestMeters, row.bestMeters),
+			createdAt: prev.createdAt.localeCompare(row.createdAt) <= 0 ? prev.createdAt : row.createdAt,
+			sessionId: sid,
+		});
+	}
+	return [...bySession.values(), ...rest];
+}
+
 function normalizeName(input: string): string {
 	return input.replace(/\s+/g, ' ').trim().slice(0, 24);
 }
@@ -81,10 +120,12 @@ export async function readPlayerScores(): Promise<GameScore[]> {
 		const raw = await fs.readFile(SCORE_FILE, 'utf8');
 		const parsed = JSON.parse(raw) as unknown;
 		if (!Array.isArray(parsed)) return [];
-		return parsed
+		const rows = parsed
 			.map(parseRow)
-			.filter((r): r is GameScore => r != null)
-			.sort((a, b) => (b.totalMeters - a.totalMeters) || a.createdAt.localeCompare(b.createdAt));
+			.filter((r): r is GameScore => r != null);
+		return dedupeBySession(rows).sort(
+			(a, b) => (b.totalMeters - a.totalMeters) || a.createdAt.localeCompare(b.createdAt),
+		);
 	} catch {
 		return [];
 	}
@@ -134,6 +175,14 @@ export async function readGameScores(): Promise<GameScore[]> {
 }
 
 export async function recordTowerRun(
+	runMetersInput: number,
+	sessionIdInput: string,
+	nameInput?: string | null,
+): Promise<RecordTowerRunResult> {
+	return withScoresWrite(() => recordTowerRunLocked(runMetersInput, sessionIdInput, nameInput));
+}
+
+async function recordTowerRunLocked(
 	runMetersInput: number,
 	sessionIdInput: string,
 	nameInput?: string | null,
@@ -212,7 +261,7 @@ export async function recordTowerRun(
 		return emptyPayload();
 	}
 
-	const stored = nextBase
+	const stored = dedupeBySession(nextBase)
 		.sort((a, b) => (b.totalMeters - a.totalMeters) || a.createdAt.localeCompare(b.createdAt))
 		.slice(0, 100);
 

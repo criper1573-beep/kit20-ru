@@ -10,7 +10,7 @@
 	hidden
 >
 	<div
-		class="tower-game-promo__panel pointer-events-auto mx-auto flex max-w-lg items-center gap-2 border-[2px] border-ink bg-surface/95 px-3 py-2.5 shadow-[var(--shadow-float)] backdrop-blur-sm sm:gap-3 sm:px-4 sm:py-3"
+		class="tower-game-promo__panel pointer-events-auto mx-auto flex max-w-xl items-center gap-2 border-[2px] border-ink bg-surface/95 px-3 py-2.5 shadow-[var(--shadow-float)] backdrop-blur-sm sm:gap-2.5 sm:px-4 sm:py-3"
 	>
 		<div class="min-w-0 flex-1">
 			<p class="font-display text-sm uppercase leading-tight tracking-[0.12em] text-ink sm:text-base sm:tracking-[0.14em]">
@@ -20,6 +20,13 @@
 				Новая игра в подвале сайта
 			</p>
 		</div>
+		<button
+			id="tower-game-promo-rating"
+			type="button"
+			class="type-cta shrink-0 border-[2px] border-ink bg-canvas px-2 py-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-accent shadow-[var(--shadow-card)] transition-colors hover:border-accent hover:text-accent-hover sm:px-3 sm:py-2 sm:text-[10px]"
+		>
+			Рейтинг
+		</button>
 		<button
 			id="tower-game-promo-help"
 			type="button"
@@ -61,8 +68,15 @@
 		const STORAGE_KEY = 'kit20_tower_promo_v1_dismissed';
 		const root = document.getElementById('tower-game-promo');
 		const helpBtn = document.getElementById('tower-game-promo-help');
+		const ratingBtn = document.getElementById('tower-game-promo-rating');
 		const closeBtn = document.getElementById('tower-game-promo-close');
-		if (!root || !(helpBtn instanceof HTMLButtonElement) || !(closeBtn instanceof HTMLButtonElement)) return;
+		if (
+			!root ||
+			!(helpBtn instanceof HTMLButtonElement) ||
+			!(ratingBtn instanceof HTMLButtonElement) ||
+			!(closeBtn instanceof HTMLButtonElement)
+		)
+			return;
 
 		function dismissPermanent() {
 			try {
@@ -90,6 +104,10 @@
 			}, 450);
 		}
 
+		function openRating() {
+			document.dispatchEvent(new CustomEvent('kit20-tower-open-rating'));
+		}
+
 		function onDismiss(openAfter) {
 			dismissPermanent();
 			hideWidget();
@@ -106,6 +124,7 @@
 		});
 
 		helpBtn.addEventListener('click', () => onDismiss(true));
+		ratingBtn.addEventListener('click', () => openRating());
 		closeBtn.addEventListener('click', () => onDismiss(false));
 	})();
 </script>

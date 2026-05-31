@@ -38,11 +38,11 @@
 	</div>
 
 	<div
-		class="mx-3 mt-3 border-[3px] border-ink bg-[#e4ddd4] p-1 shadow-[inset_0_2px_0_rgb(255_255_255/0.45)] sm:mx-4"
+		class="footer-tower-game__frame mx-3 mt-3 border-[3px] border-ink bg-[#e4ddd4] p-1 shadow-[inset_0_2px_0_rgb(255_255_255/0.45)] sm:mx-4"
 	>
 		<div
 			id="footer-tower-viewport"
-			class="relative w-full overflow-hidden bg-[linear-gradient(180deg,#f0ebe0_0%,#e8e1d6_55%,#ddd6cb_100%)] aspect-[5/7]"
+			class="footer-tower-game__viewport relative overflow-hidden bg-[linear-gradient(180deg,#f0ebe0_0%,#e8e1d6_55%,#ddd6cb_100%)]"
 		>
 			<div
 				class="pointer-events-none absolute inset-0 opacity-[0.35]"
@@ -160,6 +160,22 @@
 		</div>
 	</div>
 </dialog>
+
+<style>
+	.footer-tower-game__viewport {
+		--tower-play-h: min(420px, calc(100dvh - 17rem));
+		width: min(100%, calc(var(--tower-play-h) * 5 / 7));
+		height: var(--tower-play-h);
+		max-width: 300px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	@media (min-width: 640px) {
+		.footer-tower-game__viewport {
+			--tower-play-h: min(380px, calc(100dvh - 19rem));
+		}
+	}
+</style>
 
 <script is:inline>
 	(() => {
@@ -552,6 +568,21 @@
 			}
 		}
 
+		/** @type {Promise<unknown>} */
+		let persistChain = Promise.resolve(null);
+
+		function queuePersistRun(runMeters, customName) {
+			const job = persistChain.then(
+				() => persistRun(runMeters, customName),
+				() => persistRun(runMeters, customName),
+			);
+			persistChain = job.then(
+				() => null,
+				() => null,
+			);
+			return job;
+		}
+
 		function startGame() {
 			syncCanvasSize();
 			resetGame();
@@ -592,7 +623,7 @@
 			if (result > 0) {
 				if (endSavedEl) endSavedEl.textContent = 'Сохранение…';
 				const prefilled = nameInput instanceof HTMLInputElement ? nameInput.value : '';
-				void persistRun(result, prefilled);
+				void queuePersistRun(result, prefilled);
 			}
 		}
 
@@ -885,6 +916,9 @@
 			startGame();
 		});
 		openRatingTopBtn?.addEventListener('click', openRatingDialog);
+		document.addEventListener('kit20-tower-open-rating', () => {
+			void openRatingDialog();
+		});
 		ratingTabTotalBtn?.addEventListener('click', () => setRatingTab('total'));
 		ratingTabBestBtn?.addEventListener('click', () => setRatingTab('best'));
 		ratingCloseBtn?.addEventListener('click', () => {
@@ -901,7 +935,7 @@
 				if (!(nameInput instanceof HTMLInputElement)) return;
 				const v = nameInput.value.trim();
 				if (!v) return;
-				void persistRun(0, v);
+				void queuePersistRun(0, v);
 			}, 500);
 		});
 		nameInput?.addEventListener('keydown', (e) => {
@@ -909,7 +943,7 @@
 			e.preventDefault();
 			if (!(nameInput instanceof HTMLInputElement)) return;
 			const v = nameInput.value.trim();
-			if (v) void persistRun(0, v);
+			if (v) void queuePersistRun(0, v);
 		});
 
 		void loadMission();
