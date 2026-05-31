@@ -27,13 +27,13 @@
 
 	<div class="mx-3 mt-2 sm:mx-4">
 		<div class="bb-progress-label text-ink/85">
-			<span id="footer-tower-mission-total">9 000 000</span> / 10 000 000 м
+			<span id="footer-tower-mission-total">9 007 030</span> / 10 000 000 м
 		</div>
 		<div class="bb-progress-bar mt-1">
-			<div id="footer-tower-mission-fill" class="bb-progress-fill bb-progress-fill--accent h-full" style="width: 90%"></div>
+			<div id="footer-tower-mission-fill" class="bb-progress-fill bb-progress-fill--accent h-full" style="width: 90.07%"></div>
 		</div>
 		<p id="footer-tower-mission-sub" class="mt-1.5 font-mono text-[9px] leading-relaxed tracking-[0.1em] text-muted sm:text-[10px]">
-			SpaceX: 9 000 000 м · Люди: 0 м · Осталось: 1 000 000 м
+			SpaceX: 9 000 000 м · Люди: 7 030 м · Осталось: 992 970 м
 		</p>
 	</div>
 
@@ -129,6 +129,22 @@
 		</div>
 	</div>
 	<div class="p-4">
+		<div class="mb-3 flex gap-2">
+			<button
+				id="footer-tower-rating-tab-total"
+				type="button"
+				class="type-cta flex-1 border-[2px] border-ink bg-accent px-2 py-1.5 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)]"
+			>
+				Вклад за сессию
+			</button>
+			<button
+				id="footer-tower-rating-tab-best"
+				type="button"
+				class="type-cta flex-1 border-[2px] border-ink bg-surface px-2 py-1.5 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface"
+			>
+				Лучшая попытка
+			</button>
+		</div>
 		<p id="footer-tower-rating-status" class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Загрузка…</p>
 		<div class="bb-scrollbar max-h-64 overflow-auto border-[2px] border-ink">
 			<table class="w-full border-collapse text-left">
@@ -182,6 +198,13 @@
 		const ratingCloseBtn = document.getElementById('footer-tower-rating-close');
 		const ratingStatusEl = document.getElementById('footer-tower-rating-status');
 		const ratingBodyEl = document.getElementById('footer-tower-rating-body');
+		const ratingTabTotalBtn = document.getElementById('footer-tower-rating-tab-total');
+		const ratingTabBestBtn = document.getElementById('footer-tower-rating-tab-best');
+
+		/** @type {'total' | 'best'} */
+		let ratingTab = 'total';
+		/** @type {{ totalLeaderboard: unknown[], bestLeaderboard: unknown[] }} */
+		let ratingCache = { totalLeaderboard: [], bestLeaderboard: [] };
 
 		const palette = ['#d42b2b', '#0a0a0a', '#57534e', '#b45309', '#0369a1', '#7c3aed', '#be123c'];
 
@@ -275,7 +298,29 @@
 			} catch {}
 		}
 
-		function renderScores(scores) {
+		function setRatingTab(next) {
+			ratingTab = next;
+			const activeCls =
+				'type-cta flex-1 border-[2px] border-ink bg-accent px-2 py-1.5 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)]';
+			const idleCls =
+				'type-cta flex-1 border-[2px] border-ink bg-surface px-2 py-1.5 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface';
+			if (ratingTabTotalBtn instanceof HTMLButtonElement) ratingTabTotalBtn.className = next === 'total' ? activeCls : idleCls;
+			if (ratingTabBestBtn instanceof HTMLButtonElement) ratingTabBestBtn.className = next === 'best' ? activeCls : idleCls;
+			if (ratingStatusEl) {
+				ratingStatusEl.textContent =
+					next === 'total'
+						? 'Сумма всех игр за сессию — идёт в общий прогресс'
+						: 'Лучший результат за одну попытку';
+			}
+			renderScores(next === 'total' ? ratingCache.totalLeaderboard : ratingCache.bestLeaderboard, next);
+		}
+
+		function rowMeters(row, mode) {
+			if (mode === 'total') return Number(row?.totalMeters ?? row?.score ?? 0);
+			return Number(row?.bestMeters ?? row?.score ?? 0);
+		}
+
+		function renderScores(scores, mode) {
 			if (!(ratingBodyEl instanceof HTMLElement)) return;
 			if (!scores.length) {
 				ratingBodyEl.innerHTML = `
@@ -290,7 +335,7 @@
 			ratingBodyEl.innerHTML = scores
 				.map((row, i) => {
 					const name = String(row?.name ?? '');
-					const s = Number(row?.score ?? 0);
+					const s = rowMeters(row, mode);
 					const isMusk = name === 'Илон Маск';
 					const rowCls = isMusk ? 'bg-accent/10 font-bold' : '';
 					return `
@@ -338,10 +383,15 @@
 				const res = await fetch('/api/game/scores');
 				const json = await res.json();
 				if (!res.ok) throw new Error('load-failed');
-				renderScores(Array.isArray(json?.scores) ? json.scores : []);
-				if (ratingStatusEl) ratingStatusEl.textContent = 'Топ игроков';
+				ratingCache = {
+					totalLeaderboard: Array.isArray(json?.totalLeaderboard) ? json.totalLeaderboard : [],
+					bestLeaderboard: Array.isArray(json?.bestLeaderboard) ? json.bestLeaderboard : [],
+				};
+				if (json?.mission) updateMissionUI(json.mission);
+				setRatingTab(ratingTab);
 			} catch {
-				renderScores([]);
+				ratingCache = { totalLeaderboard: [], bestLeaderboard: [] };
+				renderScores([], ratingTab);
 				if (ratingStatusEl) ratingStatusEl.textContent = 'Ошибка загрузки';
 			}
 		}
@@ -458,9 +508,9 @@
 			spawnMovingBlock();
 		}
 
-		function showSavedInOverlay(name, best) {
+		function showSavedInOverlay(name, runMeters, sessionTotal, sessionBest) {
 			if (endSavedEl) {
-				endSavedEl.textContent = `+${formatMeters(best)} м в общий зачёт · ${name}`;
+				endSavedEl.textContent = `+${formatMeters(runMeters)} м за попытку · ${formatMeters(sessionTotal)} м всего за сессию · лучшая ${formatMeters(sessionBest)} м · ${name}`;
 			}
 		}
 
@@ -481,7 +531,12 @@
 				if (!res.ok) throw new Error('save-failed');
 				if (json?.mission) updateMissionUI(json.mission);
 				if (typeof json?.name === 'string' && meters > 0) {
-					showSavedInOverlay(json.name, meters);
+					showSavedInOverlay(
+						json.name,
+						meters,
+						Number(json?.sessionTotalMeters ?? meters),
+						Number(json?.sessionBestMeters ?? meters),
+					);
 				} else if (typeof json?.name === 'string' && trimmed) {
 					if (endSavedEl) endSavedEl.textContent = `В рейтинге: ${json.name}`;
 				}
@@ -830,6 +885,8 @@
 			startGame();
 		});
 		openRatingTopBtn?.addEventListener('click', openRatingDialog);
+		ratingTabTotalBtn?.addEventListener('click', () => setRatingTab('total'));
+		ratingTabBestBtn?.addEventListener('click', () => setRatingTab('best'));
 		ratingCloseBtn?.addEventListener('click', () => {
 			if (ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
 		});

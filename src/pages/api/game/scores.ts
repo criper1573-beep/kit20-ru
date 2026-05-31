@@ -1,12 +1,12 @@
 import type { APIRoute } from 'astro';
-import { readLeaderboard, recordTowerRun } from '../../../lib/gameScores';
+import { readLeaderboardPayload, recordTowerRun } from '../../../lib/gameScores';
 
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
 	try {
-		const scores = await readLeaderboard();
-		return new Response(JSON.stringify({ scores: scores.slice(0, 20) }), {
+		const data = await readLeaderboardPayload();
+		return new Response(JSON.stringify(data), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 		});
@@ -48,9 +48,11 @@ export const POST: APIRoute = async ({ request }) => {
 				ok: true,
 				saved: result.saved,
 				name: result.name,
-				leaderboardUpdated: result.leaderboardUpdated,
 				mission: result.mission,
-				scores: result.scores.slice(0, 20),
+				sessionTotalMeters: result.sessionTotalMeters,
+				sessionBestMeters: result.sessionBestMeters,
+				totalLeaderboard: result.totalLeaderboard,
+				bestLeaderboard: result.bestLeaderboard,
 			}),
 			{
 				status: 200,

@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { readTowerMissionStats } from '../../../lib/towerMission';
+import { readLeaderboardPayload } from '../../../lib/gameScores';
 
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
 	try {
-		const mission = await readTowerMissionStats();
+		const { mission } = await readLeaderboardPayload();
 		return new Response(JSON.stringify({ mission }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },

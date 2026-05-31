@@ -1,61 +1,71 @@
 [
 	{
 		"name": "Leonardo DiCaprio",
-		"score": 287,
+		"bestMeters": 287,
+		"totalMeters": 1420,
 		"createdAt": "2026-05-18T14:20:00.000Z",
 		"sessionId": "seed_tower_01"
 	},
 	{
 		"name": "Константин Хабенский",
-		"score": 245,
+		"bestMeters": 245,
+		"totalMeters": 1180,
 		"createdAt": "2026-05-17T11:05:00.000Z",
 		"sessionId": "seed_tower_02"
 	},
 	{
 		"name": "Meryl Streep",
-		"score": 198,
+		"bestMeters": 198,
+		"totalMeters": 965,
 		"createdAt": "2026-05-16T19:40:00.000Z",
 		"sessionId": "seed_tower_03"
 	},
 	{
 		"name": "Александр Петров",
-		"score": 176,
+		"bestMeters": 176,
+		"totalMeters": 820,
 		"createdAt": "2026-05-15T08:12:00.000Z",
 		"sessionId": "seed_tower_04"
 	},
 	{
 		"name": "Brad Pitt",
-		"score": 152,
+		"bestMeters": 152,
+		"totalMeters": 710,
 		"createdAt": "2026-05-14T16:33:00.000Z",
 		"sessionId": "seed_tower_05"
 	},
 	{
 		"name": "Чулпан Хаматова",
-		"score": 134,
+		"bestMeters": 134,
+		"totalMeters": 580,
 		"createdAt": "2026-05-13T21:18:00.000Z",
 		"sessionId": "seed_tower_06"
 	},
 	{
 		"name": "Keanu Reeves",
-		"score": 118,
+		"bestMeters": 118,
+		"totalMeters": 490,
 		"createdAt": "2026-05-12T13:47:00.000Z",
 		"sessionId": "seed_tower_07"
 	},
 	{
 		"name": "Евгений Миронов",
-		"score": 92,
+		"bestMeters": 92,
+		"totalMeters": 375,
 		"createdAt": "2026-05-11T10:22:00.000Z",
 		"sessionId": "seed_tower_08"
 	},
 	{
 		"name": "Scarlett Johansson",
-		"score": 67,
+		"bestMeters": 67,
+		"totalMeters": 280,
 		"createdAt": "2026-05-10T17:55:00.000Z",
 		"sessionId": "seed_tower_09"
 	},
 	{
 		"name": "Tom Hanks",
-		"score": 54,
+		"bestMeters": 54,
+		"totalMeters": 210,
 		"createdAt": "2026-05-09T09:08:00.000Z",
 		"sessionId": "seed_tower_10"
 	}
