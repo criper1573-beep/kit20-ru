@@ -24,25 +24,21 @@ $remoteRestore = @'
 set -e
 cd /var/www/kit20
 git pull --ff-only
-echo === BEFORE home photo ===
-grep -E '^photo:' src/content/home.md || true
 node scripts/restore-content-from-snapshots.mjs
-node scripts/reconstruct-admin-log-index.mjs 2>/dev/null || true
-echo === AFTER home photo ===
-grep -E '^photo:' src/content/home.md || true
-grep -E '^photo:' src/content/students/*.md | head -5
-wc -l src/content/attendance.md
+node scripts/reconstruct-admin-log-index.mjs
+wc -l storage/admin-change-log/entries.jsonl
 sudo chown -R www-data:www-data src/content storage
 sudo systemctl restart kit20
 systemctl is-active kit20
 '@
 
-$remoteSearch = @'
+$remoteIndex = @'
 cd /var/www/kit20
-find . -name 'obshchak*' 2>/dev/null
-grep -rl contributedKopeks . 2>/dev/null | head -20
-find storage -type f -name '*.json' 2>/dev/null
+git pull --ff-only
+node scripts/reconstruct-admin-log-index.mjs
+wc -l storage/admin-change-log/entries.jsonl
+sudo chown www-data:www-data storage/admin-change-log/entries.jsonl
 '@
 
-$remote = if ($Action -eq 'search') { $remoteSearch } else { $remoteRestore }
+$remote = if ($Action -eq 'index') { $remoteIndex } else { $remoteRestore }
 & $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $remote
