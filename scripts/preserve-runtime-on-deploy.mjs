@@ -25,8 +25,10 @@ const MARKER = join(DEPLOY_BACKUPS, '.latest-pre-pull');
 
 const OBSHCHAK = 'src/content/obshchak.json';
 const OBSHCHAK_BAK = 'src/content/obshchak.json.bak';
+const HOME_MD = 'src/content/home.md';
 const BIRTHDAY = 'storage/birthday-dial-labels.json';
 const GAME_SCORES = 'src/content/game-scores.json';
+const UPLOADS_DIR = 'storage/uploads';
 
 function rel(p) {
 	return join(root, p);
@@ -147,6 +149,16 @@ async function phasePrePull() {
 	}
 	await copyIfExists(rel(BIRTHDAY), dir, 'birthday-dial-labels.json');
 	await copyIfExists(rel(GAME_SCORES), dir, 'game-scores.json');
+	await copyIfExists(rel(HOME_MD), dir, 'home.md');
+	try {
+		const { cp } = await import('node:fs/promises');
+		const up = rel(UPLOADS_DIR);
+		if (existsSync(up)) {
+			await cp(up, join(dir, 'uploads'), { recursive: true });
+		}
+	} catch {
+		/* ignore */
+	}
 
 	await writeFile(MARKER, stamp, 'utf8');
 	log(`OK: pre-pull backup at storage/deploy-backups/${stamp}`);
@@ -209,6 +221,47 @@ async function restoreGenericIfSmaller(relPath, candidates) {
 	return false;
 }
 
+async function countUploadFiles() {
+	try {
+		return (await readdir(rel(UPLOADS_DIR))).filter((f) => !f.startsWith('.')).length;
+	} catch {
+		return 0;
+	}
+}
+
+async function restoreUploadsIfNeeded(backupDir) {
+	const src = join(backupDir, 'uploads');
+	if (!existsSync(src)) return;
+	const cur = await countUploadFiles();
+	let bak = 0;
+	try {
+		bak = (await readdir(src)).filter((f) => !f.startsWith('.')).length;
+	} catch {
+		return;
+	}
+	if (bak <= cur) return;
+	const { cp } = await import('node:fs/promises');
+	await cp(src, rel(UPLOADS_DIR), { recursive: true, force: true });
+	log(`OK: restored storage/uploads (${cur} -> ${bak} files)`);
+}
+
+async function restoreHomeIfNeeded(backupDir) {
+	const src = join(backupDir, 'home.md');
+	if (!existsSync(src)) return;
+	const curRaw = await readTextIfExists(rel(HOME_MD));
+	const bakRaw = await readTextIfExists(src);
+	if (!bakRaw) return;
+	const curPhoto = curRaw?.match(/^photo:\s*(.+)$/m)?.[1]?.trim() ?? '';
+	const bakPhoto = bakRaw.match(/^photo:\s*(.+)$/m)?.[1]?.trim() ?? '';
+	const curProg = [...(curRaw?.matchAll(/progress:\s*(\d+)/g) ?? [])].reduce((a, m) => a + Number(m[1]), 0);
+	const bakProg = [...bakRaw.matchAll(/progress:\s*(\d+)/g)].reduce((a, m) => a + Number(m[1]), 0);
+	const should =
+		(bakPhoto.includes('/uploads/') && !curPhoto.includes('/uploads/')) || bakProg > curProg;
+	if (!should) return;
+	await writeFile(rel(HOME_MD), bakRaw.endsWith('\n') ? bakRaw : `${bakRaw}\n`, 'utf8');
+	log('OK: restored src/content/home.md from deploy backup');
+}
+
 async function phasePostPull() {
 	await restoreObshchakIfNeeded();
 
@@ -219,6 +272,10 @@ async function phasePostPull() {
 		/* no marker */
 	}
 	const backupDir = marker ? join(DEPLOY_BACKUPS, marker) : null;
+	if (backupDir) {
+		await restoreUploadsIfNeeded(backupDir);
+		await restoreHomeIfNeeded(backupDir);
+	}
 
 	const genericCandidates = (name) => {
 		const list = [];

@@ -1,7 +1,7 @@
 ---
 title: Набор КИТ-20
 subtitle: Учебная группа — материалы
-photo: /group-placeholder.svg
+photo: /uploads/80f1dc5e-525b-46e8-a6a6-abb444837c33.jpg
 tickerTop: ""
 tickerBottom: СЦЕНА*ВНИМАНИЕ*ВООБРАЖЕНИЕ*РОЛЬ*ТЕАТР*ГОЛОС*ТЕЛО*КИНО*ПРИСУТСТВИЕ*РЕПЕТИЦИЯ*ПРАВДА*
 titleFont: display
@@ -12,7 +12,7 @@ subtitleWeight: normal
 subtitleItalic: false
 semesters:
   - label: 2026/27 · семестр 1
-    progress: 11
+    progress: 45
     color: accent
   - label: 2026/27 · семестр 2
     progress: 0

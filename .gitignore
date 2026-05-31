@@ -37,6 +37,7 @@ storage/deploy-backups/
 storage/runtime-backups/
 storage/last-known-good/
 storage/admin-change-log/
+storage/uploads/
 
 # recovery / debug artifacts (local)
 recovered-obshchak*.json

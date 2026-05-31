@@ -15,6 +15,7 @@ const KEEP_DAYS = 60;
 
 const FILES = [
 	'src/content/obshchak.json',
+	'src/content/home.md',
 	'storage/birthday-dial-labels.json',
 	'src/content/game-scores.json',
 ];
@@ -30,7 +31,20 @@ for (const rel of FILES) {
 	copied++;
 }
 
-// admin-change-log: индекс + последние 50 снапшотов obshchak
+// admin-change-log + uploads
+try {
+	const upSrc = join(root, 'storage', 'uploads');
+	const upDest = join(dest, 'uploads');
+	if (existsSync(upSrc)) {
+		const { cp } = await import('node:fs/promises');
+		await cp(upSrc, upDest, { recursive: true });
+		copied++;
+	}
+} catch {
+	/* ignore */
+}
+
+// admin-change-log
 const logRoot = join(root, 'storage', 'admin-change-log');
 const logDest = join(dest, 'admin-change-log');
 if (existsSync(join(logRoot, 'entries.jsonl'))) {

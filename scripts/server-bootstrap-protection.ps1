@@ -32,6 +32,6 @@ foreach ($f in $files) {
 	$local = Join-Path $repoRoot "scripts\$f"
 	& $pscp -pw $pw -batch -hostkey $hk $local "root@${hostLv}:${remote}/scripts/$f"
 }
-$pull = 'cd /var/www/kit20 && cp src/content/obshchak.json /tmp/obshchak-safe.json 2>/dev/null; git stash push -u -m bootstrap >/dev/null 2>&1 || true; git pull; test -f src/content/obshchak.json || cp /tmp/obshchak-safe.json src/content/obshchak.json'
+$pull = 'cd /var/www/kit20 && cp src/content/obshchak.json /tmp/obshchak-safe.json 2>/dev/null; git pull; test -f src/content/obshchak.json || cp /tmp/obshchak-safe.json src/content/obshchak.json'
 & $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $pull
 Write-Host 'OK: bootstrap scripts uploaded and git pull done'
