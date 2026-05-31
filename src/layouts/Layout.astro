@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import StageBackdrop from '../components/StageBackdrop.astro';
 import Ticker from '../components/Ticker.astro';
-import FooterJumpGame from '../components/FooterJumpGame.astro';
+import FooterTowerGame from '../components/FooterTowerGame.astro';
 import { readHome } from '../lib/siteContent';
 
 interface Props {
@@ -208,7 +208,7 @@ const links = admin
 				{
 					showFooterGame && (
 						<div class="sm:mx-auto sm:w-full sm:max-w-[24rem]">
-							<FooterJumpGame />
+							<FooterTowerGame />
 						</div>
 					)
 				}

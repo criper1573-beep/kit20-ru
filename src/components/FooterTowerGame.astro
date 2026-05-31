@@ -1,0 +1,606 @@
+---
+---
+
+<section
+	class="footer-tower-game relative overflow-hidden border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
+	aria-label="Мини-игра «Построй башню»"
+>
+	<div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-accent" aria-hidden="true"></div>
+
+	<div class="flex items-start justify-between gap-3 px-3 pt-3 sm:px-4 sm:pt-4">
+		<div>
+			<h3 class="font-display text-lg uppercase tracking-[0.2em] text-ink sm:text-xl">Башня</h3>
+			<p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted sm:text-[10px]">Клик — бросить блок</p>
+		</div>
+		<button
+			id="footer-tower-open-rating-top"
+			type="button"
+			class="shrink-0 border-[2px] border-ink bg-canvas px-2 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-accent shadow-[var(--shadow-card)] transition-colors hover:border-accent hover:text-accent-hover sm:text-[10px]"
+		>
+			Рейтинг
+		</button>
+	</div>
+
+	<div
+		class="mx-3 mt-3 border-[3px] border-ink bg-[#e4ddd4] p-1 shadow-[inset_0_2px_0_rgb(255_255_255/0.45)] sm:mx-4"
+	>
+		<div
+			id="footer-tower-viewport"
+			class="relative w-full overflow-hidden bg-[linear-gradient(180deg,#f0ebe0_0%,#e8e1d6_55%,#ddd6cb_100%)] aspect-[5/7]"
+		>
+			<div
+				class="pointer-events-none absolute inset-0 opacity-[0.35]"
+				style="background-image: linear-gradient(#0a0a0a08 1px, transparent 1px), linear-gradient(90deg, #0a0a0a08 1px, transparent 1px); background-size: 14px 14px;"
+				aria-hidden="true"
+			></div>
+			<canvas id="footer-tower-canvas" class="relative z-[1] block h-full w-full" width="300" height="420"></canvas>
+		</div>
+	</div>
+
+	<p id="footer-tower-status" class="mx-3 mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink sm:mx-4 sm:text-[11px]">
+		Клик или пробел — бросить блок на башню
+	</p>
+	<p id="footer-tower-coach" class="mx-3 mt-1 hidden font-serif text-[12px] italic leading-relaxed text-muted sm:mx-4"></p>
+
+	<form id="footer-tower-form" class="mx-3 mt-3 hidden items-end gap-2 sm:mx-4">
+		<label class="min-w-0 flex-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+			Имя
+			<input
+				id="footer-tower-name"
+				type="text"
+				maxlength="24"
+				required
+				class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
+			/>
+		</label>
+		<button
+			type="submit"
+			class="type-cta shrink-0 border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+		>
+			Сохранить
+		</button>
+	</form>
+
+	<div class="mx-3 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:mx-4 sm:mb-4">
+		<button
+			id="footer-tower-start"
+			type="button"
+			class="type-cta border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+		>
+			Старт
+		</button>
+		<button
+			id="footer-tower-restart"
+			type="button"
+			class="type-cta hidden border-[3px] border-ink bg-surface px-3 py-2 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-muted-surface"
+		>
+			Ещё раз
+		</button>
+	</div>
+</section>
+
+<dialog
+	id="footer-tower-rating-dialog"
+	class="fixed left-1/2 top-1/2 z-[120] w-[min(100vw-2rem,32rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 border-[3px] border-ink bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
+>
+	<div class="border-b-[3px] border-ink bg-muted-surface px-4 py-3">
+		<div class="flex items-center justify-between gap-3">
+			<h4 class="font-display text-xl uppercase tracking-[0.15em] text-ink">Рейтинг башни</h4>
+			<button
+				id="footer-tower-rating-close"
+				type="button"
+				class="type-cta border-[2px] border-ink bg-surface px-2 py-1 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface"
+			>
+				Закрыть
+			</button>
+		</div>
+	</div>
+	<div class="p-4">
+		<p id="footer-tower-rating-status" class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Загрузка…</p>
+		<div class="bb-scrollbar max-h-64 overflow-auto border-[2px] border-ink">
+			<table class="w-full border-collapse text-left">
+				<thead>
+					<tr class="bg-ink text-canvas">
+						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">#</th>
+						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">Имя</th>
+						<th class="px-2 py-2 font-display text-sm uppercase tracking-widest">Блоки</th>
+					</tr>
+				</thead>
+				<tbody id="footer-tower-rating-body"></tbody>
+			</table>
+		</div>
+	</div>
+</dialog>
+
+<script is:inline>
+	(() => {
+		const canvas = document.getElementById('footer-tower-canvas');
+		const viewport = document.getElementById('footer-tower-viewport');
+		if (!(canvas instanceof HTMLCanvasElement) || !(viewport instanceof HTMLElement)) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		const BASE_W = 300;
+		const BASE_H = 420;
+		const GROUND_Y = BASE_H - 28;
+		const BLOCK_H = 22;
+		const BASE_BLOCK_W = 150;
+		const PERFECT_PX = 5;
+		const PERFECT_BONUS = 2;
+		const BASE_MOVE = 88;
+
+		const statusEl = document.getElementById('footer-tower-status');
+		const coachEl = document.getElementById('footer-tower-coach');
+		const form = document.getElementById('footer-tower-form');
+		const nameInput = document.getElementById('footer-tower-name');
+		const startBtn = document.getElementById('footer-tower-start');
+		const restartBtn = document.getElementById('footer-tower-restart');
+		const openRatingTopBtn = document.getElementById('footer-tower-open-rating-top');
+		const ratingDialog = document.getElementById('footer-tower-rating-dialog');
+		const ratingCloseBtn = document.getElementById('footer-tower-rating-close');
+		const ratingStatusEl = document.getElementById('footer-tower-rating-status');
+		const ratingBodyEl = document.getElementById('footer-tower-rating-body');
+
+		const palette = ['#d42b2b', '#0a0a0a', '#57534e', '#b45309', '#0369a1', '#7c3aed', '#be123c'];
+
+		const sessionIdKey = 'kit20_tower_session_id';
+		const sessionBestKey = 'kit20_tower_best';
+		const sessionNameKey = 'kit20_tower_name';
+
+		let scale = 1;
+		let dpr = 1;
+		let running = false;
+		let raf = 0;
+		let last = performance.now();
+
+		/** @type {{ x: number, y: number, w: number, h: number, color: string }[]} */
+		let stack = [];
+		/** @type {{ x: number, y: number, w: number, h: number, vx: number, vy: number, color: string, phase: string } | null} */
+		let active = null;
+		/** @type {{ x: number, y: number, w: number, h: number, vy: number, color: string, life: number }[]} */
+		let debris = [];
+		let level = 0;
+		let score = 0;
+		let cameraY = 0;
+		let flashText = '';
+		let flashUntil = 0;
+		let pendingNext = false;
+		let missFall = false;
+
+		const coachPhrases = [
+			'Башня кренится — сделай «Стойка на одной ноге» по 30 сек на каждую.',
+			'Не хватило точности. Пройди «Точка внимания» 90 секунд.',
+			'Ритм сбился. Сделай «Хлопки по метроному» 120 BPM, 2 минуты.',
+			'Мало концентрации. Выполни «Стоп-кадр эмоции» 8 поз.',
+			'Пора укрепить центр. Сделай «Корни» — устойчивые стойки 2 минуты.',
+			'Руки дрожат — «Планка с текстом» 45 секунд.',
+			'Нужна собранность. Пройди «Квадрат дыхания» 4-4-4-4.',
+			'Мало опоры. Выполни «Заземление стоп» 2 минуты.',
+			'Сцена любит баланс. Сделай «Маятник корпуса» 20 повторов.',
+			'Не дожал до вершины. Этюд «Препятствие и цель» на 2 минуты.',
+		];
+
+		function syncCanvasSize() {
+			const rect = viewport.getBoundingClientRect();
+			const w = Math.max(160, Math.floor(rect.width));
+			const h = Math.max(200, Math.floor(rect.height));
+			dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+			canvas.width = Math.max(1, Math.floor(w * dpr));
+			canvas.height = Math.max(1, Math.floor(h * dpr));
+			canvas.style.width = `${w}px`;
+			canvas.style.height = `${h}px`;
+			scale = w / BASE_W;
+		}
+
+		function formatScore(value) {
+			if (!Number.isFinite(value)) return '0';
+			return Number.isInteger(value) ? String(value) : value.toFixed(1);
+		}
+
+		function renderScores(scores) {
+			if (!(ratingBodyEl instanceof HTMLElement)) return;
+			if (!scores.length) {
+				ratingBodyEl.innerHTML = `
+					<tr>
+						<td colspan="3" class="px-2 py-4 text-center font-sans text-xs uppercase tracking-wider text-muted">
+							Пока нет результатов.
+						</td>
+					</tr>
+				`;
+				return;
+			}
+			ratingBodyEl.innerHTML = scores
+				.map((row, i) => {
+					const name = String(row?.name ?? '');
+					const s = Number(row?.score ?? 0);
+					return `
+						<tr class="border-t-[2px] border-ink/15">
+							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-mono text-xs">${i + 1}</td>
+							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-sans text-sm">${name}</td>
+							<td class="px-2 py-1.5 font-mono text-sm text-accent">${formatScore(s)}</td>
+						</tr>
+					`;
+				})
+				.join('');
+		}
+
+		function getSessionId() {
+			try {
+				const prev = sessionStorage.getItem(sessionIdKey);
+				if (prev) return prev;
+				const next = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+				sessionStorage.setItem(sessionIdKey, next);
+				return next;
+			} catch {
+				return '';
+			}
+		}
+
+		function getSessionBest() {
+			try {
+				return Number(sessionStorage.getItem(sessionBestKey) ?? '0') || 0;
+			} catch {
+				return 0;
+			}
+		}
+
+		function setSessionBest(value) {
+			try {
+				sessionStorage.setItem(sessionBestKey, String(value));
+			} catch {}
+		}
+
+		async function openRatingDialog() {
+			if (!(ratingDialog instanceof HTMLDialogElement)) return;
+			ratingDialog.showModal();
+			if (ratingStatusEl) ratingStatusEl.textContent = 'Загрузка…';
+			try {
+				const res = await fetch('/api/game/scores');
+				const json = await res.json();
+				if (!res.ok) throw new Error('load-failed');
+				renderScores(Array.isArray(json?.scores) ? json.scores : []);
+				if (ratingStatusEl) ratingStatusEl.textContent = 'Топ игроков';
+			} catch {
+				renderScores([]);
+				if (ratingStatusEl) ratingStatusEl.textContent = 'Ошибка загрузки';
+			}
+		}
+
+		function updateCamera() {
+			if (!stack.length) {
+				cameraY = 0;
+				return;
+			}
+			const topY = stack[stack.length - 1].y;
+			const targetTop = 72;
+			const need = topY - targetTop;
+			cameraY = need > 0 ? need : 0;
+		}
+
+		function spawnMovingBlock() {
+			const top = stack[stack.length - 1];
+			const w = top.w;
+			const y = top.y - BLOCK_H - 2;
+			const fromLeft = level % 2 === 0;
+			const speed = BASE_MOVE + level * 5;
+			const x = fromLeft ? 8 : BASE_W - w - 8;
+			active = {
+				x,
+				y,
+				w,
+				h: BLOCK_H,
+				vx: fromLeft ? speed : -speed,
+				vy: 0,
+				color: palette[level % palette.length],
+				phase: 'moving',
+			};
+			pendingNext = false;
+			missFall = false;
+		}
+
+		function resetGame() {
+			level = 0;
+			score = 0;
+			debris = [];
+			active = null;
+			pendingNext = false;
+			missFall = false;
+			flashText = '';
+			flashUntil = 0;
+			cameraY = 0;
+			const baseX = (BASE_W - BASE_BLOCK_W) / 2;
+			stack = [{ x: baseX, y: GROUND_Y - BLOCK_H, w: BASE_BLOCK_W, h: BLOCK_H, color: '#0a0a0a' }];
+			if (statusEl) statusEl.textContent = 'Клик или пробел — бросить блок';
+			if (coachEl) {
+				coachEl.textContent = '';
+				coachEl.classList.add('hidden');
+			}
+			if (form) form.classList.add('hidden');
+			if (restartBtn) restartBtn.classList.add('hidden');
+			spawnMovingBlock();
+		}
+
+		function startGame() {
+			syncCanvasSize();
+			resetGame();
+			running = true;
+			last = performance.now();
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(loop);
+		}
+
+		function gameOver() {
+			running = false;
+			const result = score;
+			const prevBest = getSessionBest();
+			if (result > prevBest) setSessionBest(result);
+			if (statusEl) {
+				statusEl.textContent = `Башня рухнула · ${formatScore(result)} блоков · лучший ${formatScore(Math.max(result, prevBest))}`;
+			}
+			if (coachEl) {
+				const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
+				coachEl.textContent = phrase;
+				coachEl.classList.remove('hidden');
+			}
+			if (form) form.classList.remove('hidden');
+			if (restartBtn) restartBtn.classList.remove('hidden');
+		}
+
+		function dropBlock() {
+			if (!running || !active || active.phase !== 'moving') return;
+			active.phase = 'falling';
+			active.vy = 0;
+		}
+
+		function overlapWidth(a, b) {
+			const left = Math.max(a.x, b.x);
+			const right = Math.min(a.x + a.w, b.x + b.w);
+			return { left, right, w: right - left };
+		}
+
+		function isPerfect(cur, top, overlap) {
+			if (overlap.w <= 0) return false;
+			const curMid = cur.x + cur.w / 2;
+			const topMid = top.x + top.w / 2;
+			return Math.abs(curMid - topMid) <= PERFECT_PX && Math.abs(overlap.w - top.w) <= PERFECT_PX;
+		}
+
+		function trimAndStack() {
+			if (!active) return;
+			const top = stack[stack.length - 1];
+			const cur = active;
+			const ov = overlapWidth(cur, top);
+
+			if (ov.w <= 0.5) {
+				missFall = true;
+				active.phase = 'miss';
+				active.vy = 0;
+				return;
+			}
+
+			if (cur.x < ov.left - 0.5) {
+				debris.push({
+					x: cur.x,
+					y: cur.y,
+					w: ov.left - cur.x,
+					h: BLOCK_H,
+					vy: 0,
+					color: cur.color,
+					life: 1,
+				});
+			}
+			if (cur.x + cur.w > ov.right + 0.5) {
+				debris.push({
+					x: ov.right,
+					y: cur.y,
+					w: cur.x + cur.w - ov.right,
+					h: BLOCK_H,
+					vy: 0,
+					color: cur.color,
+					life: 1,
+				});
+			}
+
+			const perfect = isPerfect(cur, top, ov);
+			stack.push({
+				x: ov.left,
+				y: top.y - BLOCK_H,
+				w: ov.w,
+				h: BLOCK_H,
+				color: cur.color,
+			});
+			level += 1;
+			score += 1;
+			if (perfect) {
+				score += PERFECT_BONUS;
+				flashText = `Идеально! +${PERFECT_BONUS}`;
+				flashUntil = performance.now() + 900;
+			}
+
+			active = null;
+			pendingNext = true;
+			updateCamera();
+		}
+
+		function drawBlock(x, y, w, h, color, opts = {}) {
+			const { highlight = false, ghost = false } = opts;
+			const by = y - cameraY;
+			if (by + h < -20 || by > BASE_H + 20) return;
+
+			ctx.fillStyle = ghost ? `${color}88` : color;
+			ctx.fillRect(x, by, w, h);
+			ctx.strokeStyle = '#0a0a0a';
+			ctx.lineWidth = highlight ? 2.5 : 2;
+			ctx.strokeRect(x + 0.5, by + 0.5, w - 1, h - 1);
+
+			if (highlight) {
+				ctx.fillStyle = 'rgba(255,255,255,0.25)';
+				ctx.fillRect(x + 2, by + 2, w - 4, 4);
+			}
+		}
+
+		function draw() {
+			syncCanvasSize();
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+			ctx.imageSmoothingEnabled = true;
+
+			ctx.fillStyle = '#f0ebe0';
+			ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+			const groundScreen = GROUND_Y - cameraY;
+			ctx.strokeStyle = '#0a0a0a18';
+			ctx.lineWidth = 1;
+			ctx.setLineDash([4, 5]);
+			ctx.beginPath();
+			ctx.moveTo(0, groundScreen + 0.5);
+			ctx.lineTo(BASE_W, groundScreen + 0.5);
+			ctx.stroke();
+			ctx.setLineDash([]);
+
+			ctx.strokeStyle = '#0a0a0a';
+			ctx.lineWidth = 2.5;
+			ctx.beginPath();
+			ctx.moveTo(0, groundScreen + 1);
+			ctx.lineTo(BASE_W, groundScreen + 1);
+			ctx.stroke();
+
+			for (const b of stack) drawBlock(b.x, b.y, b.w, b.h, b.color);
+			for (const d of debris) drawBlock(d.x, d.y, d.w, d.h, d.color, { ghost: true });
+			if (active) drawBlock(active.x, active.y, active.w, active.h, active.color, { highlight: active.phase === 'moving' });
+
+			ctx.fillStyle = '#0a0a0a';
+			ctx.font = '600 11px "Space Mono", ui-monospace, monospace';
+			ctx.fillText(`БЛОКИ ${formatScore(score)}`, 10, 18);
+			ctx.fillText(`ЭТАЖ ${Math.max(0, stack.length - 1)}`, BASE_W - 88, 18);
+
+			if (flashText && performance.now() < flashUntil) {
+				ctx.fillStyle = '#d42b2b';
+				ctx.font = '700 13px "Bebas Neue", "Arial Narrow", sans-serif';
+				ctx.textAlign = 'center';
+				ctx.fillText(flashText, BASE_W / 2, 36);
+				ctx.textAlign = 'left';
+			}
+
+			if (!running && stack.length <= 1 && !active) {
+				ctx.fillStyle = 'rgba(10,10,10,0.55)';
+				ctx.font = '600 10px "Space Mono", ui-monospace, monospace';
+				ctx.textAlign = 'center';
+				ctx.fillText('СТАРТ', BASE_W / 2, BASE_H / 2);
+				ctx.textAlign = 'left';
+			}
+		}
+
+		function loop(now) {
+			const dt = Math.min((now - last) / 1000, 0.033);
+			last = now;
+
+			if (running) {
+				if (active) {
+					if (active.phase === 'moving') {
+						active.x += active.vx * dt;
+						if (active.x <= 4) {
+							active.x = 4;
+							active.vx = Math.abs(active.vx);
+						}
+						if (active.x + active.w >= BASE_W - 4) {
+							active.x = BASE_W - 4 - active.w;
+							active.vx = -Math.abs(active.vx);
+						}
+					} else if (active.phase === 'falling') {
+						const targetY = stack[stack.length - 1].y - BLOCK_H;
+						active.vy += 920 * dt;
+						active.y += active.vy * dt;
+						if (active.y >= targetY) {
+							active.y = targetY;
+							trimAndStack();
+						}
+					} else if (active.phase === 'miss') {
+						active.vy += 680 * dt;
+						active.y += active.vy * dt;
+						if (active.y > BASE_H + 40) gameOver();
+					}
+				}
+
+				for (let i = debris.length - 1; i >= 0; i--) {
+					const d = debris[i];
+					d.vy += 720 * dt;
+					d.y += d.vy * dt;
+					d.life -= dt * 1.2;
+					if (d.y > BASE_H + 30 || d.life <= 0) debris.splice(i, 1);
+				}
+
+				if (pendingNext && debris.length === 0 && !active && !missFall) {
+					spawnMovingBlock();
+				}
+			}
+
+			draw();
+			raf = requestAnimationFrame(loop);
+		}
+
+		const ro = new ResizeObserver(() => syncCanvasSize());
+		ro.observe(viewport);
+
+		canvas.addEventListener('click', () => {
+			if (!running) return;
+			dropBlock();
+		});
+		window.addEventListener('keydown', (e) => {
+			if (e.code === 'Space') {
+				e.preventDefault();
+				if (!running) return;
+				dropBlock();
+			}
+		});
+		startBtn?.addEventListener('click', startGame);
+		restartBtn?.addEventListener('click', startGame);
+		openRatingTopBtn?.addEventListener('click', openRatingDialog);
+		ratingCloseBtn?.addEventListener('click', () => {
+			if (ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
+		});
+		ratingDialog?.addEventListener('click', (e) => {
+			if (e.target === ratingDialog && ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
+		});
+
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!(nameInput instanceof HTMLInputElement)) return;
+			const name = nameInput.value.trim();
+			if (!name) return;
+			const best = getSessionBest();
+			if (!Number.isFinite(best) || best <= 0) return;
+			try {
+				sessionStorage.setItem(sessionNameKey, name);
+			} catch {}
+			try {
+				const res = await fetch('/api/game/scores', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, score: best, sessionId: getSessionId() }),
+				});
+				if (!res.ok) throw new Error('save-failed');
+				if (statusEl) statusEl.textContent = `Рекорд сессии сохранён · ${formatScore(best)} блоков`;
+				openRatingDialog();
+			} catch {
+				if (statusEl) statusEl.textContent = 'Ошибка сохранения';
+			}
+		});
+
+		if (nameInput instanceof HTMLInputElement) {
+			try {
+				const prevName = sessionStorage.getItem(sessionNameKey);
+				if (prevName) nameInput.value = prevName;
+			} catch {}
+		}
+
+		syncCanvasSize();
+		resetGame();
+		running = false;
+		active = null;
+		draw();
+		raf = requestAnimationFrame(loop);
+	})();
+</script>
