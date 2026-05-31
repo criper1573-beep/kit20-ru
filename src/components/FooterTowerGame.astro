@@ -78,8 +78,8 @@
 					aria-hidden="true"
 				></div>
 				<div class="relative z-[1] w-full max-w-[16rem] border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-float)]">
-					<p class="font-display text-xl uppercase tracking-[0.16em] text-accent">Башня рухнула</p>
-					<p id="footer-tower-end-score" class="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink"></p>
+					<p id="footer-tower-end-title" class="font-display text-xl uppercase tracking-[0.14em] text-accent">Полёт на Марс</p>
+					<p id="footer-tower-end-score" class="mt-2 font-mono text-[11px] leading-relaxed tracking-[0.1em] text-ink"></p>
 					<p id="footer-tower-end-best" class="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted"></p>
 					<p id="footer-tower-end-coach" class="mt-3 font-serif text-[11px] italic leading-relaxed text-muted"></p>
 					<p id="footer-tower-end-saved" class="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-accent"></p>
@@ -169,6 +169,7 @@
 		const missionSubEl = document.getElementById('footer-tower-mission-sub');
 		const overlayIdle = document.getElementById('footer-tower-overlay-idle');
 		const overlayEnd = document.getElementById('footer-tower-overlay-end');
+		const endTitleEl = document.getElementById('footer-tower-end-title');
 		const endScoreEl = document.getElementById('footer-tower-end-score');
 		const endBestEl = document.getElementById('footer-tower-end-best');
 		const endCoachEl = document.getElementById('footer-tower-end-coach');
@@ -207,6 +208,11 @@
 		let flashUntil = 0;
 		let pendingNext = false;
 		let missFall = false;
+		/** @type {{ phase: string, elapsed: number, result: number, best: number, phrase: string } | null} */
+		let launchAnim = null;
+		let launchLift = 0;
+		let engineGlow = 0;
+		let shakeX = 0;
 
 		const coachPhrases = [
 			'Башня кренится — сделай «Стойка на одной ноге» по 30 сек на каждую.',
@@ -285,8 +291,10 @@
 				.map((row, i) => {
 					const name = String(row?.name ?? '');
 					const s = Number(row?.score ?? 0);
+					const isMusk = name === 'Илон Маск';
+					const rowCls = isMusk ? 'bg-accent/10 font-bold' : '';
 					return `
-						<tr class="border-t-[2px] border-ink/15">
+						<tr class="border-t-[2px] border-ink/15 ${rowCls}">
 							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-mono text-xs">${i + 1}</td>
 							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-sans text-sm">${name}</td>
 							<td class="px-2 py-1.5 font-mono text-sm text-accent">${formatMeters(s)} м</td>
@@ -403,7 +411,13 @@
 
 		function showGameOverOverlay(result, best, coachPhrase) {
 			hideIdleOverlay();
-			if (endScoreEl) endScoreEl.textContent = `${formatMeters(result)} м в этой попытке`;
+			if (endTitleEl) endTitleEl.textContent = 'Полёт на Марс!';
+			if (endScoreEl) {
+				endScoreEl.textContent =
+					result > 0
+						? `Ваша ракета добавила ${formatMeters(result)} м к высадке на Марс`
+						: 'Попробуйте ещё — каждый метр приближает миссию';
+			}
 			if (endBestEl) endBestEl.textContent = `Лучший за сессию · ${formatMeters(best)} м`;
 			if (endCoachEl) endCoachEl.textContent = coachPhrase;
 			if (endSavedEl) endSavedEl.textContent = '';
@@ -412,7 +426,7 @@
 				overlayEnd.classList.add('flex');
 				overlayEnd.setAttribute('aria-hidden', 'false');
 			}
-			if (statusEl) statusEl.textContent = 'Башня рухнула';
+			if (statusEl) statusEl.textContent = 'Миссия зачислена';
 		}
 
 		function hideGameOverOverlay() {
@@ -430,6 +444,10 @@
 			active = null;
 			pendingNext = false;
 			missFall = false;
+			launchAnim = null;
+			launchLift = 0;
+			engineGlow = 0;
+			shakeX = 0;
 			flashText = '';
 			flashUntil = 0;
 			cameraY = 0;
@@ -489,14 +507,32 @@
 			raf = requestAnimationFrame(loop);
 		}
 
-		function gameOver() {
-			running = false;
+		function beginLaunchAfterMiss() {
 			const result = score;
 			const prevBest = getSessionBest();
-			const improved = result > prevBest;
-			if (improved) setSessionBest(result);
+			if (result > prevBest) setSessionBest(result);
 			const best = Math.max(result, prevBest);
 			const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
+			running = false;
+			active = null;
+			debris = [];
+			missFall = false;
+			pendingNext = false;
+			launchLift = 0;
+			engineGlow = 0;
+			shakeX = 0;
+			launchAnim = { phase: 'ignite', elapsed: 0, result, best, phrase };
+			hideGameOverOverlay();
+			if (statusEl) statusEl.textContent = 'Запуск двигателей…';
+		}
+
+		function completeLaunch() {
+			if (!launchAnim) return;
+			const { result, best, phrase } = launchAnim;
+			launchAnim = null;
+			launchLift = 0;
+			engineGlow = 0;
+			shakeX = 0;
 			showGameOverOverlay(result, best, phrase);
 			if (result > 0) {
 				if (endSavedEl) endSavedEl.textContent = 'Сохранение…';
@@ -582,20 +618,56 @@
 			updateCamera();
 		}
 
+		function drawRocketEngines() {
+			if (!launchAnim || engineGlow <= 0.01 || !stack.length) return;
+			const base = stack[0];
+			const cx = base.x + base.w / 2 + shakeX;
+			const flameTop = base.y + base.h - cameraY - launchLift;
+			const flameH = 12 + engineGlow * 28;
+			const flameW = Math.max(base.w * 0.28, 18);
+			ctx.save();
+			ctx.globalAlpha = 0.5 + engineGlow * 0.4;
+			ctx.fillStyle = '#ff5a1f';
+			ctx.beginPath();
+			ctx.moveTo(cx - flameW, flameTop);
+			ctx.lineTo(cx, flameTop + flameH);
+			ctx.lineTo(cx + flameW, flameTop);
+			ctx.closePath();
+			ctx.fill();
+			ctx.fillStyle = '#ffd24a';
+			ctx.beginPath();
+			ctx.moveTo(cx - flameW * 0.45, flameTop);
+			ctx.lineTo(cx, flameTop + flameH * 0.62);
+			ctx.lineTo(cx + flameW * 0.45, flameTop);
+			ctx.closePath();
+			ctx.fill();
+			ctx.globalAlpha = 0.25 * engineGlow;
+			ctx.fillStyle = '#0a0a0a';
+			for (let i = 0; i < 5; i++) {
+				const px = cx + (i - 2) * 8 + Math.sin(performance.now() * 0.02 + i) * 3;
+				const py = flameTop + flameH + 6 + (launchAnim.phase === 'liftoff' ? launchLift * 0.15 : 0);
+				ctx.fillRect(px, py, 4, 8 + engineGlow * 10);
+			}
+			ctx.restore();
+		}
+
 		function drawBlock(x, y, w, h, color, opts = {}) {
 			const { highlight = false, ghost = false } = opts;
-			const by = y - cameraY;
+			const lift = launchAnim ? launchLift : 0;
+			const shake = launchAnim ? shakeX : 0;
+			const by = y - cameraY - lift;
+			const bx = x + shake;
 			if (by + h < -20 || by > BASE_H + 20) return;
 
 			ctx.fillStyle = ghost ? `${color}88` : color;
-			ctx.fillRect(x, by, w, h);
+			ctx.fillRect(bx, by, w, h);
 			ctx.strokeStyle = '#0a0a0a';
 			ctx.lineWidth = highlight ? 2.5 : 2;
-			ctx.strokeRect(x + 0.5, by + 0.5, w - 1, h - 1);
+			ctx.strokeRect(bx + 0.5, by + 0.5, w - 1, h - 1);
 
 			if (highlight) {
 				ctx.fillStyle = 'rgba(255,255,255,0.25)';
-				ctx.fillRect(x + 2, by + 2, w - 4, 4);
+				ctx.fillRect(bx + 2, by + 2, w - 4, 4);
 			}
 		}
 
@@ -607,10 +679,15 @@
 			ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
 			ctx.imageSmoothingEnabled = true;
 
-			ctx.fillStyle = '#f0ebe0';
+			const skyShift = launchAnim ? Math.min(launchLift * 0.08, 40) : 0;
+			ctx.fillStyle = launchAnim && launchAnim.phase === 'liftoff' ? '#e8eef5' : '#f0ebe0';
 			ctx.fillRect(0, 0, BASE_W, BASE_H);
+			if (launchAnim && launchAnim.phase === 'liftoff') {
+				ctx.fillStyle = 'rgba(255,255,255,0.35)';
+				ctx.fillRect(0, 0, BASE_W, 30 - skyShift);
+			}
 
-			const groundScreen = GROUND_Y - cameraY;
+			const groundScreen = GROUND_Y - cameraY - (launchAnim ? launchLift : 0);
 			if (groundScreen < BASE_H + 4) {
 				ctx.strokeStyle = '#0a0a0a18';
 				ctx.lineWidth = 1;
@@ -632,11 +709,26 @@
 			for (const b of stack) drawBlock(b.x, b.y, b.w, b.h, b.color);
 			for (const d of debris) drawBlock(d.x, d.y, d.w, d.h, d.color, { ghost: true });
 			if (active) drawBlock(active.x, active.y, active.w, active.h, active.color, { highlight: active.phase === 'moving' });
+			drawRocketEngines();
 
-			ctx.fillStyle = '#0a0a0a';
-			ctx.font = '600 11px "Space Mono", ui-monospace, monospace';
-			ctx.fillText(`МЕТРЫ ${formatMeters(score)}`, 10, 18);
-			ctx.fillText(`ЭТАЖ ${Math.max(0, stack.length - 1)}`, BASE_W - 88, 18);
+			if (!launchAnim) {
+				ctx.fillStyle = '#0a0a0a';
+				ctx.font = '600 11px "Space Mono", ui-monospace, monospace';
+				ctx.fillText(`МЕТРЫ ${formatMeters(score)}`, 10, 18);
+				ctx.fillText(`ЭТАЖ ${Math.max(0, stack.length - 1)}`, BASE_W - 88, 18);
+			} else if (launchAnim.phase === 'ignite') {
+				ctx.fillStyle = '#d42b2b';
+				ctx.font = '700 12px "Bebas Neue", "Arial Narrow", sans-serif';
+				ctx.textAlign = 'center';
+				ctx.fillText('ЗАЖИГАНИЕ…', BASE_W / 2, 24);
+				ctx.textAlign = 'left';
+			} else if (launchAnim.phase === 'liftoff') {
+				ctx.fillStyle = '#0a0a0a';
+				ctx.font = '700 12px "Bebas Neue", "Arial Narrow", sans-serif';
+				ctx.textAlign = 'center';
+				ctx.fillText('СТАРТ!', BASE_W / 2, 24);
+				ctx.textAlign = 'left';
+			}
 
 			if (flashText && performance.now() < flashUntil) {
 				ctx.fillStyle = '#d42b2b';
@@ -674,7 +766,10 @@
 					} else if (active.phase === 'miss') {
 						active.vy += 680 * dt;
 						active.y += active.vy * dt;
-						if (active.y > BASE_H + 40) gameOver();
+						if (active.y > BASE_H + 40) {
+							active = null;
+							beginLaunchAfterMiss();
+						}
 					}
 				}
 
@@ -691,6 +786,26 @@
 				}
 			}
 
+			if (launchAnim) {
+				launchAnim.elapsed += dt;
+				if (launchAnim.phase === 'ignite') {
+					engineGlow = Math.min(1, launchAnim.elapsed / 0.5);
+					shakeX = Math.sin(launchAnim.elapsed * 90) * 2.5 * engineGlow;
+					if (launchAnim.elapsed >= 0.55) {
+						launchAnim.phase = 'liftoff';
+						launchAnim.elapsed = 0;
+					}
+				} else if (launchAnim.phase === 'liftoff') {
+					const speed = 300 + launchAnim.elapsed * 120;
+					launchLift += speed * dt;
+					engineGlow = Math.max(0.15, 1 - launchAnim.elapsed * 0.55);
+					shakeX = Math.sin(launchAnim.elapsed * 40) * 1.2;
+					if (launchAnim.elapsed >= 1.4 || launchLift > BASE_H + 120) {
+						completeLaunch();
+					}
+				}
+			}
+
 			draw();
 			raf = requestAnimationFrame(loop);
 		}
@@ -699,18 +814,21 @@
 		ro.observe(viewport);
 
 		canvas.addEventListener('click', () => {
-			if (!running) return;
+			if (!running || launchAnim) return;
 			dropBlock();
 		});
 		window.addEventListener('keydown', (e) => {
 			if (e.code === 'Space') {
 				e.preventDefault();
-				if (!running) return;
+				if (!running || launchAnim) return;
 				dropBlock();
 			}
 		});
 		startBtn?.addEventListener('click', startGame);
-		restartBtn?.addEventListener('click', startGame);
+		restartBtn?.addEventListener('click', () => {
+			if (launchAnim) return;
+			startGame();
+		});
 		openRatingTopBtn?.addEventListener('click', openRatingDialog);
 		ratingCloseBtn?.addEventListener('click', () => {
 			if (ratingDialog instanceof HTMLDialogElement) ratingDialog.close();

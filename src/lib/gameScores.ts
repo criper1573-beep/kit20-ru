@@ -1,13 +1,23 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pickNextActorName } from './gameActorNamePool';
-import { addPlayerMissionMeters, readTowerMissionStats, type TowerMissionStats } from './towerMission';
+import { addPlayerMissionMeters, readTowerMissionStats, TOWER_MUSK_BUILT_M, type TowerMissionStats } from './towerMission';
 
 export interface GameScore {
 	name: string;
 	score: number;
 	createdAt: string;
 	sessionId?: string;
+}
+
+export const ELON_MUSK_LEADERBOARD_NAME = 'Илон Маск';
+
+function elonMuskLeaderboardEntry(): GameScore {
+	return {
+		name: ELON_MUSK_LEADERBOARD_NAME,
+		score: TOWER_MUSK_BUILT_M,
+		createdAt: '2026-01-01T00:00:00.000Z',
+	};
 }
 
 export interface RecordTowerRunResult {
@@ -34,7 +44,7 @@ function normalizeSessionId(input: string): string {
 	return input.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
 }
 
-export async function readGameScores(): Promise<GameScore[]> {
+export async function readPlayerScores(): Promise<GameScore[]> {
 	try {
 		const raw = await fs.readFile(SCORE_FILE, 'utf8');
 		const parsed = JSON.parse(raw) as unknown;
@@ -49,11 +59,24 @@ export async function readGameScores(): Promise<GameScore[]> {
 					sessionId: normalizeSessionId(String(obj.sessionId ?? '')) || undefined,
 				};
 			})
-			.filter((r) => r.name.length > 0)
+			.filter((r) => r.name.length > 0 && r.name !== ELON_MUSK_LEADERBOARD_NAME)
 			.sort((a, b) => (b.score - a.score) || a.createdAt.localeCompare(b.createdAt));
 	} catch {
 		return [];
 	}
+}
+
+/** Рейтинг: #1 — Илон Маск (SpaceX), далее игроки. */
+export async function readLeaderboard(): Promise<GameScore[]> {
+	const players = await readPlayerScores();
+	return [elonMuskLeaderboardEntry(), ...players]
+		.sort((a, b) => (b.score - a.score) || a.createdAt.localeCompare(b.createdAt))
+		.slice(0, 100);
+}
+
+/** @deprecated используйте readPlayerScores или readLeaderboard */
+export async function readGameScores(): Promise<GameScore[]> {
+	return readLeaderboard();
 }
 
 /**
@@ -70,7 +93,7 @@ export async function recordTowerRun(
 
 	if (!sessionId) {
 		return {
-			scores: await readGameScores(),
+			scores: await readLeaderboard(),
 			name: userName,
 			saved: false,
 			mission: await readTowerMissionStats(),
@@ -80,7 +103,7 @@ export async function recordTowerRun(
 
 	const mission = runMeters > 0 ? await addPlayerMissionMeters(runMeters) : await readTowerMissionStats();
 
-	const prev = await readGameScores();
+	const prev = await readPlayerScores();
 	const existingIndex = prev.findIndex((row) => row.sessionId === sessionId);
 
 	let finalName = userName;
@@ -91,7 +114,7 @@ export async function recordTowerRun(
 			finalName = await pickNextActorName();
 		} else {
 			return {
-				scores: prev,
+				scores: await readLeaderboard(),
 				name: '',
 				saved: false,
 				mission,
@@ -118,7 +141,7 @@ export async function recordTowerRun(
 			saved = true;
 			leaderboardUpdated = scoreImproved;
 		} else {
-			return { scores: prev, name: row.name, saved: false, mission, leaderboardUpdated: false };
+			return { scores: await readLeaderboard(), name: row.name, saved: false, mission, leaderboardUpdated: false };
 		}
 	} else if (runMeters > 0) {
 		nextBase.push({
@@ -130,7 +153,7 @@ export async function recordTowerRun(
 		saved = true;
 		leaderboardUpdated = true;
 	} else {
-		return { scores: prev, name: finalName, saved: false, mission, leaderboardUpdated: false };
+		return { scores: await readLeaderboard(), name: finalName, saved: false, mission, leaderboardUpdated: false };
 	}
 
 	const next = nextBase
@@ -138,7 +161,7 @@ export async function recordTowerRun(
 		.slice(0, 100);
 
 	await fs.writeFile(SCORE_FILE, JSON.stringify(next, null, 2), 'utf8');
-	return { scores: next, name: finalName, saved, mission, leaderboardUpdated };
+	return { scores: await readLeaderboard(), name: finalName, saved, mission, leaderboardUpdated };
 }
 
 /** @deprecated */

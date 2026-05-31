@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { readGameScores, recordTowerRun } from '../../../lib/gameScores';
+import { readLeaderboard, recordTowerRun } from '../../../lib/gameScores';
 
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
 	try {
-		const scores = await readGameScores();
+		const scores = await readLeaderboard();
 		return new Response(JSON.stringify({ scores: scores.slice(0, 20) }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
