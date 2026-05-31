@@ -135,7 +135,7 @@
 				type="button"
 				class="type-cta flex-1 border-[2px] border-ink bg-accent px-2 py-1.5 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)]"
 			>
-				Вклад за сессию
+				Общий вклад
 			</button>
 			<button
 				id="footer-tower-rating-tab-best"
@@ -325,7 +325,7 @@
 			if (ratingStatusEl) {
 				ratingStatusEl.textContent =
 					next === 'total'
-						? 'Сумма всех игр за сессию — идёт в общий прогресс'
+						? 'Сумма всех игр — идёт в общий прогресс миссии'
 						: 'Лучший результат за одну попытку';
 			}
 			renderScores(next === 'total' ? ratingCache.totalLeaderboard : ratingCache.bestLeaderboard, next);
@@ -367,10 +367,15 @@
 
 		function getSessionId() {
 			try {
-				const prev = sessionStorage.getItem(sessionIdKey);
+				const prev = localStorage.getItem(sessionIdKey);
 				if (prev) return prev;
+				const legacy = sessionStorage.getItem(sessionIdKey);
+				if (legacy) {
+					localStorage.setItem(sessionIdKey, legacy);
+					return legacy;
+				}
 				const next = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
-				sessionStorage.setItem(sessionIdKey, next);
+				localStorage.setItem(sessionIdKey, next);
 				return next;
 			} catch {
 				return '';
@@ -379,7 +384,7 @@
 
 		function getSessionBest() {
 			try {
-				return Number(sessionStorage.getItem(sessionBestKey) ?? '0') || 0;
+				return Number(localStorage.getItem(sessionBestKey) ?? sessionStorage.getItem(sessionBestKey) ?? '0') || 0;
 			} catch {
 				return 0;
 			}
@@ -387,8 +392,12 @@
 
 		function setSessionBest(value) {
 			try {
-				sessionStorage.setItem(sessionBestKey, String(value));
-			} catch {}
+				localStorage.setItem(sessionBestKey, String(value));
+			} catch {
+				try {
+					sessionStorage.setItem(sessionBestKey, String(value));
+				} catch {}
+			}
 		}
 
 		async function openRatingDialog() {
@@ -558,7 +567,12 @@
 				}
 				if (trimmed) {
 					try {
-						sessionStorage.setItem(sessionNameKey, trimmed);
+						localStorage.setItem(sessionNameKey, trimmed);
+					} catch {}
+				}
+				if (typeof json?.name === 'string' && json.name) {
+					try {
+						localStorage.setItem(sessionNameKey, json.name);
 					} catch {}
 				}
 				return json;
@@ -950,7 +964,7 @@
 
 		if (nameInput instanceof HTMLInputElement) {
 			try {
-				const prevName = sessionStorage.getItem(sessionNameKey);
+				const prevName = localStorage.getItem(sessionNameKey) ?? sessionStorage.getItem(sessionNameKey);
 				if (prevName) nameInput.value = prevName;
 			} catch {}
 		}

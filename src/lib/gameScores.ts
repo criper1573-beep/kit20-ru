@@ -48,9 +48,19 @@ async function withScoresWrite<T>(fn: () => Promise<T>): Promise<T> {
 	return run;
 }
 
-/** Слить дубликаты sessionId (на случай старых гонок записи). */
-function dedupeBySession(players: GameScore[]): GameScore[] {
-	const bySession = new Map<string, GameScore>();
+/** Объединить все строки одной сессии в одну запись. */
+function mergeSessionRows(rows: GameScore[]): GameScore {
+	const sorted = [...rows].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+	const base = { ...sorted[0]! };
+	for (const row of sorted.slice(1)) {
+		base.totalMeters += row.totalMeters;
+		base.bestMeters = Math.max(base.bestMeters, row.bestMeters);
+	}
+	return base;
+}
+
+function consolidateBySession(players: GameScore[]): GameScore[] {
+	const bySession = new Map<string, GameScore[]>();
 	const rest: GameScore[] = [];
 	for (const row of players) {
 		const sid = row.sessionId?.trim();
@@ -58,21 +68,12 @@ function dedupeBySession(players: GameScore[]): GameScore[] {
 			rest.push(row);
 			continue;
 		}
-		const prev = bySession.get(sid);
-		if (!prev) {
-			bySession.set(sid, { ...row, sessionId: sid });
-			continue;
-		}
-		bySession.set(sid, {
-			...prev,
-			name: prev.name,
-			totalMeters: prev.totalMeters + row.totalMeters,
-			bestMeters: Math.max(prev.bestMeters, row.bestMeters),
-			createdAt: prev.createdAt.localeCompare(row.createdAt) <= 0 ? prev.createdAt : row.createdAt,
-			sessionId: sid,
-		});
+		const list = bySession.get(sid) ?? [];
+		list.push(row);
+		bySession.set(sid, list);
 	}
-	return [...bySession.values(), ...rest];
+	const merged = [...bySession.values()].map((rows) => mergeSessionRows(rows));
+	return [...merged, ...rest];
 }
 
 function normalizeName(input: string): string {
@@ -115,20 +116,22 @@ export function missionFromPlayers(players: GameScore[]): TowerMissionStats {
 	return buildMissionStats(sumPlayerTotalMeters(players));
 }
 
-export async function readPlayerScores(): Promise<GameScore[]> {
+async function readScoreRows(): Promise<GameScore[]> {
 	try {
 		const raw = await fs.readFile(SCORE_FILE, 'utf8');
 		const parsed = JSON.parse(raw) as unknown;
 		if (!Array.isArray(parsed)) return [];
-		const rows = parsed
-			.map(parseRow)
-			.filter((r): r is GameScore => r != null);
-		return dedupeBySession(rows).sort(
-			(a, b) => (b.totalMeters - a.totalMeters) || a.createdAt.localeCompare(b.createdAt),
-		);
+		return parsed.map(parseRow).filter((r): r is GameScore => r != null);
 	} catch {
 		return [];
 	}
+}
+
+export async function readPlayerScores(): Promise<GameScore[]> {
+	const rows = await readScoreRows();
+	return consolidateBySession(rows).sort(
+		(a, b) => (b.totalMeters - a.totalMeters) || a.createdAt.localeCompare(b.createdAt),
+	);
 }
 
 /** Рейтинг вклада за сессию (сумма всех игр). */
@@ -206,62 +209,68 @@ async function recordTowerRunLocked(
 
 	if (!sessionId) return emptyPayload();
 
-	const prev = await readPlayerScores();
-	const existingIndex = prev.findIndex((row) => row.sessionId === sessionId);
+	const prev = await readScoreRows();
+	const sessionRows = prev.filter((row) => row.sessionId === sessionId);
+	const others = prev.filter((row) => row.sessionId !== sessionId);
+	const existing = sessionRows.length > 0 ? mergeSessionRows(sessionRows) : null;
+	const takenNames = consolidateBySession(prev).map((row) => row.name);
 
 	let finalName = userName;
 	if (!finalName) {
-		if (existingIndex >= 0) {
-			finalName = prev[existingIndex]!.name;
+		if (existing) {
+			finalName = existing.name;
 		} else if (runMeters > 0) {
-			finalName = await pickNextActorName();
+			finalName = await pickNextActorName(takenNames);
 		} else {
 			return emptyPayload();
 		}
 	}
 
-	let nextBase = [...prev];
+	let nextBase: GameScore[] = [];
 	let saved = false;
 
-	if (existingIndex >= 0) {
-		const row = prev[existingIndex]!;
-		const nameChanged = Boolean(userName && userName !== row.name);
+	if (existing) {
+		const nameChanged = Boolean(userName && userName !== existing.name);
 		if (runMeters <= 0 && !nameChanged) {
 			const p = await readLeaderboardPayload();
 			return {
 				totalLeaderboard: p.totalLeaderboard,
 				bestLeaderboard: p.bestLeaderboard,
-				name: row.name,
+				name: existing.name,
 				saved: false,
 				mission: p.mission,
-				sessionTotalMeters: row.totalMeters,
-				sessionBestMeters: row.bestMeters,
+				sessionTotalMeters: existing.totalMeters,
+				sessionBestMeters: existing.bestMeters,
 			};
 		}
-		const newTotal = row.totalMeters + runMeters;
-		const newBest = Math.max(row.bestMeters, runMeters);
-		nextBase[existingIndex] = {
-			...row,
-			name: finalName,
-			totalMeters: newTotal,
-			bestMeters: newBest,
-			sessionId,
-		};
+		nextBase = [
+			...others,
+			{
+				...existing,
+				name: finalName,
+				totalMeters: existing.totalMeters + runMeters,
+				bestMeters: Math.max(existing.bestMeters, runMeters),
+				sessionId,
+			},
+		];
 		saved = true;
 	} else if (runMeters > 0) {
-		nextBase.push({
-			name: finalName,
-			totalMeters: runMeters,
-			bestMeters: runMeters,
-			createdAt: new Date().toISOString(),
-			sessionId,
-		});
+		nextBase = [
+			...others,
+			{
+				name: finalName,
+				totalMeters: runMeters,
+				bestMeters: runMeters,
+				createdAt: new Date().toISOString(),
+				sessionId,
+			},
+		];
 		saved = true;
 	} else {
 		return emptyPayload();
 	}
 
-	const stored = dedupeBySession(nextBase)
+	const stored = consolidateBySession(nextBase)
 		.sort((a, b) => (b.totalMeters - a.totalMeters) || a.createdAt.localeCompare(b.createdAt))
 		.slice(0, 100);
 

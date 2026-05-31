@@ -34,13 +34,17 @@ async function writePool(state: PoolState): Promise<void> {
 	await writeFile(poolPath(), JSON.stringify(state, null, '\t') + '\n', 'utf8');
 }
 
-/** Следующее имя актёра: без повторов, пока не исчерпан весь список из 50. */
-export async function pickNextActorName(): Promise<string> {
+/** Следующее имя актёра: без повторов в пуле и среди имён уже в рейтинге. */
+export async function pickNextActorName(takenInScores: string[] = []): Promise<string> {
 	const state = await readPool();
 	const usedSet = new Set(state.used);
-	let available = GAME_ACTOR_NAMES.filter((n) => !usedSet.has(n));
+	const takenSet = new Set(takenInScores.map((n) => n.trim()).filter(Boolean));
+	let available = GAME_ACTOR_NAMES.filter((n) => !usedSet.has(n) && !takenSet.has(n));
 	if (available.length === 0) {
 		state.used = [];
+		available = GAME_ACTOR_NAMES.filter((n) => !takenSet.has(n));
+	}
+	if (available.length === 0) {
 		available = [...GAME_ACTOR_NAMES];
 	}
 	const pick = available[Math.floor(Math.random() * available.length)]!;
