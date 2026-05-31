@@ -141,6 +141,7 @@
 		const BASE_W = 300;
 		const BASE_H = 420;
 		const GROUND_Y = BASE_H - 28;
+		const VIEW_TOP = 56;
 		const BLOCK_H = 22;
 		const BASE_BLOCK_W = 150;
 		const PERFECT_PX = 5;
@@ -288,15 +289,27 @@
 			}
 		}
 
+		function towerTopY() {
+			let topY = stack[stack.length - 1].y;
+			if (active && active.y < topY) topY = active.y;
+			return topY;
+		}
+
 		function updateCamera() {
 			if (!stack.length) {
 				cameraY = 0;
 				return;
 			}
-			const topY = stack[stack.length - 1].y;
-			const targetTop = 72;
-			const need = topY - targetTop;
-			cameraY = need > 0 ? need : 0;
+			const baseBottom = stack[0].y + stack[0].h;
+			const topY = towerTopY();
+			const towerHeight = baseBottom - topY;
+			const maxFit = GROUND_Y - VIEW_TOP;
+
+			if (towerHeight <= maxFit) {
+				cameraY = 0;
+			} else {
+				cameraY = topY - VIEW_TOP;
+			}
 		}
 
 		function spawnMovingBlock() {
@@ -532,6 +545,7 @@
 		}
 
 		function draw() {
+			if (running) updateCamera();
 			syncCanvasSize();
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -542,21 +556,23 @@
 			ctx.fillRect(0, 0, BASE_W, BASE_H);
 
 			const groundScreen = GROUND_Y - cameraY;
-			ctx.strokeStyle = '#0a0a0a18';
-			ctx.lineWidth = 1;
-			ctx.setLineDash([4, 5]);
-			ctx.beginPath();
-			ctx.moveTo(0, groundScreen + 0.5);
-			ctx.lineTo(BASE_W, groundScreen + 0.5);
-			ctx.stroke();
-			ctx.setLineDash([]);
+			if (groundScreen < BASE_H + 4) {
+				ctx.strokeStyle = '#0a0a0a18';
+				ctx.lineWidth = 1;
+				ctx.setLineDash([4, 5]);
+				ctx.beginPath();
+				ctx.moveTo(0, groundScreen + 0.5);
+				ctx.lineTo(BASE_W, groundScreen + 0.5);
+				ctx.stroke();
+				ctx.setLineDash([]);
 
-			ctx.strokeStyle = '#0a0a0a';
-			ctx.lineWidth = 2.5;
-			ctx.beginPath();
-			ctx.moveTo(0, groundScreen + 1);
-			ctx.lineTo(BASE_W, groundScreen + 1);
-			ctx.stroke();
+				ctx.strokeStyle = '#0a0a0a';
+				ctx.lineWidth = 2.5;
+				ctx.beginPath();
+				ctx.moveTo(0, groundScreen + 1);
+				ctx.lineTo(BASE_W, groundScreen + 1);
+				ctx.stroke();
+			}
 
 			for (const b of stack) drawBlock(b.x, b.y, b.w, b.h, b.color);
 			for (const d of debris) drawBlock(d.x, d.y, d.w, d.h, d.color, { ghost: true });
