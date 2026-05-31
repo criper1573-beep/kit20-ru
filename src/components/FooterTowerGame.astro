@@ -34,49 +34,73 @@
 				aria-hidden="true"
 			></div>
 			<canvas id="footer-tower-canvas" class="relative z-[1] block h-full w-full" width="300" height="420"></canvas>
+
+			<div
+				id="footer-tower-overlay-idle"
+				class="absolute inset-0 z-[2] flex items-center justify-center p-3"
+			>
+				<div class="w-full max-w-[15rem] border-[3px] border-ink bg-surface p-4 text-center shadow-[var(--shadow-float)]">
+					<p class="font-display text-2xl uppercase tracking-[0.18em] text-ink">Башня</p>
+					<p class="mt-1 font-mono text-[9px] uppercase tracking-[0.14em] text-muted">Клик или пробел — бросить блок</p>
+					<button
+						id="footer-tower-start"
+						type="button"
+						class="type-cta mt-4 w-full border-[3px] border-ink bg-accent px-3 py-2.5 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+					>
+						Старт
+					</button>
+				</div>
+			</div>
+
+			<div
+				id="footer-tower-overlay-end"
+				class="absolute inset-0 z-[3] hidden items-center justify-center p-3"
+				aria-hidden="true"
+			>
+				<div
+					class="pointer-events-none absolute inset-0 bg-[color-mix(in_srgb,var(--color-ink)_42%,transparent)] backdrop-blur-[1px]"
+					aria-hidden="true"
+				></div>
+				<div class="relative z-[1] w-full max-w-[16rem] border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-float)]">
+					<p class="font-display text-xl uppercase tracking-[0.16em] text-accent">Башня рухнула</p>
+					<p id="footer-tower-end-score" class="mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-ink"></p>
+					<p id="footer-tower-end-best" class="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted"></p>
+					<p id="footer-tower-end-coach" class="mt-3 font-serif text-[11px] italic leading-relaxed text-muted"></p>
+					<form id="footer-tower-form" class="mt-4 flex flex-col gap-2">
+						<label class="font-mono text-[9px] uppercase tracking-[0.16em] text-ink">
+							Имя для рейтинга
+							<input
+								id="footer-tower-name"
+								type="text"
+								maxlength="24"
+								required
+								class="mt-1 w-full border-[3px] border-ink bg-canvas px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
+							/>
+						</label>
+						<div class="flex flex-col gap-2 sm:flex-row">
+							<button
+								type="submit"
+								class="type-cta flex-1 border-[3px] border-ink bg-accent px-2 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+							>
+								Сохранить
+							</button>
+							<button
+								id="footer-tower-restart"
+								type="button"
+								class="type-cta flex-1 border-[3px] border-ink bg-surface px-2 py-2 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-muted-surface"
+							>
+								Ещё раз
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<p id="footer-tower-status" class="mx-3 mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink sm:mx-4 sm:text-[11px]">
+	<p id="footer-tower-status" class="mx-3 mb-3 mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink sm:mx-4 sm:mb-4 sm:text-[11px]">
 		Клик или пробел — бросить блок на башню
 	</p>
-	<p id="footer-tower-coach" class="mx-3 mt-1 hidden font-serif text-[12px] italic leading-relaxed text-muted sm:mx-4"></p>
-
-	<form id="footer-tower-form" class="mx-3 mt-3 hidden items-end gap-2 sm:mx-4">
-		<label class="min-w-0 flex-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
-			Имя
-			<input
-				id="footer-tower-name"
-				type="text"
-				maxlength="24"
-				required
-				class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
-			/>
-		</label>
-		<button
-			type="submit"
-			class="type-cta shrink-0 border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
-		>
-			Сохранить
-		</button>
-	</form>
-
-	<div class="mx-3 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:mx-4 sm:mb-4">
-		<button
-			id="footer-tower-start"
-			type="button"
-			class="type-cta border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
-		>
-			Старт
-		</button>
-		<button
-			id="footer-tower-restart"
-			type="button"
-			class="type-cta hidden border-[3px] border-ink bg-surface px-3 py-2 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-muted-surface"
-		>
-			Ещё раз
-		</button>
-	</div>
 </section>
 
 <dialog
@@ -131,7 +155,11 @@
 		const BASE_MOVE = 88;
 
 		const statusEl = document.getElementById('footer-tower-status');
-		const coachEl = document.getElementById('footer-tower-coach');
+		const overlayIdle = document.getElementById('footer-tower-overlay-idle');
+		const overlayEnd = document.getElementById('footer-tower-overlay-end');
+		const endScoreEl = document.getElementById('footer-tower-end-score');
+		const endBestEl = document.getElementById('footer-tower-end-best');
+		const endCoachEl = document.getElementById('footer-tower-end-coach');
 		const form = document.getElementById('footer-tower-form');
 		const nameInput = document.getElementById('footer-tower-name');
 		const startBtn = document.getElementById('footer-tower-start');
@@ -299,6 +327,46 @@
 			missFall = false;
 		}
 
+		function showIdleOverlay() {
+			if (overlayIdle) {
+				overlayIdle.classList.remove('hidden');
+				overlayIdle.classList.add('flex');
+			}
+			if (overlayEnd) {
+				overlayEnd.classList.add('hidden');
+				overlayEnd.classList.remove('flex');
+				overlayEnd.setAttribute('aria-hidden', 'true');
+			}
+		}
+
+		function hideIdleOverlay() {
+			if (overlayIdle) {
+				overlayIdle.classList.add('hidden');
+				overlayIdle.classList.remove('flex');
+			}
+		}
+
+		function showGameOverOverlay(result, best, coachPhrase) {
+			hideIdleOverlay();
+			if (endScoreEl) endScoreEl.textContent = `${formatScore(result)} блоков в этой партии`;
+			if (endBestEl) endBestEl.textContent = `Лучший за сессию · ${formatScore(best)}`;
+			if (endCoachEl) endCoachEl.textContent = coachPhrase;
+			if (overlayEnd) {
+				overlayEnd.classList.remove('hidden');
+				overlayEnd.classList.add('flex');
+				overlayEnd.setAttribute('aria-hidden', 'false');
+			}
+			if (statusEl) statusEl.textContent = 'Башня рухнула';
+		}
+
+		function hideGameOverOverlay() {
+			if (overlayEnd) {
+				overlayEnd.classList.add('hidden');
+				overlayEnd.classList.remove('flex');
+				overlayEnd.setAttribute('aria-hidden', 'true');
+			}
+		}
+
 		function resetGame() {
 			level = 0;
 			score = 0;
@@ -312,18 +380,14 @@
 			const baseX = (BASE_W - BASE_BLOCK_W) / 2;
 			stack = [{ x: baseX, y: GROUND_Y - BLOCK_H, w: BASE_BLOCK_W, h: BLOCK_H, color: '#0a0a0a' }];
 			if (statusEl) statusEl.textContent = 'Клик или пробел — бросить блок';
-			if (coachEl) {
-				coachEl.textContent = '';
-				coachEl.classList.add('hidden');
-			}
-			if (form) form.classList.add('hidden');
-			if (restartBtn) restartBtn.classList.add('hidden');
+			hideGameOverOverlay();
 			spawnMovingBlock();
 		}
 
 		function startGame() {
 			syncCanvasSize();
 			resetGame();
+			hideIdleOverlay();
 			running = true;
 			last = performance.now();
 			cancelAnimationFrame(raf);
@@ -335,16 +399,9 @@
 			const result = score;
 			const prevBest = getSessionBest();
 			if (result > prevBest) setSessionBest(result);
-			if (statusEl) {
-				statusEl.textContent = `Башня рухнула · ${formatScore(result)} блоков · лучший ${formatScore(Math.max(result, prevBest))}`;
-			}
-			if (coachEl) {
-				const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
-				coachEl.textContent = phrase;
-				coachEl.classList.remove('hidden');
-			}
-			if (form) form.classList.remove('hidden');
-			if (restartBtn) restartBtn.classList.remove('hidden');
+			const best = Math.max(result, prevBest);
+			const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
+			showGameOverOverlay(result, best, phrase);
 		}
 
 		function dropBlock() {
@@ -483,14 +540,6 @@
 				ctx.fillText(flashText, BASE_W / 2, 36);
 				ctx.textAlign = 'left';
 			}
-
-			if (!running && stack.length <= 1 && !active) {
-				ctx.fillStyle = 'rgba(10,10,10,0.55)';
-				ctx.font = '600 10px "Space Mono", ui-monospace, monospace';
-				ctx.textAlign = 'center';
-				ctx.fillText('СТАРТ', BASE_W / 2, BASE_H / 2);
-				ctx.textAlign = 'left';
-			}
 		}
 
 		function loop(now) {
@@ -582,7 +631,8 @@
 					body: JSON.stringify({ name, score: best, sessionId: getSessionId() }),
 				});
 				if (!res.ok) throw new Error('save-failed');
-				if (statusEl) statusEl.textContent = `Рекорд сессии сохранён · ${formatScore(best)} блоков`;
+				if (statusEl) statusEl.textContent = `Рекорд сохранён · ${formatScore(best)} блоков`;
+				if (endBestEl) endBestEl.textContent = `В рейтинге · ${formatScore(best)} блоков`;
 				openRatingDialog();
 			} catch {
 				if (statusEl) statusEl.textContent = 'Ошибка сохранения';
@@ -600,6 +650,7 @@
 		resetGame();
 		running = false;
 		active = null;
+		showIdleOverlay();
 		draw();
 		raf = requestAnimationFrame(loop);
 	})();
