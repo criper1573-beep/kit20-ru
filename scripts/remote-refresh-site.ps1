@@ -55,6 +55,7 @@ fi
 if git ls-files --error-unmatch src/content/game-scores.json >/dev/null 2>&1; then
   git stash push -- src/content/game-scores.json >/dev/null 2>&1 || git checkout -- src/content/game-scores.json 2>/dev/null || true
 fi
+git stash push -u -m "kit20-pre-deploy-$(date +%Y%m%d-%H%M%S)" >/dev/null 2>&1 || true
 git pull
 node scripts/preserve-runtime-on-deploy.mjs --phase=post-pull
 npm ci

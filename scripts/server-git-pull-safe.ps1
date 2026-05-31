@@ -1,4 +1,7 @@
+# Одноразовый bootstrap: git pull на сервере с сохранением obshchak.json
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '..' | Resolve-Path | ForEach-Object { Join-Path $_ 'scripts\remote-refresh-site.ps1' })
+# reuse env from remote-refresh by duplicating minimal block
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot '..')
 $localKit20Env = Join-Path $repoRoot 'kit20-oauth.env'
 $kontentDirName = -join @(0x041A, 0x043E, 0x043D, 0x0442, 0x0435, 0x043D, 0x0442, 0x0417, 0x0430, 0x0432, 0x043E, 0x0434 | ForEach-Object { [char]$_ })
@@ -10,18 +13,13 @@ function Get-EnvValue([string]$path, [string]$key) {
 	($line -replace "^\s*$key\s*=\s*", '').Trim()
 }
 $pw = Get-EnvValue $envFile 'SERVER_LV_SSH_PASSWORD'
-$useKontentSsh = (Test-Path -LiteralPath $kontentEnv) -and ($envFile -like '*kit20-oauth.env*')
-if ($useKontentSsh) { $pk = Get-EnvValue $kontentEnv 'SERVER_LV_SSH_PASSWORD'; if ($pk) { $pw = $pk } }
-if (-not $pw) { $pw = Get-EnvValue $kontentEnv 'SERVER_LV_SSH_PASSWORD' }
+if ((Test-Path $kontentEnv) -and ($envFile -like '*kit20-oauth.env*')) {
+	$pk = Get-EnvValue $kontentEnv 'SERVER_LV_SSH_PASSWORD'
+	if ($pk) { $pw = $pk }
+}
+$hostLv = Get-EnvValue $envFile 'SERVER_LV_HOST'
+if (-not $hostLv) { $hostLv = '194.113.209.152' }
 $hk = 'ssh-ed25519 SHA256:HuSaSJtaQi7uJItHO0/A10c9e61lnnP4LuQXTrn/X1k'
 $plink = 'C:\Program Files\PuTTY\plink.exe'
-$remote = @'
-cd /var/www/kit20
-node scripts/verify-obshchak.mjs
-grep -c amountKopeks src/content/obshchak.json || true
-test -f .git/hooks/post-merge && echo hook-ok
-ls storage/last-known-good/ 2>/dev/null
-ls storage/runtime-backups/ 2>/dev/null | tail -3
-grep -c obshchak storage/admin-change-log/entries.jsonl 2>/dev/null || echo 0
-'@
-& $plink -ssh 'root@194.113.209.152' -pw $pw -batch -hostkey $hk $remote
+$remote = 'cd /var/www/kit20 && cp src/content/obshchak.json /tmp/obshchak-safe.json 2>/dev/null; git pull; test -f src/content/obshchak.json || cp /tmp/obshchak-safe.json src/content/obshchak.json'
+& $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $remote
