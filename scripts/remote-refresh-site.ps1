@@ -43,6 +43,9 @@ fi
 if git ls-files --error-unmatch storage/birthday-dial-labels.json >/dev/null 2>&1; then
   git checkout -- storage/birthday-dial-labels.json 2>/dev/null || rm -f storage/birthday-dial-labels.json
 fi
+if git ls-files --error-unmatch src/content/game-scores.json >/dev/null 2>&1; then
+  git checkout -- src/content/game-scores.json 2>/dev/null || true
+fi
 git pull
 if [ -f storage/birthday-dial-labels.json.bak ]; then
   node scripts/restore-birthday-dial-from-bak.mjs
