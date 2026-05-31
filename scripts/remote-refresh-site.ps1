@@ -37,6 +37,9 @@ if (-not (Test-Path -LiteralPath $plink)) { throw "Нужен PuTTY plink: $plin
 $remote = @"
 set -e
 cd $appDir
+BACKUP_DIR=storage/deploy-backups/\$(date +%Y%m%d-%H%M%S)
+mkdir -p "\$BACKUP_DIR"
+cp -a src/content "\$BACKUP_DIR/" 2>/dev/null || true
 if [ -f storage/birthday-dial-labels.json ]; then
   cp storage/birthday-dial-labels.json storage/birthday-dial-labels.json.bak
 fi
@@ -49,6 +52,17 @@ fi
 git pull
 if [ -f storage/birthday-dial-labels.json.bak ]; then
   node scripts/restore-birthday-dial-from-bak.mjs
+fi
+# Вернуть obshchak и прочий контент, если на сервере были правки и pull их затёр
+if [ -f "\$BACKUP_DIR/content/obshchak.json" ]; then
+  OB_OLD="\$BACKUP_DIR/content/obshchak.json"
+  OB_NEW=src/content/obshchak.json
+  OLD_BYTES=\$(wc -c < "\$OB_OLD" || echo 0)
+  NEW_BYTES=\$(wc -c < "\$OB_NEW" || echo 0)
+  if [ "\$OLD_BYTES" -gt "\$NEW_BYTES" ]; then
+    cp "\$OB_OLD" "\$OB_NEW"
+    echo "OK: restored obshchak.json from deploy backup"
+  fi
 fi
 npm ci
 npm run build
