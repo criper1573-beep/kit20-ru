@@ -37,10 +37,18 @@ $hk = 'ssh-ed25519 SHA256:HuSaSJtaQi7uJItHO0/A10c9e61lnnP4LuQXTrn/X1k'
 $plink = 'C:\Program Files\PuTTY\plink.exe'
 if (-not (Test-Path -LiteralPath $plink)) { throw "Нужен PuTTY plink: $plink" }
 
-$remote = @"
+$remote = @'
 set -e
-cd $appDir
-node scripts/preserve-runtime-on-deploy.mjs --phase=pre-pull
+cd __APP_DIR__
+if [ -f scripts/preserve-runtime-on-deploy.mjs ]; then
+  node scripts/preserve-runtime-on-deploy.mjs --phase=pre-pull
+else
+  BACKUP_DIR=storage/deploy-backups/$(date +%Y%m%d-%H%M%S)
+  mkdir -p "$BACKUP_DIR"
+  cp -a src/content/obshchak.json "$BACKUP_DIR/" 2>/dev/null || true
+  cp storage/birthday-dial-labels.json "$BACKUP_DIR/" 2>/dev/null || true
+  echo "OK: bootstrap pre-pull backup -> $BACKUP_DIR"
+fi
 if git ls-files --error-unmatch storage/birthday-dial-labels.json >/dev/null 2>&1; then
   git checkout -- storage/birthday-dial-labels.json 2>/dev/null || rm -f storage/birthday-dial-labels.json
 fi
@@ -55,10 +63,10 @@ node scripts/preserve-runtime-on-deploy.mjs --phase=verify
 node scripts/install-server-git-hooks.mjs
 node scripts/install-runtime-backup-cron.mjs 2>/dev/null || true
 node scripts/backup-runtime-content.mjs
-sudo chown -R www-data:www-data $appDir/src/content $appDir/storage
+sudo chown -R www-data:www-data __APP_DIR__/src/content __APP_DIR__/storage
 sudo systemctl restart kit20
 systemctl is-active kit20
-"@
+'@ -replace '__APP_DIR__', $appDir
 
 & $plink -ssh "root@$hostLv" -pw $pw -batch -hostkey $hk $remote
 if ($LASTEXITCODE -ne 0) { throw "plink failed: $LASTEXITCODE" }
