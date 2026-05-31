@@ -31,4 +31,4 @@ await chmod(hookPath, 0o755);
 // Первичный last-known-good с текущего obshchak
 spawnSync(process.execPath, ['scripts/backup-runtime-content.mjs'], { cwd: root, stdio: 'inherit' });
 
-console.log('OK: installed .git/hooks/post-merge');
+console.error('OK: installed .git/hooks/post-merge');

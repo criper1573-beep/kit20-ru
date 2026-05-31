@@ -18,7 +18,7 @@ $plink = 'C:\Program Files\PuTTY\plink.exe'
 $remote = @'
 cd /var/www/kit20
 node scripts/verify-obshchak.mjs
-node -e "const j=require('./src/content/obshchak.json'); console.log('expenses', j.expenses.length)"
+node -p "require('./src/content/obshchak.json').expenses.length"
 test -f .git/hooks/post-merge && echo hook-ok
 ls storage/last-known-good/ 2>/dev/null
 ls storage/runtime-backups/ 2>/dev/null | tail -3

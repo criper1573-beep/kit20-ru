@@ -32,6 +32,8 @@ function rel(p) {
 	return join(root, p);
 }
 
+const log = (...args) => console.error(...args);
+
 function parseArgs() {
 	const phase = process.argv.find((a) => a.startsWith('--phase='))?.split('=')[1];
 	if (!phase || !['pre-pull', 'post-pull', 'verify'].includes(phase)) {
@@ -147,7 +149,7 @@ async function phasePrePull() {
 	await copyIfExists(rel(GAME_SCORES), dir, 'game-scores.json');
 
 	await writeFile(MARKER, stamp, 'utf8');
-	console.log(`OK: pre-pull backup at storage/deploy-backups/${stamp}`);
+	log(`OK: pre-pull backup at storage/deploy-backups/${stamp}`);
 
 	// Ротация: оставить 30 последних
 	try {
@@ -168,19 +170,19 @@ async function restoreObshchakIfNeeded() {
 	const best = await pickBestObshchak();
 
 	if (!best) {
-		console.log('OK: obshchak - no restore candidates');
+		log('OK: obshchak - no restore candidates');
 		return { restored: false, currentM, bestM: null };
 	}
 
 	if (currentM && !isRicher(best.metrics, currentM)) {
-		console.log(`OK: obshchak - current is not worse (${best.label})`);
+		log(`OK: obshchak - current is not worse (${best.label})`);
 		return { restored: false, currentM, bestM: best.metrics };
 	}
 
 	await mkdir(join(root, 'src', 'content'), { recursive: true });
 	await writeFile(currentPath, best.raw.endsWith('\n') ? best.raw : `${best.raw}\n`, 'utf8');
-	console.log(`OK: restored obshchak.json from ${best.label}`);
-	console.log(formatMetricsPair('obshchak', currentM, best.metrics));
+	log(`OK: restored obshchak.json from ${best.label}`);
+	log(formatMetricsPair('obshchak', currentM, best.metrics));
 	await updateLastKnownGoodFrom(best.raw);
 	return { restored: true, currentM, bestM: best.metrics };
 }
@@ -201,7 +203,7 @@ async function restoreGenericIfSmaller(relPath, candidates) {
 		const { dirname } = await import('node:path');
 		await mkdir(dirname(target), { recursive: true });
 		await copyFile(bestPath, target);
-		console.log(`OK: restored ${relPath} (${curBytes} -> ${bestBytes} bytes)`);
+		log(`OK: restored ${relPath} (${curBytes} -> ${bestBytes} bytes)`);
 		return true;
 	}
 	return false;
@@ -264,7 +266,7 @@ async function phaseVerify() {
 	const r = spawnSync(process.execPath, ['scripts/verify-obshchak.mjs'], { cwd: root, stdio: 'inherit' });
 	if (r.status !== 0) process.exit(r.status ?? 1);
 
-	console.log('OK: verify phase passed');
+	log('OK: verify phase passed');
 }
 
 const phase = parseArgs();

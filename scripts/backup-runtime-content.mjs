@@ -75,4 +75,4 @@ try {
 	/* ignore */
 }
 
-console.log(`OK: runtime backup ${day}, items=${copied}`);
+console.error(`OK: runtime backup ${day}, items=${copied}`);

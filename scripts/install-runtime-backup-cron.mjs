@@ -14,7 +14,7 @@ ${cronLine} ${marker}
 
 try {
 	await writeFile(crontabPath, content, 'utf8');
-	console.log(`OK: wrote ${crontabPath}`);
+	console.error(`OK: wrote ${crontabPath}`);
 } catch (e) {
 	// fallback: append to user crontab hint
 	console.warn('Could not write /etc/cron.d (need root). Add manually:');
