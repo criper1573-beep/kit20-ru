@@ -2,8 +2,7 @@
 import '../styles/global.css';
 import StageBackdrop from '../components/StageBackdrop.astro';
 import Ticker from '../components/Ticker.astro';
-import FooterTowerGame from '../components/FooterTowerGame.astro';
-import TowerGamePromoWidget from '../components/TowerGamePromoWidget.astro';
+import FooterJumpGame from '../components/FooterJumpGame.astro';
 import { readHome } from '../lib/siteContent';
 
 interface Props {
@@ -252,7 +251,6 @@ const links = admin
 			</footer>
 		</div>
 		<Ticker band="bottom" text={tickerBottom} />
-		{showFooterGame && <TowerGamePromoWidget />}
 		{
 			!admin && (
 				<>

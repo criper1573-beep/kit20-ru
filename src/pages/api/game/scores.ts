@@ -1,12 +1,12 @@
 import type { APIRoute } from 'astro';
-import { readLeaderboardPayload, recordTowerRun } from '../../../lib/gameScores';
+import { addJumpGameScore, readJumpGameScores } from '../../../lib/gameScoresJump';
 
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
 	try {
-		const data = await readLeaderboardPayload();
-		return new Response(JSON.stringify(data), {
+		const scores = await readJumpGameScores();
+		return new Response(JSON.stringify({ scores: scores.slice(0, 20) }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 		});
@@ -30,35 +30,23 @@ export const POST: APIRoute = async ({ request }) => {
 		});
 	}
 
-	const payload = json as { name?: unknown; score?: unknown; runMeters?: unknown; sessionId?: unknown };
-	const nameRaw = typeof payload.name === 'string' ? payload.name : undefined;
-	const runMeters = Number(payload.runMeters ?? payload.score ?? 0);
+	const payload = json as { name?: unknown; score?: unknown; sessionId?: unknown };
+	const name = typeof payload.name === 'string' ? payload.name : '';
+	const score = Number(payload.score ?? 0);
 	const sessionId = typeof payload.sessionId === 'string' ? payload.sessionId : '';
-	if (!sessionId.trim()) {
-		return new Response(JSON.stringify({ error: 'Нет sessionId' }), {
+	if (!name.trim()) {
+		return new Response(JSON.stringify({ error: 'Введите имя' }), {
 			status: 400,
 			headers: { 'Content-Type': 'application/json; charset=utf-8' },
 		});
 	}
 
 	try {
-		const result = await recordTowerRun(runMeters, sessionId, nameRaw);
-		return new Response(
-			JSON.stringify({
-				ok: true,
-				saved: result.saved,
-				name: result.name,
-				mission: result.mission,
-				sessionTotalMeters: result.sessionTotalMeters,
-				sessionBestMeters: result.sessionBestMeters,
-				totalLeaderboard: result.totalLeaderboard,
-				bestLeaderboard: result.bestLeaderboard,
-			}),
-			{
-				status: 200,
-				headers: { 'Content-Type': 'application/json; charset=utf-8' },
-			},
-		);
+		const scores = await addJumpGameScore(name, score, sessionId);
+		return new Response(JSON.stringify({ ok: true, scores: scores.slice(0, 20) }), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json; charset=utf-8' },
+		});
 	} catch (e) {
 		const msg = e instanceof Error ? e.message : 'Ошибка сохранения';
 		return new Response(JSON.stringify({ error: msg }), {

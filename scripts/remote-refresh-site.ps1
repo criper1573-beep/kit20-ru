@@ -41,7 +41,8 @@ $remote = @'
 set -e
 cd __APP_DIR__
 if [ -f scripts/preserve-runtime-on-deploy.mjs ]; then
-  node scripts/preserve-runtime-on-deploy.mjs --phase=pre-pull
+  node scripts/backup-tower-scores.mjs 2>/dev/null || true
+node scripts/preserve-runtime-on-deploy.mjs --phase=pre-pull
 else
   BACKUP_DIR=storage/deploy-backups/$(date +%Y%m%d-%H%M%S)
   mkdir -p "$BACKUP_DIR"

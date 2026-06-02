@@ -29,6 +29,8 @@ const HOME_MD = 'src/content/home.md';
 const ATTENDANCE_MD = 'src/content/attendance.md';
 const BIRTHDAY = 'storage/birthday-dial-labels.json';
 const GAME_SCORES = 'src/content/game-scores.json';
+const JUMP_SCORES = 'src/content/game-scores-jump.json';
+const TOWER_SCORES_BACKUP = 'storage/game-scores-tower-backup.json';
 const UPLOADS_DIR = 'storage/uploads';
 
 function rel(p) {
@@ -150,6 +152,17 @@ async function phasePrePull() {
 	}
 	await copyIfExists(rel(BIRTHDAY), dir, 'birthday-dial-labels.json');
 	await copyIfExists(rel(GAME_SCORES), dir, 'game-scores.json');
+	await copyIfExists(rel(JUMP_SCORES), dir, 'game-scores-jump.json');
+	try {
+		const { cp } = await import('node:fs/promises');
+		const tower = rel(GAME_SCORES);
+		if (existsSync(tower)) {
+			await mkdir(join(root, 'storage'), { recursive: true });
+			await cp(tower, rel(TOWER_SCORES_BACKUP), { force: true });
+		}
+	} catch {
+		/* ignore */
+	}
 	await copyIfExists(rel(HOME_MD), dir, 'home.md');
 	await copyIfExists(rel(ATTENDANCE_MD), dir, 'attendance.md');
 	try {
@@ -318,7 +331,7 @@ async function phasePostPull() {
 	await restoreGenericIfSmaller(ATTENDANCE_MD, genericCandidates('attendance.md'));
 	await restoreGenericIfSmaller(HOME_MD, genericCandidates('home.md'));
 	await restoreGenericIfSmaller(BIRTHDAY, genericCandidates('birthday-dial-labels.json'));
-	await restoreGenericIfSmaller(GAME_SCORES, genericCandidates('game-scores.json'));
+	await restoreGenericIfSmaller(JUMP_SCORES, genericCandidates('game-scores-jump.json'));
 
 	// birthday .bak restore (legacy)
 	const bak = rel('storage/birthday-dial-labels.json.bak');

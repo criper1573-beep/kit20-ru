@@ -38,6 +38,7 @@ storage/runtime-backups/
 storage/last-known-good/
 storage/admin-change-log/
 storage/uploads/
+storage/game-scores-tower-backup.json
 
 # recovery / debug artifacts (local)
 recovered-obshchak*.json

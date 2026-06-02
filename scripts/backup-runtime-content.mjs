@@ -18,7 +18,7 @@ const FILES = [
 	'src/content/home.md',
 	'src/content/attendance.md',
 	'storage/birthday-dial-labels.json',
-	'src/content/game-scores.json',
+	'src/content/game-scores-jump.json',
 ];
 
 await mkdir(dest, { recursive: true });

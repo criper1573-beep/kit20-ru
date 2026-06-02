@@ -1,0 +1,553 @@
+---
+/* Спрайты: Noto Emoji (OFL) — /public/game/jump-*.png */
+---
+
+<section
+	class="footer-jump-game relative overflow-hidden border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
+	aria-label="Мини-игра «Прыжок»"
+>
+	<div class="pointer-events-none absolute inset-x-0 top-0 h-1 bg-accent" aria-hidden="true"></div>
+
+	<div class="flex items-start justify-between gap-3 px-3 pt-3 sm:px-4 sm:pt-4">
+		<div>
+			<h3 class="font-display text-lg uppercase tracking-[0.2em] text-ink sm:text-xl">Прыжок</h3>
+			<p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted sm:text-[10px]">Уклоняйся · театр и кино</p>
+		</div>
+		<button
+			id="footer-jump-open-rating-top"
+			type="button"
+			class="shrink-0 border-[2px] border-ink bg-canvas px-2 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-accent shadow-[var(--shadow-card)] transition-colors hover:border-accent hover:text-accent-hover sm:text-[10px]"
+		>
+			Рейтинг
+		</button>
+	</div>
+
+	<div
+		class="mx-3 mt-3 border-[3px] border-ink bg-[#e4ddd4] p-1 shadow-[inset_0_2px_0_rgb(255_255_255/0.45)] sm:mx-4"
+	>
+		<div
+			id="footer-jump-viewport"
+			class="relative w-full overflow-hidden bg-[linear-gradient(180deg,#f0ebe0_0%,#e8e1d6_50%,#f0ebe0_100%)] aspect-[30/11]"
+		>
+			<div
+				class="pointer-events-none absolute inset-0 opacity-[0.35]"
+				style="background-image: linear-gradient(#0a0a0a08 1px, transparent 1px), linear-gradient(90deg, #0a0a0a08 1px, transparent 1px); background-size: 14px 14px;"
+				aria-hidden="true"
+			></div>
+			<canvas id="footer-jump-canvas" class="relative z-[1] block h-full w-full" width="300" height="110"></canvas>
+		</div>
+	</div>
+
+	<p id="footer-jump-status" class="mx-3 mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-ink sm:mx-4 sm:text-[11px]">
+		Пробел или клик — прыжок
+	</p>
+	<p id="footer-jump-coach" class="mx-3 mt-1 hidden font-serif text-[12px] italic leading-relaxed text-muted sm:mx-4"></p>
+
+	<form id="footer-jump-form" class="mx-3 mt-3 hidden items-end gap-2 sm:mx-4">
+		<label class="min-w-0 flex-1 font-mono text-[10px] uppercase tracking-[0.18em] text-ink">
+			Имя
+			<input
+				id="footer-jump-name"
+				type="text"
+				maxlength="24"
+				required
+				class="mt-1 w-full border-[3px] border-ink bg-surface px-2 py-1.5 text-xs outline-none focus:ring-2 focus:ring-accent"
+			/>
+		</label>
+		<button
+			type="submit"
+			class="type-cta shrink-0 border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+		>
+			Сохранить
+		</button>
+	</form>
+
+	<div class="mx-3 mb-3 mt-3 flex flex-wrap items-center gap-2 sm:mx-4 sm:mb-4">
+		<button
+			id="footer-jump-start"
+			type="button"
+			class="type-cta border-[3px] border-ink bg-accent px-3 py-2 text-[10px] uppercase tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover"
+		>
+			Старт
+		</button>
+		<button
+			id="footer-jump-restart"
+			type="button"
+			class="type-cta hidden border-[3px] border-ink bg-surface px-3 py-2 text-[10px] uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-muted-surface"
+		>
+			Ещё раз
+		</button>
+	</div>
+</section>
+
+<dialog
+	id="footer-jump-rating-dialog"
+	class="fixed left-1/2 top-1/2 z-[120] w-[min(100vw-2rem,32rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 border-[3px] border-ink bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
+>
+	<div class="border-b-[3px] border-ink bg-muted-surface px-4 py-3">
+		<div class="flex items-center justify-between gap-3">
+			<h4 class="font-display text-xl uppercase tracking-[0.15em] text-ink">Рейтинг прыжка</h4>
+			<button
+				id="footer-jump-rating-close"
+				type="button"
+				class="type-cta border-[2px] border-ink bg-surface px-2 py-1 text-[10px] text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface"
+			>
+				Закрыть
+			</button>
+		</div>
+	</div>
+	<div class="p-4">
+		<p id="footer-jump-rating-status" class="mb-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Загрузка…</p>
+		<div class="bb-scrollbar max-h-64 overflow-auto border-[2px] border-ink">
+			<table class="w-full border-collapse text-left">
+				<thead>
+					<tr class="bg-ink text-canvas">
+						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">#</th>
+						<th class="border-r-[2px] border-ink/30 px-2 py-2 font-display text-sm uppercase tracking-widest">Имя</th>
+						<th class="px-2 py-2 font-display text-sm uppercase tracking-widest">Дист.</th>
+					</tr>
+				</thead>
+				<tbody id="footer-jump-rating-body"></tbody>
+			</table>
+		</div>
+	</div>
+</dialog>
+
+<script is:inline>
+	(() => {
+		const canvas = document.getElementById('footer-jump-canvas');
+		const viewport = document.getElementById('footer-jump-viewport');
+		if (!(canvas instanceof HTMLCanvasElement) || !(viewport instanceof HTMLElement)) return;
+
+		const ctx = canvas.getContext('2d');
+		if (!ctx) return;
+
+		const BASE_W = 300;
+		const BASE_H = 110;
+		const GROUND_PAD = 18;
+
+		const statusEl = document.getElementById('footer-jump-status');
+		const coachEl = document.getElementById('footer-jump-coach');
+		const form = document.getElementById('footer-jump-form');
+		const nameInput = document.getElementById('footer-jump-name');
+		const startBtn = document.getElementById('footer-jump-start');
+		const restartBtn = document.getElementById('footer-jump-restart');
+		const openRatingTopBtn = document.getElementById('footer-jump-open-rating-top');
+		const ratingDialog = document.getElementById('footer-jump-rating-dialog');
+		const ratingCloseBtn = document.getElementById('footer-jump-rating-close');
+		const ratingStatusEl = document.getElementById('footer-jump-rating-status');
+		const ratingBodyEl = document.getElementById('footer-jump-rating-body');
+
+		const playerImg = new Image();
+		playerImg.src = '/game/jump-player.png';
+		playerImg.decoding = 'async';
+		const hazardImg = new Image();
+		hazardImg.src = '/game/jump-hazard.png';
+		hazardImg.decoding = 'async';
+
+		let scale = 1;
+		let dpr = 1;
+		let groundY = BASE_H - GROUND_PAD;
+
+		let running = false;
+		let raf = 0;
+		let last = performance.now();
+		let distance = 0;
+		let spawn = 0.8;
+		const sessionIdKey = 'kit20_jump_session_id';
+		const sessionBestKey = 'kit20_jump_best';
+		const sessionNameKey = 'kit20_jump_name';
+		const obstacles = [];
+		const player = { x: 36, y: groundY - 20, w: 22, h: 22, vy: 0 };
+
+		const coachPhrases = [
+			'Маловато репетиций. Сделай упражнение «Счет до 30 на одном дыхании».',
+			'Сцена любит подготовку. Выполни «Заземление стоп» 2 минуты.',
+			'Сегодня не дожал. Пройди «Квадрат дыхания» 4-4-4-4.',
+			'Темп просел. Сделай упражнение «Маятник корпуса» 20 повторов.',
+			'Нужно больше концентрации. Выполни «Точка внимания» 90 секунд.',
+			'Прыжок сырой. Сделай «Артикуляционная разминка» (губы/язык) 3 минуты.',
+			'Пластика зажата. Пройди «Волна позвоночника» 10 раз.',
+			'Ритм хромает. Сделай «Хлопки по метронома» 120 BPM, 2 минуты.',
+			'Мало сцепки с телом. Выполни «Стоп-кадр эмоции» 8 поз.',
+			'Выносливость слабая. Сделай «Планка с текстом» 45 секунд.',
+			'Не хватило прыти. Пройди «Бег на месте + дикция» 1 минуту.',
+			'Нужна точность. Выполни «Взгляд в точку» и текст без моргания 30 сек.',
+			'Слишком рано сдался. Сделай «Лестница громкости» от шепота до форте.',
+			'Тело опоздало за мыслью. Пройди «Импульс-стоп» 15 повторов.',
+			'Не хватает опоры. Выполни «Корни» — устойчивые стойки 2 минуты.',
+			'Сценическая правда просела. Сделай «Этюд на предмет» 3 минуты.',
+			'Реакция медленная. Пройди «Поймай импульс» с хлопком 20 раз.',
+			'Голос устал. Сделай «Резонаторы: м-м-м / н-н-н» 2 минуты.',
+			'Внимание рассыпалось. Выполни «Тишина и слушание» 60 секунд.',
+			'Пора в тренинг. Сделай этюд «Препятствие и цель» на 2 минуты.',
+		];
+
+		function syncCanvasSize() {
+			const rect = viewport.getBoundingClientRect();
+			const w = Math.max(160, Math.floor(rect.width));
+			const h = Math.max(55, Math.floor(rect.height));
+			dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+			canvas.width = Math.max(1, Math.floor(w * dpr));
+			canvas.height = Math.max(1, Math.floor(h * dpr));
+			canvas.style.width = `${w}px`;
+			canvas.style.height = `${h}px`;
+			scale = w / BASE_W;
+			groundY = BASE_H - GROUND_PAD;
+		}
+
+		function renderScores(scores) {
+			if (!(ratingBodyEl instanceof HTMLElement)) return;
+			if (!scores.length) {
+				ratingBodyEl.innerHTML = `
+					<tr>
+						<td colspan="3" class="px-2 py-4 text-center font-sans text-xs uppercase tracking-wider text-muted">
+							Пока нет результатов.
+						</td>
+					</tr>
+				`;
+				return;
+			}
+			ratingBodyEl.innerHTML = scores
+				.map((row, i) => {
+					const name = String(row?.name ?? '');
+					const score = Number(row?.score ?? 0);
+					return `
+						<tr class="border-t-[2px] border-ink/15">
+							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-mono text-xs">${i + 1}</td>
+							<td class="border-r-[2px] border-ink/15 px-2 py-1.5 font-sans text-sm">${name}</td>
+							<td class="px-2 py-1.5 font-mono text-sm text-accent">${formatScore(score)}</td>
+						</tr>
+					`;
+				})
+				.join('');
+		}
+
+		function formatScore(value) {
+			if (!Number.isFinite(value)) return '0.00';
+			return value.toFixed(2);
+		}
+
+		function getSessionId() {
+			try {
+				const prev = sessionStorage.getItem(sessionIdKey);
+				if (prev) return prev;
+				const next = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+				sessionStorage.setItem(sessionIdKey, next);
+				return next;
+			} catch {
+				return '';
+			}
+		}
+
+		function getSessionBest() {
+			try {
+				return Number(sessionStorage.getItem(sessionBestKey) ?? '0') || 0;
+			} catch {
+				return 0;
+			}
+		}
+
+		function setSessionBest(value) {
+			try {
+				sessionStorage.setItem(sessionBestKey, String(value));
+			} catch {}
+		}
+
+		async function openRatingDialog() {
+			if (!(ratingDialog instanceof HTMLDialogElement)) return;
+			ratingDialog.showModal();
+			if (ratingStatusEl) ratingStatusEl.textContent = 'Загрузка…';
+			try {
+				const res = await fetch('/api/game/scores');
+				const json = await res.json();
+				if (!res.ok) throw new Error('load-failed');
+				renderScores(Array.isArray(json?.scores) ? json.scores : []);
+				if (ratingStatusEl) ratingStatusEl.textContent = 'Топ игроков';
+			} catch {
+				renderScores([]);
+				if (ratingStatusEl) ratingStatusEl.textContent = 'Ошибка загрузки';
+			}
+		}
+
+		function onGround() {
+			return player.y >= groundY - player.h - 0.01;
+		}
+
+		function jump() {
+			if (!running || !onGround()) return;
+			player.vy = -245;
+		}
+
+		function resetGame() {
+			distance = 0;
+			spawn = 0.8;
+			obstacles.length = 0;
+			player.y = groundY - player.h;
+			player.vy = 0;
+			if (statusEl) statusEl.textContent = 'Пробел или клик — прыжок';
+			if (coachEl) {
+				coachEl.textContent = '';
+				coachEl.classList.add('hidden');
+			}
+			if (form) form.classList.add('hidden');
+			if (restartBtn) restartBtn.classList.add('hidden');
+		}
+
+		function startGame() {
+			syncCanvasSize();
+			resetGame();
+			running = true;
+			last = performance.now();
+			cancelAnimationFrame(raf);
+			raf = requestAnimationFrame(loop);
+		}
+
+		function gameOver() {
+			running = false;
+			const result = Math.round(distance * 100) / 100;
+			const prevBest = getSessionBest();
+			if (result > prevBest) setSessionBest(result);
+			if (statusEl) {
+				statusEl.textContent = `Поражение · дистанция ${formatScore(result)} · лучший ${formatScore(Math.max(result, prevBest))}`;
+			}
+			if (coachEl) {
+				const phrase = coachPhrases[Math.floor(Math.random() * coachPhrases.length)];
+				coachEl.textContent = phrase;
+				coachEl.classList.remove('hidden');
+			}
+			if (form) form.classList.remove('hidden');
+			if (restartBtn) restartBtn.classList.remove('hidden');
+		}
+
+		function drawActorFallback(x, y, w, h) {
+			const cx = x + w / 2;
+			const cy = y + h / 2;
+			const rx = w * 0.42;
+			const ry = h * 0.42;
+
+			ctx.strokeStyle = '#0a0a0a';
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+			ctx.stroke();
+
+			ctx.fillStyle = '#0a0a0a';
+			ctx.beginPath();
+			ctx.arc(cx - w * 0.16, cy - h * 0.1, 1.8, 0, Math.PI * 2);
+			ctx.arc(cx + w * 0.16, cy - h * 0.1, 1.8, 0, Math.PI * 2);
+			ctx.fill();
+
+			ctx.beginPath();
+			ctx.arc(cx, cy + h * 0.06, w * 0.2, 0.2, Math.PI - 0.2, false);
+			ctx.stroke();
+		}
+
+		function drawPlayer(x, y, w, h) {
+			if (playerImg.complete && playerImg.naturalWidth > 0) {
+				const iw = playerImg.naturalWidth;
+				const ih = playerImg.naturalHeight;
+				const r = Math.min(w / iw, h / ih);
+				const dw = iw * r;
+				const dh = ih * r;
+				const dx = x + (w - dw) / 2;
+				const dy = y + (h - dh) / 2;
+				ctx.save();
+				ctx.shadowColor = 'rgba(10,10,10,0.2)';
+				ctx.shadowBlur = 3;
+				ctx.shadowOffsetY = 2;
+				ctx.drawImage(playerImg, dx, dy, dw, dh);
+				ctx.restore();
+			} else {
+				drawActorFallback(x, y, w, h);
+			}
+		}
+
+		function drawObstacleSpike(o) {
+			ctx.fillStyle = '#d42b2b';
+			ctx.strokeStyle = '#7a1414';
+			ctx.lineWidth = 1.5;
+			ctx.beginPath();
+			ctx.moveTo(o.x, o.y + o.h);
+			ctx.lineTo(o.x + o.w * 0.45, o.y);
+			ctx.lineTo(o.x + o.w, o.y + o.h);
+			ctx.closePath();
+			ctx.fill();
+			ctx.stroke();
+
+			ctx.strokeStyle = '#f0ebe0';
+			ctx.lineWidth = 1.25;
+			ctx.beginPath();
+			ctx.moveTo(o.x + o.w * 0.48, o.y + o.h * 0.2);
+			ctx.lineTo(o.x + o.w * 0.48, o.y + o.h * 0.82);
+			ctx.stroke();
+		}
+
+		function drawObstacle(o) {
+			if (hazardImg.complete && hazardImg.naturalWidth > 0) {
+				const pad = 1;
+				const iw = hazardImg.naturalWidth;
+				const ih = hazardImg.naturalHeight;
+				const rw = Math.max(4, o.w - pad * 2);
+				const rh = Math.max(4, o.h - pad * 2);
+				const r = Math.min(rw / iw, rh / ih);
+				const dw = iw * r;
+				const dh = ih * r;
+				const dx = o.x + (o.w - dw) / 2;
+				const dy = o.y + (o.h - dh) / 2;
+				ctx.save();
+				ctx.shadowColor = 'rgba(212,43,43,0.35)';
+				ctx.shadowBlur = 4;
+				ctx.shadowOffsetY = 1;
+				ctx.drawImage(hazardImg, dx, dy, dw, dh);
+				ctx.restore();
+			} else {
+				drawObstacleSpike(o);
+			}
+		}
+
+		function draw() {
+			syncCanvasSize();
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+			ctx.imageSmoothingEnabled = true;
+			if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+
+			ctx.fillStyle = '#f0ebe0';
+			ctx.fillRect(0, 0, BASE_W, BASE_H);
+
+			ctx.strokeStyle = '#0a0a0a18';
+			ctx.lineWidth = 1;
+			ctx.setLineDash([4, 5]);
+			ctx.beginPath();
+			ctx.moveTo(0, groundY + 0.5);
+			ctx.lineTo(BASE_W, groundY + 0.5);
+			ctx.stroke();
+			ctx.setLineDash([]);
+
+			ctx.strokeStyle = '#0a0a0a';
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.moveTo(0, groundY + 1);
+			ctx.lineTo(BASE_W, groundY + 1);
+			ctx.stroke();
+
+			drawPlayer(player.x, player.y, player.w, player.h);
+			for (const o of obstacles) drawObstacle(o);
+
+			ctx.fillStyle = '#0a0a0a';
+			ctx.font = '600 11px "Space Mono", ui-monospace, monospace';
+			ctx.fillText(`DIST ${Math.floor(distance)}`, BASE_W - 102, 17);
+		}
+
+		function loop(now) {
+			const dt = Math.min((now - last) / 1000, 0.033);
+			last = now;
+
+			if (running) {
+				distance += dt * 12;
+				spawn -= dt;
+				if (spawn <= 0) {
+					const h = 14 + Math.random() * 16;
+					const w = 12 + Math.random() * 12;
+					obstacles.push({ x: BASE_W + 8, y: groundY - h, w, h });
+					spawn = 0.9 + Math.random() * 0.8;
+				}
+
+				const speed = 130 + distance * 0.18;
+				for (let i = obstacles.length - 1; i >= 0; i--) {
+					const o = obstacles[i];
+					o.x -= speed * dt;
+					if (o.x + o.w < -2) obstacles.splice(i, 1);
+				}
+
+				player.vy += 680 * dt;
+				player.y += player.vy * dt;
+				if (player.y > groundY - player.h) {
+					player.y = groundY - player.h;
+					player.vy = 0;
+				}
+
+				for (const o of obstacles) {
+					const hit =
+						player.x < o.x + o.w &&
+						player.x + player.w > o.x &&
+						player.y < o.y + o.h &&
+						player.y + player.h > o.y;
+					if (hit) {
+						gameOver();
+						break;
+					}
+				}
+			}
+
+			draw();
+			raf = requestAnimationFrame(loop);
+		}
+
+		const ro = new ResizeObserver(() => {
+			syncCanvasSize();
+		});
+		ro.observe(viewport);
+
+		canvas.addEventListener('click', jump);
+		window.addEventListener('keydown', (e) => {
+			if (e.code === 'Space') {
+				e.preventDefault();
+				jump();
+			}
+		});
+		startBtn?.addEventListener('click', startGame);
+		restartBtn?.addEventListener('click', startGame);
+		openRatingTopBtn?.addEventListener('click', openRatingDialog);
+		ratingCloseBtn?.addEventListener('click', () => {
+			if (ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
+		});
+		ratingDialog?.addEventListener('click', (e) => {
+			if (e.target === ratingDialog && ratingDialog instanceof HTMLDialogElement) ratingDialog.close();
+		});
+
+		form?.addEventListener('submit', async (e) => {
+			e.preventDefault();
+			if (!(nameInput instanceof HTMLInputElement)) return;
+			const name = nameInput.value.trim();
+			if (!name) return;
+			const best = getSessionBest();
+			if (!Number.isFinite(best) || best <= 0) return;
+			try {
+				sessionStorage.setItem(sessionNameKey, name);
+			} catch {}
+			try {
+				const res = await fetch('/api/game/scores', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ name, score: best, sessionId: getSessionId() }),
+				});
+				if (!res.ok) throw new Error('save-failed');
+				if (statusEl) statusEl.textContent = `Рекорд сессии сохранен · ${formatScore(best)}`;
+				openRatingDialog();
+			} catch {
+				if (statusEl) statusEl.textContent = 'Ошибка сохранения';
+			}
+		});
+
+		if (nameInput instanceof HTMLInputElement) {
+			try {
+				const prevName = sessionStorage.getItem(sessionNameKey);
+				if (prevName) nameInput.value = prevName;
+			} catch {}
+		}
+
+		function kickoff() {
+			syncCanvasSize();
+			draw();
+		}
+
+		playerImg.addEventListener('load', kickoff);
+		hazardImg.addEventListener('load', kickoff);
+		playerImg.addEventListener('error', kickoff);
+		hazardImg.addEventListener('error', kickoff);
+		kickoff();
+	})();
+</script>
