@@ -5,5 +5,13 @@ fullName: Экволс Николай Петрович
 birthday: 04.01.1985
 photo: /uploads/621e9f9d-fbc3-422a-98e1-66640a9798ac.jpg
 order: 9
-etudes: []
+etudes:
+  - title: Тряпка
+    passed: true
+    teacherComment: Проработать своё оружее,поправить конец истории.
+  - title: Олень
+    passed: true
+    teacherComment: Отрепетировать дуэт с Егором.Поставить волосы в рога.
+  - title: 3 стихии
+    passed: true
 ---

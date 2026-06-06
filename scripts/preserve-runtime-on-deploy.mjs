@@ -310,6 +310,15 @@ async function phasePostPull() {
 	const backupDir = marker ? join(DEPLOY_BACKUPS, marker) : null;
 	if (backupDir) {
 		await restoreUploadsIfNeeded(backupDir);
+	}
+	{
+		const { spawnSync } = await import('node:child_process');
+		spawnSync(process.execPath, ['scripts/merge-uploads-from-var-backup.mjs'], {
+			cwd: root,
+			stdio: 'inherit',
+		});
+	}
+	if (backupDir) {
 		await restoreHomeIfNeeded(backupDir);
 		await restoreAttendanceIfNeeded(backupDir);
 		const studentsBak = join(backupDir, 'students');
@@ -332,6 +341,17 @@ async function phasePostPull() {
 	await restoreGenericIfSmaller(HOME_MD, genericCandidates('home.md'));
 	await restoreGenericIfSmaller(BIRTHDAY, genericCandidates('birthday-dial-labels.json'));
 	await restoreGenericIfSmaller(JUMP_SCORES, genericCandidates('game-scores-jump.json'));
+
+	// этюды в students/*.md — только из stash, не затирать пустым бэкапом
+	try {
+		const { spawnSync } = await import('node:child_process');
+		spawnSync(process.execPath, ['scripts/restore-student-etudes-from-stash.mjs', '--stash=stash@{1}'], {
+			cwd: root,
+			stdio: 'inherit',
+		});
+	} catch {
+		/* optional */
+	}
 
 	// birthday .bak restore (legacy)
 	const bak = rel('storage/birthday-dial-labels.json.bak');
