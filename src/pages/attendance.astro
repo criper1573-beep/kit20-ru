@@ -2,6 +2,7 @@
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import { readStudentsSorted, readAttendance } from '../lib/siteContent';
+import { attendanceCellStatus, attendancePresentCount } from '../lib/attendanceStats';
 
 const students = await readStudentsSorted();
 const { data: att } = await readAttendance();
@@ -22,21 +23,7 @@ const statusTitle: Record<'present' | 'absent', string> = {
 	absent: 'Не был',
 };
 
-type CellState = 'present' | 'absent';
-
-function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
-	const legacy = lesson.records;
-	if (legacy && legacy.length > 0) {
-		const r = legacy.find((x) => x.student === slug);
-		const st = r?.status;
-		if (st === 'absent') return 'absent';
-		return 'present';
-	}
-	const ex = lesson.exceptions?.find((x) => x.student === slug);
-	if (!ex) return 'present';
-	if (ex.status === 'excused') return 'present';
-	return 'absent';
-}
+const totalLessons = lessons.length;
 ---
 
 <Layout title="Посещаемость" description="График посещаемости занятий">
@@ -53,13 +40,19 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 			<>
 				<div
 					class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
-					style="--att-name-col-w:5.6rem; --att-name-col-w-sm:6.4rem; --att-cell-w:5.6rem; --att-cell-w-sm:6.4rem;"
+					style="--att-name-col-w:5.6rem; --att-name-col-w-sm:6.4rem; --att-count-col-w:2.85rem; --att-count-col-w-sm:3.25rem; --att-cell-w:5.6rem; --att-cell-w-sm:6.4rem;"
 				>
 					<table class="w-max table-fixed border-collapse text-left font-sans text-[10px] sm:text-sm" id="att-table">
 						<thead>
 							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-								<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-1 py-2 text-[11px] font-display font-normal tracking-normal sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3.5 sm:text-xl sm:tracking-widest">
+								<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden border-r-[2px] border-ink bg-ink px-1 py-2 text-[11px] font-display font-normal tracking-normal sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3.5 sm:text-xl sm:tracking-widest">
 									УЧЕНИК
+								</th>
+								<th
+									class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-[var(--att-count-col-w)] max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-0.5 py-2 text-center font-mono text-[9px] font-normal uppercase tracking-[0.06em] text-canvas/80 sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3.5 sm:text-[10px]"
+									title="Посещений из записанных занятий"
+								>
+									Б/все
 								</th>
 								{lessons.map((lesson) => (
 									<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
@@ -72,13 +65,21 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 							</tr>
 						</thead>
 						<tbody>
-							{students.map((s) => (
+							{students.map((s) => {
+								const presentCount = attendancePresentCount(lessons, s.data.slug);
+								return (
 								<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors">
-									<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden text-ellipsis whitespace-nowrap border-r-[3px] border-ink bg-surface px-1 py-2 uppercase tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
+									<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden text-ellipsis whitespace-nowrap border-r-[2px] border-ink bg-surface px-1 py-2 uppercase tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
 										{s.data.displayName}
 									</td>
+									<td
+										class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-[var(--att-count-col-w)] max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-surface px-0.5 py-2 text-center font-mono text-[10px] tabular-nums text-ink group-hover:bg-muted-surface transition-colors sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3 sm:text-xs"
+										title={`Был на ${presentCount} из ${totalLessons} занятий`}
+									>
+										{presentCount}/{totalLessons}
+									</td>
 									{lessons.map((lesson) => {
-										const st = cellStatus(lesson, s.data.slug);
+										const st = attendanceCellStatus(lesson, s.data.slug);
 										const label = statusLabel[st];
 										const t = statusTitle[st];
 										return (
@@ -96,7 +97,8 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 										);
 									})}
 								</tr>
-							))}
+							);
+							})}
 						</tbody>
 					</table>
 				</div>
@@ -145,7 +147,7 @@ function cellStatus(lesson: (typeof lessons)[number], slug: string): CellState {
 				const tr = td.closest('tr');
 				if (!tr) return;
 				const colIndex = Array.from(tr.children).indexOf(td);
-				if (colIndex <= 0) return;
+				if (colIndex <= 1) return;
 				clearHighlight();
 				activeRowHeader = tr.children[0] ?? null;
 				const theadRow = thead.querySelector('tr');
