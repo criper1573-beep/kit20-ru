@@ -1,18 +1,20 @@
 ---
 export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
-import { readObshchak, readStudentsSorted } from '../../lib/siteContent';
+import { currentObshchakParticipantSlugs, readObshchak, readStudentsSorted } from '../../lib/siteContent';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
 import { formatRubKopeks, totalPotKopeks } from '../../lib/obshchakMath';
+import { isDeletedObshchakContributor } from '../../lib/obshchakRoster.mjs';
 
 if (!hasValidAdminSession(Astro.cookies)) {
 	const nextUrl = Astro.url.pathname + Astro.url.search;
 	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
 }
 
-const students = await readStudentsSorted();
+const students = (await readStudentsSorted()).filter((s) => !isDeletedObshchakContributor(s.slug));
 const data = await readObshchak();
-const potK = totalPotKopeks(data.contributedKopeks, data.expenses);
+const potK = totalPotKopeks(data.contributedKopeks, data.expenses, data.archivedContributedKopeks);
+const newExpenseParticipantSlugs = await currentObshchakParticipantSlugs();
 
 function rubFromK(k: number): string {
 	if (k === 0) return '';
@@ -24,7 +26,7 @@ function rubFromK(k: number): string {
 	<div class="mb-8 border-b-[3px] border-ink pb-4">
 		<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Общак</h1>
 		<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">
-			Взносы (коп. в JSON), равные доли на всех, траты. Сейчас в кассе: <strong class="text-ink">{formatRubKopeks(potK)}</strong>
+			Взносы (коп. в JSON), доли по снимку участников на момент траты. Сейчас в кассе: <strong class="text-ink">{formatRubKopeks(potK)}</strong>
 		</p>
 	</div>
 
@@ -103,7 +105,11 @@ function rubFromK(k: number): string {
 
 	<script
 		is:inline
-		define:vars={{ initialWatcher: data.watcherSlug, initialDataJson: JSON.stringify(data) }}
+		define:vars={{
+			initialWatcher: data.watcherSlug,
+			initialDataJson: JSON.stringify(data),
+			studentSlugs: newExpenseParticipantSlugs,
+		}}
 	>
 		function parseRub(s) {
 			const t = String(s).trim().replace(/\s/g, '').replace(',', '.');
@@ -114,8 +120,11 @@ function rubFromK(k: number): string {
 		}
 
 		(function () {
-			/** @type {{ watcherSlug: string; contributedKopeks: Record<string, number>; expenses: { id: string; label: string; amountKopeks: number; createdAt?: string }[] }} */
+			/** @type {{ watcherSlug: string; contributedKopeks: Record<string, number>; archivedContributedKopeks?: Record<string, number>; expenses: { id: string; label: string; amountKopeks: number; createdAt?: string; participantSlugs?: string[] }[] }} */
 			let state = JSON.parse(initialDataJson);
+			function currentParticipantSlugs() {
+				return Array.isArray(studentSlugs) ? studentSlugs.slice() : [];
+			}
 
 			function elExpenseRow(e) {
 				const li = document.createElement('li');
@@ -183,6 +192,7 @@ function rubFromK(k: number): string {
 					label,
 					amountKopeks: k,
 					createdAt: new Date().toISOString(),
+					participantSlugs: currentParticipantSlugs(),
 				};
 				state.expenses = [ex, ...state.expenses];
 				if (labelEl && 'value' in labelEl) labelEl.value = '';
@@ -204,6 +214,7 @@ function rubFromK(k: number): string {
 				return {
 					watcherSlug: initialWatcher,
 					contributedKopeks: cont,
+					archivedContributedKopeks: state.archivedContributedKopeks || {},
 					expenses: state.expenses,
 				};
 			}

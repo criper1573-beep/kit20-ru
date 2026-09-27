@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { obshchakDataSchema } from '../../../lib/schemas';
-import { readObshchak, writeObshchak } from '../../../lib/siteContent';
+import { obshchakDataSchema, type ObshchakExpense } from '../../../lib/schemas';
+import { currentObshchakParticipantSlugs, readObshchak, writeObshchak } from '../../../lib/siteContent';
 import { hasValidAdminSession, unauthorizedJson } from '../../../lib/adminApiAuth';
 import { logAdminContentChange } from '../../../lib/adminChangeLog';
 
@@ -50,7 +50,20 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 	try {
 		const beforeData = await readObshchak();
 		const beforeRaw = JSON.stringify(beforeData, null, 2) + '\n';
-		await writeObshchak(parsed.data);
+		const currentSlugs = await currentObshchakParticipantSlugs();
+		const existingIds = new Set(beforeData.expenses.map((e: ObshchakExpense) => e.id));
+		const expenses = parsed.data.expenses.map((e: ObshchakExpense) => {
+			if (e.participantSlugs && e.participantSlugs.length > 0) return e;
+			if (!existingIds.has(e.id)) {
+				return { ...e, participantSlugs: currentSlugs };
+			}
+			return e;
+		});
+		const incomingArchived = parsed.data.archivedContributedKopeks ?? {};
+		const beforeArchived = beforeData.archivedContributedKopeks ?? {};
+		const archivedContributedKopeks =
+			Object.keys(incomingArchived).length > 0 ? incomingArchived : beforeArchived;
+		await writeObshchak({ ...parsed.data, expenses, archivedContributedKopeks });
 		const afterData = await readObshchak();
 		const afterRaw = JSON.stringify(afterData, null, 2) + '\n';
 		await logAdminContentChange({

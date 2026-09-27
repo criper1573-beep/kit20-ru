@@ -110,13 +110,17 @@ export const obshchakExpenseSchema = z.object({
 	label: z.string().min(1),
 	amountKopeks: z.number().int().positive(),
 	createdAt: z.string().optional(),
+	/** Кто делил трату; пусто/нет — fallback на текущий список учеников. */
+	participantSlugs: z.array(z.string().min(1)).optional(),
 });
 
 export const obshchakDataSchema = z.object({
 	/** «Смотрящий» — отдельно от сетки 4×4 */
 	watcherSlug: z.string().default('nastya'),
-	/** Сколько внёс в кассу, коп. Ключ = slug. */
+	/** Сколько внёс в кассу, коп. Ключ = slug. Только живой состав. */
 	contributedKopeks: z.record(z.string(), z.number().int().min(0)).default({}),
+	/** Взносы ушедших (seryozha/anya/galya/yulya-1) — в кассе, не в личных балансах. */
+	archivedContributedKopeks: z.record(z.string(), z.number().int().min(0)).default({}),
 	expenses: z.array(obshchakExpenseSchema).default([]),
 });
 

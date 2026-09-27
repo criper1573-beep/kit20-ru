@@ -8,15 +8,16 @@ import {
 	formatRubKopeks,
 	totalPotKopeks,
 } from '../lib/obshchakMath';
+import { isDeletedObshchakContributor } from '../lib/obshchakRoster.mjs';
 
-const students = await readStudentsSorted();
+const students = (await readStudentsSorted()).filter((s) => !isDeletedObshchakContributor(s.slug));
 const slugs = students.map((s) => s.slug);
 
 const data = await readObshchak();
 const watcherSlug = data.watcherSlug;
 const bySlug = new Map(students.map((r, i) => [r.data.slug, { row: r, i }]));
 
-const potK = totalPotKopeks(data.contributedKopeks, data.expenses);
+const potK = totalPotKopeks(data.contributedKopeks, data.expenses, data.archivedContributedKopeks);
 const balMap = balanceKopeksBySlug(slugs, data.contributedKopeks, data.expenses);
 
 const watcher = bySlug.get(watcherSlug);

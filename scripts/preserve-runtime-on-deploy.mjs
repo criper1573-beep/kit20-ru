@@ -426,6 +426,11 @@ async function phaseVerify() {
 	}
 
 	const { spawnSync } = await import('node:child_process');
+	const migrated = spawnSync(process.execPath, ['scripts/migrate-obshchak-participants.mjs'], {
+		cwd: root,
+		stdio: 'inherit',
+	});
+	if (migrated.status !== 0) process.exit(migrated.status ?? 1);
 	const r = spawnSync(process.execPath, ['scripts/verify-obshchak.mjs'], { cwd: root, stdio: 'inherit' });
 	if (r.status !== 0) process.exit(r.status ?? 1);
 

@@ -11,10 +11,14 @@ import { readFile } from 'node:fs/promises';
  */
 export function metricsFromObshchak(data) {
 	const contributed = data && typeof data === 'object' && data.contributedKopeks ? data.contributedKopeks : {};
+	const archived =
+		data && typeof data === 'object' && data.archivedContributedKopeks ? data.archivedContributedKopeks : {};
 	const expenses = data && typeof data === 'object' && Array.isArray(data.expenses) ? data.expenses : [];
 	const expenseCount = expenses.length;
 	const expenseKopeks = expenses.reduce((a, e) => a + (Number(e?.amountKopeks) || 0), 0);
-	const contribKopeks = Object.values(contributed).reduce((a, v) => a + (Number(v) || 0), 0);
+	const liveKopeks = Object.values(contributed).reduce((a, v) => a + (Number(v) || 0), 0);
+	const archivedKopeks = Object.values(archived).reduce((a, v) => a + (Number(v) || 0), 0);
+	const contribKopeks = liveKopeks + archivedKopeks;
 	const potKopeks = contribKopeks - expenseKopeks;
 	const isEmpty = expenseCount === 0 && contribKopeks === 0;
 	// Траты важнее всего: 30 трат >> пустой файл с большими взносами по ошибке
