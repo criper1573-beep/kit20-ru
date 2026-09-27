@@ -50,9 +50,7 @@ const heroTitle = kitMatch?.[2]?.trim() || data.title.trim();
 ---
 
 <Layout title={title}>
-	<section
-		class="relative mb-12 overflow-hidden border-[3px] border-ink bg-surface px-8 pb-8 pt-8 shadow-[var(--shadow-card)] sm:px-12 sm:pb-12 sm:pt-12"
-	>
+	<section class="relative mb-12">
 		<h1 class="text-center">
 			{
 				heroKicker && (
@@ -83,7 +81,7 @@ const heroTitle = kitMatch?.[2]?.trim() || data.title.trim();
 
 		{
 			data.photo && (
-				<div class="-mx-8 mt-8 overflow-hidden border-y-[3px] border-ink bg-muted-surface sm:-mx-12">
+				<div class="mt-8 overflow-hidden border-[3px] border-ink bg-muted-surface">
 					<img
 						src={data.photo}
 						alt="Фото группы"
