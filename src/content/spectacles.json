@@ -1,0 +1,18 @@
+{
+  "spectacles": [
+    {
+      "id": "a1b2c3d4-e5f6-4789-a012-3456789abcde",
+      "title": "Спектакль-заглушка",
+      "heroPhoto": "/placeholders/spectacle-hero.svg",
+      "directorName": "Режиссёр · заглушка",
+      "directorRegalia": "Заглушка · режиссёрские регалии",
+      "directorPhoto": "/placeholders/spectacle-director.svg",
+      "gallery": [
+        "/placeholders/spectacle-gallery-1.svg",
+        "/placeholders/spectacle-gallery-2.svg",
+        "/placeholders/spectacle-gallery-3.svg"
+      ],
+      "order": 0
+    }
+  ]
+}

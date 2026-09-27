@@ -19,6 +19,7 @@
     "verify:obshchak": "node scripts/verify-obshchak.mjs",
     "seed:etude-topics": "node scripts/seed-etude-topics.mjs",
     "verify:etude-topics": "node scripts/verify-etude-topics.mjs",
+    "verify:spectacles": "node scripts/verify-spectacles.mjs",
     "preserve:runtime": "node scripts/preserve-runtime-on-deploy.mjs",
     "backup:runtime": "node scripts/backup-runtime-content.mjs",
     "build:lihie-asset": "node scripts/build-lihie-obshchak-asset.mjs",
