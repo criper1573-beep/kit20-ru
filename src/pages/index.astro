@@ -1,12 +1,14 @@
 ---
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
-import { readHome } from '../lib/siteContent';
+import SpectaclesSection from '../components/SpectaclesSection.astro';
+import { readHome, readSpectacles } from '../lib/siteContent';
 import { renderMarkdownToHtml } from '../lib/renderMarkdown';
 import type { HomeFrontmatter } from '../lib/schemas';
 
 const { data, body } = await readHome();
 const bodyHtml = renderMarkdownToHtml(body);
+const { spectacles } = await readSpectacles();
 const title = data.title;
 
 const defaultSemesters = [
@@ -111,6 +113,8 @@ const heroTitle = kitMatch?.[2]?.trim() || data.title.trim();
 				}
 			</div>
 		</div>
+
+		<SpectaclesSection spectacles={spectacles} />
 
 		{
 			bodyHtml.trim() && (

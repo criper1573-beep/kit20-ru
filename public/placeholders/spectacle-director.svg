@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 800" width="640" height="800" role="img" aria-label="03;CH:0 @568AAQ@0">
+  <defs>
+    <pattern id="chk" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#f0ebe0"/>
+      <rect width="12" height="12" fill="#d8d2c6"/>
+      <rect x="12" y="12" width="12" height="12" fill="#d8d2c6"/>
+    </pattern>
+  </defs>
+  <rect width="640" height="800" fill="url(#chk)"/>
+  <rect x="10" y="10" width="620" height="780" fill="none" stroke="#0a0a0a" stroke-width="6"/>
+  <circle cx="320" cy="280" r="110" fill="none" stroke="#0a0a0a" stroke-width="8"/>
+  <circle cx="280" cy="260" r="10" fill="#0a0a0a"/>
+  <circle cx="360" cy="260" r="10" fill="#0a0a0a"/>
+  <path d="M270 330 Q320 300 370 330" fill="none" stroke="#0a0a0a" stroke-width="8" stroke-linecap="square"/>
+  <rect x="48" y="500" width="544" height="180" fill="#d42b2b"/>
+  <text x="320" y="575" text-anchor="middle" fill="#f0ebe0" font-family="Bebas Neue, Impact, sans-serif" font-size="48" letter-spacing="0.16em">#(</text>
+  <text x="320" y="640" text-anchor="middle" fill="#0a0a0a" font-family="Bebas Neue, Impact, sans-serif" font-size="36" letter-spacing="0.2em"> !! </text>
+</svg>

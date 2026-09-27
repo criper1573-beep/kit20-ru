@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" width="960" height="640" role="img" aria-label="03;CH:0 A?5:B0:;O">
+  <defs>
+    <pattern id="chk" width="24" height="24" patternUnits="userSpaceOnUse">
+      <rect width="24" height="24" fill="#f0ebe0"/>
+      <rect width="12" height="12" fill="#e0dbd0"/>
+      <rect x="12" y="12" width="12" height="12" fill="#e0dbd0"/>
+    </pattern>
+  </defs>
+  <rect width="960" height="640" fill="url(#chk)"/>
+  <rect x="10" y="10" width="940" height="620" fill="none" stroke="#0a0a0a" stroke-width="6"/>
+  <rect x="48" y="240" width="864" height="160" fill="#0a0a0a"/>
+  <text x="480" y="310" text-anchor="middle" fill="#f0ebe0" font-family="Bebas Neue, Impact, sans-serif" font-size="64" letter-spacing="0.18em">#(</text>
+  <text x="480" y="372" text-anchor="middle" fill="#d42b2b" font-family="Bebas Neue, Impact, sans-serif" font-size="42" letter-spacing="0.22em">!",</text>
+</svg>

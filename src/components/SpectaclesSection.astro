@@ -1,0 +1,368 @@
+---
+import type { Spectacle } from '../lib/schemas';
+import { sortSpectacles } from '../lib/spectacles';
+
+interface Props {
+	spectacles: Spectacle[];
+}
+
+const { spectacles } = Astro.props;
+const items = sortSpectacles(spectacles).filter((s) => s.id);
+---
+
+{
+	items.length > 0 && (
+		<section class="mt-10 border-t-[3px] border-ink pt-8" aria-labelledby="spectacles-heading">
+			<h2 id="spectacles-heading" class="mb-6 font-display text-lg font-normal uppercase tracking-[0.18em] text-ink">
+				Спектакли
+			</h2>
+			<div class="flex flex-col gap-14">
+				{items.map((spec) => {
+					const gallery = spec.gallery.filter((url) => url.trim());
+					return (
+						<article class="spectacle-block" data-spectacle-id={spec.id}>
+							<div class="spectacle-pair">
+								<figure class="spectacle-frame">
+									{spec.heroPhoto ? (
+										<img src={spec.heroPhoto} alt={spec.title || 'Спектакль'} class="spectacle-photo" />
+									) : (
+										<div class="spectacle-empty" aria-hidden="true">
+											нет фото
+										</div>
+									)}
+								</figure>
+								<div class="spectacle-caption">
+									<p class="spectacle-kicker">Спектакль</p>
+									<h3 class="spectacle-title">{spec.title || 'Без названия'}</h3>
+								</div>
+							</div>
+
+							<div class="spectacle-pair spectacle-pair--director mt-3 sm:mt-4">
+								<div class="spectacle-caption">
+									<p class="spectacle-kicker">Режиссёр</p>
+									<h3 class="spectacle-title spectacle-title--dir">{spec.directorName || '—'}</h3>
+									{spec.directorRegalia.trim() && (
+										<p class="spectacle-regalia">{spec.directorRegalia}</p>
+									)}
+								</div>
+								<figure class="spectacle-frame">
+									{spec.directorPhoto ? (
+										<img
+											src={spec.directorPhoto}
+											alt={spec.directorName || 'Режиссёр'}
+											class="spectacle-photo"
+										/>
+									) : (
+										<div class="spectacle-empty" aria-hidden="true">
+											нет фото
+										</div>
+									)}
+								</figure>
+							</div>
+
+							{gallery.length > 0 && (
+								<div class="spectacle-drum-wrap mt-4">
+									<p class="spectacle-kicker mb-2 px-1">Кадры</p>
+									<div class="spectacle-drum bb-scrollbar" data-spectacle-gallery>
+										{gallery.map((url, i) => (
+											<button
+												type="button"
+												class="spectacle-drum-item"
+												data-lightbox-src={url}
+												aria-label={`Открыть кадр ${i + 1} спектакля ${spec.title || ''}`}
+											>
+												<img src={url} alt="" class="spectacle-drum-photo" />
+											</button>
+										))}
+									</div>
+								</div>
+							)}
+						</article>
+					);
+				})}
+			</div>
+
+			<dialog id="spectacle-lightbox" class="spectacle-lightbox" aria-label="Просмотр кадра">
+				<button type="button" class="spectacle-lightbox-close" data-lightbox-close aria-label="Закрыть">
+					Закрыть
+				</button>
+				<button type="button" class="spectacle-lightbox-nav spectacle-lightbox-nav--prev" data-lightbox-prev aria-label="Предыдущий кадр">
+					‹
+				</button>
+				<img id="spectacle-lightbox-img" class="spectacle-lightbox-img" alt="" />
+				<button type="button" class="spectacle-lightbox-nav spectacle-lightbox-nav--next" data-lightbox-next aria-label="Следующий кадр">
+					›
+				</button>
+			</dialog>
+		</section>
+	)
+}
+
+<style>
+	.spectacle-pair {
+		display: grid;
+		grid-template-columns: 1fr;
+		border: 3px solid var(--color-ink);
+		background-color: var(--color-canvas);
+	}
+	.spectacle-pair--director .spectacle-caption {
+		order: 1;
+	}
+	.spectacle-pair--director .spectacle-frame {
+		order: 2;
+	}
+	@media (min-width: 640px) {
+		.spectacle-pair {
+			grid-template-columns: 1fr 1fr;
+		}
+		.spectacle-pair--director .spectacle-caption {
+			order: 0;
+		}
+		.spectacle-pair--director .spectacle-frame {
+			order: 0;
+		}
+	}
+	.spectacle-frame {
+		margin: 0;
+		min-height: 14rem;
+		border-bottom: 3px solid var(--color-ink);
+		background-color: var(--color-muted-bg);
+		background-image:
+			repeating-linear-gradient(0deg, transparent, transparent 11px, rgb(10 10 10 / 0.07) 11px, rgb(10 10 10 / 0.07) 12px),
+			repeating-linear-gradient(90deg, transparent, transparent 11px, rgb(10 10 10 / 0.07) 11px, rgb(10 10 10 / 0.07) 12px);
+	}
+	@media (min-width: 640px) {
+		.spectacle-frame {
+			min-height: 18rem;
+			border-bottom: 0;
+		}
+		.spectacle-pair > .spectacle-frame {
+			border-right: 3px solid var(--color-ink);
+		}
+		.spectacle-pair--director > .spectacle-frame {
+			border-right: 0;
+			border-left: 3px solid var(--color-ink);
+		}
+	}
+	.spectacle-photo {
+		display: block;
+		width: 100%;
+		height: 100%;
+		min-height: 14rem;
+		object-fit: cover;
+		object-position: center;
+	}
+	@media (min-width: 640px) {
+		.spectacle-photo {
+			min-height: 18rem;
+		}
+	}
+	.spectacle-empty {
+		display: flex;
+		min-height: 14rem;
+		align-items: center;
+		justify-content: center;
+		font-family: var(--font-sans);
+		font-size: 10px;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: var(--color-muted);
+	}
+	.spectacle-caption {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.75rem;
+		padding: 1.25rem 1.1rem;
+		background-color: var(--color-canvas);
+		background-image:
+			repeating-linear-gradient(0deg, transparent, transparent 11px, rgb(10 10 10 / 0.06) 11px, rgb(10 10 10 / 0.06) 12px),
+			repeating-linear-gradient(90deg, transparent, transparent 11px, rgb(10 10 10 / 0.06) 11px, rgb(10 10 10 / 0.06) 12px);
+	}
+	@media (min-width: 640px) {
+		.spectacle-caption {
+			padding: 1.75rem 1.5rem;
+		}
+	}
+	.spectacle-kicker {
+		margin: 0;
+		font-family: var(--font-sans);
+		font-size: 10px;
+		letter-spacing: 0.22em;
+		text-transform: uppercase;
+		color: var(--color-accent);
+	}
+	.spectacle-title {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: clamp(2rem, 6vw, 3.4rem);
+		font-weight: 400;
+		line-height: 0.95;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-ink);
+	}
+	.spectacle-title--dir {
+		font-size: clamp(1.6rem, 4.5vw, 2.6rem);
+	}
+	.spectacle-regalia {
+		margin: 0;
+		max-width: 28ch;
+		font-family: var(--font-serif);
+		font-size: 0.95rem;
+		font-style: italic;
+		line-height: 1.45;
+		color: var(--color-muted);
+	}
+	.spectacle-drum-wrap {
+		min-width: 0;
+	}
+	.spectacle-drum {
+		display: flex;
+		gap: 0;
+		overflow-x: auto;
+		border: 3px solid var(--color-ink);
+		background-color: var(--color-canvas);
+		-webkit-overflow-scrolling: touch;
+	}
+	.spectacle-drum-item {
+		flex: 0 0 auto;
+		width: min(70vw, 16rem);
+		height: 10.5rem;
+		padding: 0;
+		margin: 0;
+		border: 0;
+		border-right: 3px solid var(--color-ink);
+		background: var(--color-muted-bg);
+		cursor: pointer;
+	}
+	.spectacle-drum-item:last-child {
+		border-right: 0;
+	}
+	.spectacle-drum-item:hover,
+	.spectacle-drum-item:focus-visible {
+		outline: 3px solid var(--color-accent);
+		outline-offset: -3px;
+	}
+	.spectacle-drum-photo {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+</style>
+
+<style is:global>
+	.spectacle-lightbox {
+		width: 100vw;
+		height: 100vh;
+		max-width: none;
+		max-height: none;
+		margin: 0;
+		padding: 0;
+		border: none;
+		background: rgb(10 10 10 / 0.94);
+	}
+	.spectacle-lightbox[open] {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.spectacle-lightbox::backdrop {
+		background: rgb(10 10 10 / 0.88);
+	}
+	.spectacle-lightbox-img {
+		max-width: 92vw;
+		max-height: 86vh;
+		object-fit: contain;
+		border: 3px solid var(--color-canvas);
+	}
+	.spectacle-lightbox-close {
+		position: fixed;
+		top: 1rem;
+		right: 1rem;
+		z-index: 2;
+		border: 3px solid var(--color-canvas);
+		background: var(--color-accent);
+		padding: 0.45rem 0.85rem;
+		font-family: var(--font-display), sans-serif;
+		font-size: 0.95rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--color-canvas);
+		cursor: pointer;
+	}
+	.spectacle-lightbox-nav {
+		position: fixed;
+		top: 50%;
+		z-index: 2;
+		width: 2.75rem;
+		height: 2.75rem;
+		transform: translateY(-50%);
+		border: 3px solid var(--color-canvas);
+		background: var(--color-ink);
+		font-family: var(--font-display), sans-serif;
+		font-size: 1.8rem;
+		line-height: 1;
+		color: var(--color-canvas);
+		cursor: pointer;
+	}
+	.spectacle-lightbox-nav--prev {
+		left: 0.75rem;
+	}
+	.spectacle-lightbox-nav--next {
+		right: 0.75rem;
+	}
+</style>
+
+<script>
+	const dialog = document.getElementById('spectacle-lightbox') as HTMLDialogElement | null;
+	const img = document.getElementById('spectacle-lightbox-img') as HTMLImageElement | null;
+	if (dialog && img) {
+		let urls: string[] = [];
+		let index = 0;
+
+		function show(at: number) {
+			if (!urls.length || !img) return;
+			index = (at + urls.length) % urls.length;
+			img.src = urls[index] ?? '';
+		}
+
+		function openLightbox(list: string[], at: number) {
+			urls = list;
+			show(at);
+			dialog?.showModal();
+		}
+
+		function closeLightbox() {
+			dialog?.close();
+		}
+
+		document.querySelectorAll<HTMLElement>('[data-spectacle-gallery]').forEach((drum) => {
+			const buttons = [...drum.querySelectorAll<HTMLButtonElement>('[data-lightbox-src]')];
+			const list = buttons.map((b) => b.dataset.lightboxSrc ?? '').filter(Boolean);
+			buttons.forEach((btn, i) => {
+				btn.addEventListener('click', () => openLightbox(list, i));
+			});
+		});
+
+		dialog.addEventListener('click', (e) => {
+			if (e.target === dialog) closeLightbox();
+		});
+		dialog.querySelectorAll('[data-lightbox-close]').forEach((el) => {
+			el.addEventListener('click', closeLightbox);
+		});
+		dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			show(index - 1);
+		});
+		dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', (e) => {
+			e.stopPropagation();
+			show(index + 1);
+		});
+		dialog.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowLeft') show(index - 1);
+			if (e.key === 'ArrowRight') show(index + 1);
+		});
+	}
+</script>
