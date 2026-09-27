@@ -16,7 +16,6 @@ const { title, description = 'Сайт учебной группы театра 
 
 const pathname = Astro.url.pathname;
 const showFooterGame = !admin;
-const isClassRoute = pathname.startsWith('/class') || pathname.startsWith('/admin/class');
 
 const homeTicker = await readHome().catch(() => null);
 const tickerTop = homeTicker?.data.tickerTop ?? '';
@@ -61,7 +60,7 @@ const links = admin
 		<title>{title}</title>
 	</head>
 	<body class="relative overflow-x-hidden bg-canvas font-sans text-ink antialiased">
-		<StageBackdrop gridOnly={isClassRoute} />
+		<StageBackdrop />
 		<div class="relative z-10 flex min-h-dvh flex-col pb-[var(--site-ticker-h)]">
 			<div class="sticky top-0 z-40 bg-canvas">
 				<header
@@ -188,6 +187,7 @@ const links = admin
 					})();
 				</script>
 				<Ticker band="top" text={tickerTop} />
+				<slot name="after-ticker" />
 			</div>
 			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
 				<slot />

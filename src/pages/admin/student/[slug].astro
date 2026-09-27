@@ -128,7 +128,10 @@ const title = `Ученик · ${data.displayName}`;
 					+ Добавить этюд
 				</button>
 			</div>
-			<p class="mt-2 font-sans text-xs uppercase tracking-wider text-muted">Пустые строки не сохраняются. Для удаления очистите название или нажмите крестик.</p>
+			<p class="mt-2 font-sans text-xs uppercase tracking-wider text-muted">
+				Пустые строки не сохраняются. Для удаления очистите название или нажмите крестик.
+				Этюды на публичной /class ведутся в <a href="/admin/class" class="underline hover:text-accent">/admin/class</a> по темам — поля ниже остаются в карточке ученика и на /class не показываются.
+			</p>
 			<div id="etude-rows" class="mt-4 space-y-4">
 				{
 					padEtudes.map((e) => (
