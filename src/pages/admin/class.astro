@@ -99,19 +99,12 @@ const initialJson = JSON.stringify({
 					>
 						<thead>
 							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-								<th class:list={[
-									'border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base',
-									hideTitle ? 'w-[36%]' : 'w-[28%]',
-								]}>
+								<th class="w-[28%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
 									Участники
 								</th>
-								{
-									!hideTitle && (
-										<th class="w-[24%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
-											Название этюда
-										</th>
-									)
-								}
+								<th class="w-[24%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
+									Название этюда
+								</th>
 								<th class="border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
 									Комментарий педагога
 								</th>
@@ -142,17 +135,14 @@ const initialJson = JSON.stringify({
 											</details>
 										</div>
 									</td>
-									{
-										!hideTitle && (
-											<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-												<input
-													type="text"
-													class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
-													value={row.title}
-												/>
-											</td>
-										)
-									}
+									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+										<input
+											type="text"
+											class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
+											value={hideTitle ? '' : row.title}
+											readonly={hideTitle}
+										/>
+									</td>
 									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
 										<textarea
 											class="et-comment w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
@@ -370,10 +360,9 @@ const initialJson = JSON.stringify({
 			const tr = document.createElement('tr');
 			tr.className = 'etude-row border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface';
 			tr.setAttribute('data-etude-id', newId('etude'));
-			const titleCell = hidesTitle()
-				? ''
-				: `<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-					<input type="text" class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" />
+			const titleReadonly = hidesTitle() ? 'readonly' : '';
+			const titleCell = `<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+					<input type="text" class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" ${titleReadonly} />
 				</td>`;
 			tr.innerHTML = `
 				<td class="border-r-[2px] border-ink px-1.5 py-2 align-top sm:px-3 sm:py-3">${participantEditorHtml([])}</td>

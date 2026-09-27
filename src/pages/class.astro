@@ -35,8 +35,8 @@ const studentBlocks = students.map((entry, i) => ({
 
 	{
 		active && (
-			<h1 class="mb-6 inline-flex max-w-full items-center border-[3px] border-ink bg-accent px-2.5 py-1.5 shadow-[var(--shadow-card)] sm:px-4 sm:py-2">
-				<span class="whitespace-nowrap font-display text-[clamp(1.25rem,6.4vw,2.75rem)] font-normal uppercase leading-none tracking-[0.06em] text-canvas sm:tracking-[0.12em]">
+			<h1 class="mb-6 box-border w-full max-w-full border-[3px] border-ink bg-accent px-2.5 py-1.5 shadow-[var(--shadow-card)] sm:px-4 sm:py-2">
+				<span class="block min-w-0 break-words font-display text-[clamp(1rem,5vw,2.75rem)] font-normal uppercase leading-none tracking-[0.04em] text-canvas [overflow-wrap:anywhere] sm:tracking-[0.1em]">
 					{active.title}
 				</span>
 			</h1>
@@ -57,19 +57,12 @@ const studentBlocks = students.map((entry, i) => ({
 				<table class="kit-data-table text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
 					<thead>
 						<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-							<th class:list={[
-								'border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider',
-								hideTitle ? 'w-[38%]' : 'w-[30%]',
-							]}>
+							<th class="w-[30%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
 								Участники
 							</th>
-							{
-								!hideTitle && (
-									<th class="w-[28%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
-										Название этюда
-									</th>
-								)
-							}
+							<th class="w-[28%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+								Название этюда
+							</th>
 							<th class="px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
 								Комментарий педагога
 							</th>
@@ -99,13 +92,9 @@ const studentBlocks = students.map((entry, i) => ({
 										)}
 									</div>
 								</td>
-								{
-									!hideTitle && (
-										<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
-											{row.title?.trim() ? row.title : '—'}
-										</td>
-									)
-								}
+								<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
+									{hideTitle ? '' : row.title?.trim() ? row.title : '—'}
+								</td>
 								<td class="px-1.5 py-2 align-top text-ink/90 normal-case sm:px-4 sm:py-3">
 									{row.teacherComment?.trim() ? row.teacherComment : '—'}
 								</td>
