@@ -17,8 +17,24 @@ const thirteen = [...OBSHCHAK_HISTORICAL_PARTICIPANT_SLUGS];
 const remainingNine = thirteen.filter((s) => !OBSHCHAK_DELETED_CONTRIB_SLUGS.includes(s));
 const rosterWithKatya = [...remainingNine, KATYA_KUZINA_SLUG];
 
-test('исторический снимок — 13 человек, без Кати, с ушедшими', () => {
+test('исторический снимок — исходные 13, без Кати, с ушедшими', () => {
+	const expected = [
+		'nastya',
+		'katya-2',
+		'kolya',
+		'egor',
+		'natasha',
+		'seryozha',
+		'gazik',
+		'ira',
+		'anya',
+		'galya',
+		'vika',
+		'marusya',
+		'yulya-1',
+	];
 	assert.equal(thirteen.length, 13);
+	assert.deepEqual([...thirteen].sort(), [...expected].sort());
 	assert.equal(thirteen.includes(KATYA_KUZINA_SLUG), false);
 	for (const slug of OBSHCHAK_DELETED_CONTRIB_SLUGS) {
 		assert.equal(thirteen.includes(slug), true, slug);
@@ -139,4 +155,26 @@ test('migrate: ушедшие → archived, katya=0, снимок 13, касса
 		raw.expenses as { amountKopeks: number; participantSlugs?: string[] }[],
 	);
 	assert.equal(bal.get(KATYA_KUZINA_SLUG), 0);
+});
+
+test('migrate: ошибочный 9-way на старой трате переписывается на 13', () => {
+	const raw = migrateObshchakData({
+		watcherSlug: 'nastya',
+		contributedKopeks: { nastya: 100 },
+		expenses: [{ id: 'e1', label: 'чай', amountKopeks: 900, participantSlugs: remainingNine }],
+	});
+	const exp = (raw.expenses as { participantSlugs: string[] }[])[0];
+	assert.deepEqual(exp.participantSlugs, thirteen);
+	assert.equal(exp.participantSlugs.includes(KATYA_KUZINA_SLUG), false);
+});
+
+test('migrate: снимок с Катей (новая трата) не трогаем', () => {
+	const withKatya = [...remainingNine, KATYA_KUZINA_SLUG];
+	const raw = migrateObshchakData({
+		watcherSlug: 'nastya',
+		contributedKopeks: { nastya: 100, [KATYA_KUZINA_SLUG]: 0 },
+		expenses: [{ id: 'e2', label: 'новое', amountKopeks: 1000, participantSlugs: withKatya }],
+	});
+	const exp = (raw.expenses as { participantSlugs: string[] }[])[0];
+	assert.deepEqual(exp.participantSlugs, withKatya);
 });

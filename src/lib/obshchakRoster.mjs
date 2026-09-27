@@ -88,10 +88,17 @@ export function migrateObshchakData(data) {
 		contributed[KATYA_KUZINA_SLUG] = 0;
 	}
 
+	const remainingNine = OBSHCHAK_HISTORICAL_PARTICIPANT_SLUGS.filter((s) => !isDeletedObshchakContributor(s));
 	const expensesIn = Array.isArray(src.expenses) ? src.expenses : [];
 	const expenses = expensesIn.map((e) => {
 		if (!e || typeof e !== 'object') return e;
-		if (Array.isArray(e.participantSlugs) && e.participantSlugs.length > 0) return e;
+		const p = e.participantSlugs;
+		if (Array.isArray(p) && p.length > 0) {
+			if (p.includes(KATYA_KUZINA_SLUG)) return e;
+			const set = new Set(p);
+			const isLegacyNine = p.length === 9 && remainingNine.every((s) => set.has(s));
+			if (!isLegacyNine) return e;
+		}
 		return { ...e, participantSlugs: [...OBSHCHAK_HISTORICAL_PARTICIPANT_SLUGS] };
 	});
 
