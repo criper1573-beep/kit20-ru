@@ -55,7 +55,7 @@ const initialJson = JSON.stringify({ lessons });
 
 	<div
 		class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
-		style="--att-name-col-w:4.35rem; --att-name-col-w-sm:6.4rem; --att-cell-w:3.15rem; --att-cell-w-sm:6.4rem;"
+		style="--att-name-col-w:4.35rem; --att-name-col-w-sm:6.4rem; --att-cell-w:4.725rem; --att-cell-w-sm:9.6rem;"
 	>
 		<table class="w-max table-fixed border-collapse text-left font-sans text-[10px] sm:text-sm" id="att-table">
 			<thead>
@@ -64,7 +64,7 @@ const initialJson = JSON.stringify({ lessons });
 						УЧЕНИК
 					</th>
 					{lessons.map((lesson, li) => (
-					<th class="w-[var(--att-cell-w)] min-w-0 max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+					<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 						<button type="button" class="remove-lesson-btn absolute right-0.5 top-0.5 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li={String(li)} title="Удалить занятие">✕</button>
 						<div class="break-all text-[9px] leading-tight text-accent cursor-pointer hover:underline sm:text-xs" data-edit-date data-li={String(li)} title="Изменить дату">{lesson.date}</div>
 						<div class="mt-0.5 break-words text-[8px] uppercase leading-tight tracking-[0.04em] text-canvas/70 cursor-pointer hover:underline sm:mt-1 sm:text-[10px] sm:tracking-wider" data-edit-label data-li={String(li)} title="Изменить название">
@@ -85,7 +85,7 @@ const initialJson = JSON.stringify({ lessons });
 							const absent = st === 'absent';
 							const label = absent ? 'Н' : 'Б';
 							return (
-								<td class="w-[var(--att-cell-w)] min-w-0 max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+								<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 									<button
 										type="button"
 										class:list={[
@@ -379,7 +379,7 @@ const initialJson = JSON.stringify({ lessons });
 			const theadTr = document.querySelector('#att-table thead tr');
 			if (theadTr) {
 				const th = document.createElement('th');
-				th.className = "w-[var(--att-cell-w)] min-w-0 max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2";
+				th.className = "w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 relative group/th sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2";
 				th.innerHTML = `
 					<button type="button" class="remove-lesson-btn absolute right-1 top-1 hidden h-4 w-4 items-center justify-center text-[10px] text-accent hover:bg-accent hover:text-canvas group-hover/th:flex" data-li="${newIndex}" title="Удалить занятие">✕</button>
 					<div class="text-xs text-accent cursor-pointer hover:underline" data-edit-date data-li="${newIndex}" title="Изменить дату">${date}</div>
@@ -391,7 +391,7 @@ const initialJson = JSON.stringify({ lessons });
 			document.querySelectorAll('#att-table tbody tr').forEach(tr => {
 				const slug = tr.getAttribute('data-slug');
 				const td = document.createElement('td');
-				td.className = "w-[var(--att-cell-w)] min-w-0 max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2";
+				td.className = "w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-0 sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2";
 				td.innerHTML = `
 					<button
 						type="button"
