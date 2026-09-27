@@ -7,6 +7,27 @@ export const etudeSchema = z.object({
 	teacherComment: z.string().optional(),
 });
 
+/** Тема этюдов на /class (новые слева по createdAt). */
+export const etudeTopicSchema = z.object({
+	id: z.string().min(1),
+	title: z.string().min(1),
+	createdAt: z.string().min(1),
+});
+
+/** Строка этюда в теме: несколько участников, комментарий педагога. */
+export const classEtudeSchema = z.object({
+	id: z.string().min(1),
+	topicId: z.string().min(1),
+	title: z.string().min(1),
+	teacherComment: z.string().optional().default(''),
+	participantSlugs: z.array(z.string().min(1)).default([]),
+});
+
+export const etudeTopicsDataSchema = z.object({
+	topics: z.array(etudeTopicSchema).default([]),
+	etudes: z.array(classEtudeSchema).default([]),
+});
+
 export const attendanceStatus = z.enum(['present', 'absent', 'excused']);
 
 /** Устаревший формат: полный список учеников на занятие */
@@ -104,3 +125,6 @@ export type StudentFrontmatter = z.infer<typeof studentFrontmatterSchema>;
 export type AttendanceFrontmatter = z.infer<typeof attendanceFrontmatterSchema>;
 export type ObshchakData = z.infer<typeof obshchakDataSchema>;
 export type ObshchakExpense = z.infer<typeof obshchakExpenseSchema>;
+export type EtudeTopic = z.infer<typeof etudeTopicSchema>;
+export type ClassEtude = z.infer<typeof classEtudeSchema>;
+export type EtudeTopicsData = z.infer<typeof etudeTopicsDataSchema>;

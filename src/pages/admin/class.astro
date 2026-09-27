@@ -1,10 +1,9 @@
 ---
 export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
-import ClassPageOverlay from '../../components/ClassPageOverlay.astro';
-import StudentAvatar from '../../components/StudentAvatar.astro';
-import { readStudentsSorted } from '../../lib/siteContent';
-import { renderMarkdownToHtml } from '../../lib/renderMarkdown';
+import EtudeTopicSheets from '../../components/EtudeTopicSheets.astro';
+import { readEtudeTopics, readStudentsSorted } from '../../lib/siteContent';
+import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft } from '../../lib/etudeTopics';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
 
 if (!hasValidAdminSession(Astro.cookies)) {
@@ -12,158 +11,413 @@ if (!hasValidAdminSession(Astro.cookies)) {
 	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
 }
 
-const rows = await readStudentsSorted();
+const students = await readStudentsSorted();
+const catalog = await readEtudeTopics();
+const topics = sortTopicsNewestLeft(catalog.topics);
+const active = pickActiveTopic(topics, Astro.url.searchParams.get('topic'));
+const orderBySlug = new Map(students.map((s) => [s.slug, s.data.order]));
+const rows = active
+	? etudesForTopic(catalog.etudes, active.id).slice().sort((a, b) => {
+			const ao = orderBySlug.get(a.participantSlugs[0] ?? '') ?? 9999;
+			const bo = orderBySlug.get(b.participantSlugs[0] ?? '') ?? 9999;
+			if (ao !== bo) return ao - bo;
+			return a.title.localeCompare(b.title, 'ru');
+		})
+	: [];
 
-const blocks = rows.map((entry, i) => ({
-	slug: entry.data.slug,
-	data: entry.data,
-	bodyHtml: renderMarkdownToHtml(entry.body),
-	variant: i,
-}));
-
-const stageBlocks = blocks.map(({ slug, data, variant }) => ({
-	slug,
-	data: { displayName: data.displayName },
-	variant,
-}));
+const initialJson = JSON.stringify({
+	topics: catalog.topics,
+	etudes: catalog.etudes,
+	activeTopicId: active?.id ?? '',
+	students: students.map((s) => ({ slug: s.slug, displayName: s.data.displayName })),
+});
 ---
 
 <Layout admin title="Класс · редактирование">
-	<div class="relative left-1/2 z-[1] w-screen -translate-x-1/2">
-		<ClassPageOverlay
-			blocks={stageBlocks}
-			pageLead="Нажмите на фигуру, как на сайте. В карточке есть ссылка «Редактировать данные»."
-		/>
+	<EtudeTopicSheets
+		slot="after-ticker"
+		topics={topics}
+		activeId={active?.id ?? null}
+		basePath="/admin/class"
+		newTopicControl
+	/>
+
+	<div class="mb-8 flex flex-wrap items-start justify-between gap-4 border-b-[3px] border-ink pb-4">
+		<div>
+			<h1 class="font-display text-4xl font-normal uppercase tracking-widest text-ink sm:text-5xl">Класс</h1>
+			<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">
+				Темы как листы Excel (новые слева). В теме — этюды с несколькими участниками.
+			</p>
+		</div>
+		{
+			active && (
+				<div class="flex flex-wrap gap-2">
+					<button
+						type="button"
+						id="rename-topic-btn"
+						class="border-[3px] border-ink bg-surface px-4 py-2 font-sans text-sm uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-accent hover:text-canvas active-shift"
+					>
+						Переименовать
+					</button>
+					<button
+						type="button"
+						id="delete-topic-btn"
+						class="border-[3px] border-ink bg-surface px-4 py-2 font-sans text-sm uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-accent hover:text-canvas active-shift"
+					>
+						Удалить тему
+					</button>
+				</div>
+			)
+		}
 	</div>
+
 	{
-		blocks.map(({ slug, data, bodyHtml, variant }) => (
-			<dialog
-				id={`dlg-${slug}`}
-				class="fixed left-1/2 top-1/2 z-[100] w-[min(100vw-2rem,28rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-shell border border-theme bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
-			>
-				<div class="border-b border-theme-subtle bg-muted-surface px-5 py-4">
-					<div class="flex flex-wrap items-start justify-between gap-3">
-						<div>
-							<h2 class="font-display text-xl font-normal text-ink sm:text-2xl">{data.displayName}</h2>
-							{data.fullName && <p class="text-sm text-muted">{data.fullName}</p>}
-						</div>
-						<div class="flex flex-wrap gap-2">
-							<a
-								href={`/admin/student/${slug}`}
-								class="type-cta border-[3px] border-ink bg-accent px-3 py-2 text-sm text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover"
-							>
-								Редактировать данные
-							</a>
-							<button
-								type="button"
-								class="type-cta border-[3px] border-ink bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-card)] hover:bg-muted-surface"
-								data-close-dialog=""
-							>
-								Закрыть
-							</button>
-						</div>
-					</div>
+		!active ? (
+			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
+				Создайте первую тему кнопкой «+ Тема».
+			</div>
+		) : (
+			<>
+				<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+					<h2 id="active-topic-title" class="font-display text-2xl uppercase tracking-widest text-ink">{active.title}</h2>
+					<button
+						type="button"
+						id="add-etude-btn"
+						class="border-[3px] border-ink bg-surface px-4 py-2 font-sans text-sm uppercase tracking-widest text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-accent hover:text-canvas active-shift"
+					>
+						<span class="text-xl leading-none">+</span> Этюд
+					</button>
 				</div>
-				<div class="max-h-[min(70vh,32rem)] overflow-y-auto px-5 py-4">
-					<div class="mb-5 flex gap-4">
-						<div class="h-24 w-20 shrink-0 overflow-hidden rounded-md border border-theme bg-muted-surface">
-							{data.photo ? (
-								<img
-									src={data.photo}
-									alt={`Фото: ${data.displayName}`}
-									class="h-full w-full object-cover object-top"
-									loading="lazy"
-								/>
-							) : (
-								<StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" />
-							)}
-						</div>
-						<dl class="grid flex-1 gap-2 text-sm">
-							{data.fullName && (
-								<div class="flex justify-between gap-4 border-b border-theme-subtle py-1.5">
-									<dt class="text-muted">ФИО</dt>
-									<dd class="text-right font-medium text-ink">{data.fullName}</dd>
-								</div>
-							)}
-							{data.birthday && (
-								<div class="flex justify-between gap-4 border-b border-theme-subtle py-1.5">
-									<dt class="text-muted">День рождения</dt>
-									<dd class="text-right font-medium text-ink">{data.birthday}</dd>
-								</div>
-							)}
-							{data.nickname && (
-								<div class="flex justify-between gap-4 border-b border-theme-subtle py-1.5">
-									<dt class="text-muted">Псевдоним</dt>
-									<dd class="text-right font-medium text-ink">{data.nickname}</dd>
-								</div>
-							)}
-							{data.phone && (
-								<div class="flex justify-between gap-4 border-b border-theme-subtle py-1.5">
-									<dt class="text-muted">Телефон</dt>
-									<dd class="text-right font-medium text-ink">{data.phone}</dd>
-								</div>
-							)}
-						</dl>
-					</div>
-					{data.etudes.length > 0 && (
-						<>
-							<h3 class="mb-2 font-display text-base font-normal text-accent">Этюды</h3>
-							<ul class="space-y-3">
-								{data.etudes.map((e) => (
-									<li class="kit-etude-card" tabindex="0">
-										<div class="flex flex-wrap items-center justify-between gap-2">
-											<span class="kit-etude-shift kit-etude-shift--title uppercase text-ink">{e.title}</span>
-											<span
-												class:list={[
-													'kit-etude-shift kit-etude-shift--badge border-[2px] border-ink px-2 py-0.5 text-xs uppercase',
-													e.passed ? 'bg-accent text-canvas' : 'bg-muted-surface text-ink',
-												]}
-											>
-												{e.passed ? 'Сдан' : 'Не сдан'}
-											</span>
+
+				<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
+					<table class="w-full min-w-[44rem] border-collapse text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
+						<thead>
+							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
+								<th class="w-[28%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
+									Участники
+								</th>
+								<th class="w-[24%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
+									Название этюда
+								</th>
+								<th class="border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
+									Комментарий педагога
+								</th>
+								<th class="w-14 px-1 py-2 text-center font-display text-[10px] font-normal sm:text-base"> </th>
+							</tr>
+						</thead>
+						<tbody id="etude-tbody">
+							{rows.map((row) => (
+								<tr class="etude-row border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface" data-etude-id={row.id}>
+									<td class="border-r-[2px] border-ink px-1.5 py-2 align-top sm:px-3 sm:py-3">
+										<div class="flex flex-col gap-2">
+											<div class="flex flex-wrap gap-x-2 gap-y-1" data-selected-names></div>
+											<details class="font-sans text-[10px] uppercase tracking-wider text-muted">
+												<summary class="cursor-pointer hover:text-accent">Выбрать</summary>
+												<div class="mt-2 grid max-h-48 gap-1 overflow-y-auto border-[2px] border-ink bg-muted-surface p-2">
+													{students.map((s) => (
+														<label class="flex cursor-pointer items-center gap-2 text-[10px] text-ink sm:text-xs">
+															<input
+																type="checkbox"
+																class="et-part h-4 w-4 border-[2px] border-ink accent-accent"
+																value={s.slug}
+																checked={row.participantSlugs.includes(s.slug)}
+															/>
+															{s.data.displayName}
+														</label>
+													))}
+												</div>
+											</details>
 										</div>
-										{e.date && (
-											<p class="kit-etude-shift kit-etude-shift--date mt-2 text-xs font-bold text-muted">{e.date}</p>
-										)}
-										{e.teacherComment && (
-											<p class="kit-etude-shift mt-2 text-xs text-ink/80">{e.teacherComment}</p>
-										)}
-									</li>
-								))}
-							</ul>
-						</>
-					)}
-					<div class="markdown-body mt-6 border-t border-theme-subtle pt-5 text-sm" set:html={bodyHtml} />
+									</td>
+									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+										<input
+											type="text"
+											class="et-title w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
+											value={row.title}
+										/>
+									</td>
+									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+										<textarea
+											class="et-comment w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
+											rows="2"
+										>{row.teacherComment ?? ''}</textarea>
+									</td>
+									<td class="px-1 py-2 text-center align-top">
+										<button
+											type="button"
+											class="remove-etude-btn text-muted hover:text-accent"
+											title="Удалить этюд"
+										>
+											✕
+										</button>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</div>
-			</dialog>
-		))
+			</>
+		)
 	}
 
-	<script is:inline>
-		document.querySelectorAll('[data-open-dialog]').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const id = btn.getAttribute('data-open-dialog');
-				if (id?.startsWith('dlg-')) {
-					const slug = id.slice(4);
-					document.querySelectorAll(`[data-stage-slug="${slug}"]`).forEach((el) => {
-						el.classList.add('class-stage-figure-pulse');
-						window.setTimeout(() => el.classList.remove('class-stage-figure-pulse'), 780);
-					});
-				}
-				const dlg = id ? document.getElementById(id) : null;
-				if (dlg instanceof HTMLDialogElement) dlg.showModal();
+	<div class="mt-8 flex flex-wrap items-center gap-4">
+		<button
+			type="button"
+			id="class-save"
+			class="border-[3px] border-ink bg-accent px-6 py-3 font-display text-xl tracking-widest text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover active-shift"
+		>
+			Сохранить класс
+		</button>
+		<span id="class-status" class="font-sans text-sm uppercase text-muted"></span>
+	</div>
+
+	<section class="mt-12 border-t-[3px] border-ink pt-8">
+		<h2 class="mb-4 font-display text-2xl uppercase tracking-widest text-ink">Карточки учеников</h2>
+		<p class="mb-4 font-sans text-xs uppercase tracking-wider text-muted">
+			Профили (фото, ФИО) — отдельно. Этюды на /class берутся из тем выше, не из карточки.
+		</p>
+		<ul class="grid gap-2 sm:grid-cols-2">
+			{
+				students.map((s) => (
+					<li>
+						<a
+							href={`/admin/student/${s.slug}`}
+							class="flex items-center justify-between border-[3px] border-ink bg-surface px-3 py-2 font-sans text-sm uppercase tracking-wider text-ink shadow-[var(--shadow-card)] transition-colors hover:bg-accent hover:text-canvas"
+						>
+							<span>{s.data.displayName}</span>
+							<span class="font-mono text-[10px] text-muted">{s.slug}</span>
+						</a>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+
+	<script id="class-initial" type="application/json" set:html={initialJson} />
+
+	<script>
+		type Topic = { id: string; title: string; createdAt: string };
+		type Etude = {
+			id: string;
+			topicId: string;
+			title: string;
+			teacherComment?: string;
+			participantSlugs: string[];
+		};
+		type StudentOpt = { slug: string; displayName: string };
+		type Catalog = { topics: Topic[]; etudes: Etude[]; activeTopicId: string; students: StudentOpt[] };
+
+		const initialEl = document.getElementById('class-initial');
+		const status = document.getElementById('class-status');
+		const saveBtn = document.getElementById('class-save');
+		const addEtudeBtn = document.getElementById('add-etude-btn');
+		const addTopicBtn = document.getElementById('etude-topic-new');
+		const renameBtn = document.getElementById('rename-topic-btn');
+		const deleteBtn = document.getElementById('delete-topic-btn');
+		const tbody = document.getElementById('etude-tbody');
+
+		let autosaveTimer: number | null = null;
+		let saveRequestId = 0;
+		let latestSavedId = 0;
+
+		function readInitial(): Catalog {
+			if (!initialEl?.textContent) {
+				return { topics: [], etudes: [], activeTopicId: '', students: [] };
+			}
+			return JSON.parse(initialEl.textContent) as Catalog;
+		}
+
+		const catalog = readInitial();
+
+		function newId(prefix: string): string {
+			return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+		}
+
+		function studentName(slug: string): string {
+			return catalog.students.find((s) => s.slug === slug)?.displayName ?? slug;
+		}
+
+		function refreshSelectedNames(row: Element) {
+			const host = row.querySelector('[data-selected-names]');
+			if (!host) return;
+			const slugs = Array.from(row.querySelectorAll('.et-part'))
+				.filter((el) => (el as HTMLInputElement).checked)
+				.map((el) => (el as HTMLInputElement).value);
+			host.innerHTML = slugs.length
+				? slugs
+						.map(
+							(slug) =>
+								`<span class="uppercase tracking-wider text-ink">${studentName(slug)}</span>`,
+						)
+						.join('<span class="text-muted">·</span>')
+				: '<span class="text-muted">—</span>';
+		}
+
+		function refreshAllNames() {
+			document.querySelectorAll('.etude-row').forEach((row) => refreshSelectedNames(row));
+		}
+
+		function collectCurrentTopicEtudes(): Etude[] {
+			if (!tbody || !catalog.activeTopicId) return [];
+			const out: Etude[] = [];
+			tbody.querySelectorAll('.etude-row').forEach((row) => {
+				const title = (row.querySelector('.et-title') as HTMLInputElement | null)?.value?.trim() ?? '';
+				if (!title) return;
+				const teacherComment =
+					(row.querySelector('.et-comment') as HTMLTextAreaElement | null)?.value?.trim() ?? '';
+				const participantSlugs = Array.from(row.querySelectorAll('.et-part'))
+					.filter((el) => (el as HTMLInputElement).checked)
+					.map((el) => (el as HTMLInputElement).value);
+				const id = row.getAttribute('data-etude-id') || newId('etude');
+				out.push({
+					id,
+					topicId: catalog.activeTopicId,
+					title,
+					teacherComment,
+					participantSlugs,
+				});
 			});
-		});
-		document.querySelectorAll('[data-close-dialog]').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const dlg = btn.closest('dialog');
-				dlg?.close();
+			return out;
+		}
+
+		function collectPayload(): { topics: Topic[]; etudes: Etude[] } {
+			const current = collectCurrentTopicEtudes();
+			const others = catalog.etudes.filter((e) => e.topicId !== catalog.activeTopicId);
+			return {
+				topics: catalog.topics,
+				etudes: [...others, ...current],
+			};
+		}
+
+		async function persist(
+			mode: 'manual' | 'auto',
+			nextUrl?: string,
+			override?: { topics: Topic[]; etudes: Etude[] },
+		) {
+			if (!status) return false;
+			const requestId = ++saveRequestId;
+			status.textContent = mode === 'manual' ? 'Сохраняю…' : 'Автосохранение…';
+			const payload = override ?? collectPayload();
+			catalog.topics = payload.topics;
+			catalog.etudes = payload.etudes;
+			if (initialEl) initialEl.textContent = JSON.stringify({ ...catalog, ...payload });
+			const res = await fetch('/api/admin/etude-topics', {
+				method: 'PUT',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ data: payload }),
 			});
+			const j = await res.json().catch(() => ({}));
+			if (requestId < latestSavedId) return false;
+			if (!res.ok) {
+				status.textContent = j.error ? JSON.stringify(j.error) : 'Ошибка';
+				return false;
+			}
+			latestSavedId = requestId;
+			status.textContent = mode === 'manual' ? 'Сохранено.' : 'Автосохранено.';
+			if (nextUrl) window.location.assign(nextUrl);
+			return true;
+		}
+
+		function scheduleAutoSave() {
+			if (autosaveTimer) window.clearTimeout(autosaveTimer);
+			autosaveTimer = window.setTimeout(() => {
+				persist('auto');
+			}, 700);
+		}
+
+		function participantEditorHtml(selected: string[]): string {
+			const boxes = catalog.students
+				.map((s) => {
+					const checked = selected.includes(s.slug) ? 'checked' : '';
+					return `<label class="flex cursor-pointer items-center gap-2 text-[10px] text-ink sm:text-xs"><input type="checkbox" class="et-part h-4 w-4 border-[2px] border-ink accent-accent" value="${s.slug}" ${checked} />${s.displayName}</label>`;
+				})
+				.join('');
+			return `<div class="flex flex-col gap-2"><div class="flex flex-wrap gap-x-2 gap-y-1" data-selected-names></div><details class="font-sans text-[10px] uppercase tracking-wider text-muted"><summary class="cursor-pointer hover:text-accent">Выбрать</summary><div class="mt-2 grid max-h-48 gap-1 overflow-y-auto border-[2px] border-ink bg-muted-surface p-2">${boxes}</div></details></div>`;
+		}
+
+		addEtudeBtn?.addEventListener('click', () => {
+			if (!tbody || !catalog.activeTopicId) return;
+			const tr = document.createElement('tr');
+			tr.className = 'etude-row border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface';
+			tr.setAttribute('data-etude-id', newId('etude'));
+			tr.innerHTML = `
+				<td class="border-r-[2px] border-ink px-1.5 py-2 align-top sm:px-3 sm:py-3">${participantEditorHtml([])}</td>
+				<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+					<input type="text" class="et-title w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" />
+				</td>
+				<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+					<textarea class="et-comment w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" rows="2"></textarea>
+				</td>
+				<td class="px-1 py-2 text-center align-top">
+					<button type="button" class="remove-etude-btn text-muted hover:text-accent" title="Удалить этюд">✕</button>
+				</td>
+			`;
+			tbody.appendChild(tr);
+			refreshSelectedNames(tr);
+			scheduleAutoSave();
 		});
-		document.querySelectorAll('dialog').forEach((dlg) => {
-			dlg.addEventListener('click', (e) => {
-				if (e.target === dlg) dlg.close();
-			});
+
+		tbody?.addEventListener('click', (e) => {
+			const target = e.target as HTMLElement | null;
+			const removeBtn = target?.closest('.remove-etude-btn');
+			if (!removeBtn) return;
+			removeBtn.closest('.etude-row')?.remove();
+			scheduleAutoSave();
 		});
+
+		tbody?.addEventListener('input', () => scheduleAutoSave());
+		tbody?.addEventListener('change', (e) => {
+			const t = e.target as HTMLElement | null;
+			const row = t?.closest('.etude-row');
+			if (row) refreshSelectedNames(row);
+			scheduleAutoSave();
+		});
+
+		addTopicBtn?.addEventListener('click', async () => {
+			const title = window.prompt('Название новой темы:', '');
+			if (!title || !title.trim()) return;
+			const topic: Topic = {
+				id: newId('topic'),
+				title: title.trim(),
+				createdAt: new Date().toISOString(),
+			};
+			catalog.topics = [topic, ...catalog.topics];
+			await persist('manual', `/admin/class?topic=${encodeURIComponent(topic.id)}`);
+		});
+
+		renameBtn?.addEventListener('click', () => {
+			if (!catalog.activeTopicId) return;
+			const current = catalog.topics.find((t) => t.id === catalog.activeTopicId);
+			const next = window.prompt('Новое название темы:', current?.title ?? '');
+			if (next === null || !next.trim()) return;
+			catalog.topics = catalog.topics.map((t) =>
+				t.id === catalog.activeTopicId ? { ...t, title: next.trim() } : t,
+			);
+			const tab = document.querySelector(`[data-topic-id="${catalog.activeTopicId}"]`);
+			if (tab) tab.textContent = next.trim();
+			const heading = document.getElementById('active-topic-title');
+			if (heading) heading.textContent = next.trim();
+			scheduleAutoSave();
+		});
+
+		deleteBtn?.addEventListener('click', async () => {
+			if (!catalog.activeTopicId) return;
+			const removedId = catalog.activeTopicId;
+			const current = catalog.topics.find((t) => t.id === removedId);
+			if (!window.confirm(`Удалить тему «${current?.title ?? ''}» и все её этюды?`)) return;
+			const snapshot = collectPayload();
+			const topics = snapshot.topics.filter((t) => t.id !== removedId);
+			const etudes = snapshot.etudes.filter((e) => e.topicId !== removedId);
+			const leftover = [...topics].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))[0];
+			catalog.activeTopicId = leftover?.id ?? '';
+			const nextUrl = leftover ? `/admin/class?topic=${encodeURIComponent(leftover.id)}` : '/admin/class';
+			await persist('manual', nextUrl, { topics, etudes });
+		});
+
+		saveBtn?.addEventListener('click', async () => {
+			await persist('manual');
+		});
+
+		refreshAllNames();
 	</script>
 </Layout>
