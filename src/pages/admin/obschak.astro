@@ -4,15 +4,16 @@ import Layout from '../../layouts/Layout.astro';
 import { currentObshchakParticipantSlugs, readObshchak, readStudentsSorted } from '../../lib/siteContent';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
 import { formatRubKopeks, totalPotKopeks } from '../../lib/obshchakMath';
+import { isDeletedObshchakContributor } from '../../lib/obshchakRoster.mjs';
 
 if (!hasValidAdminSession(Astro.cookies)) {
 	const nextUrl = Astro.url.pathname + Astro.url.search;
 	return Astro.redirect(`/admin/login?next=${encodeURIComponent(nextUrl)}`);
 }
 
-const students = await readStudentsSorted();
+const students = (await readStudentsSorted()).filter((s) => !isDeletedObshchakContributor(s.slug));
 const data = await readObshchak();
-const potK = totalPotKopeks(data.contributedKopeks, data.expenses);
+const potK = totalPotKopeks(data.contributedKopeks, data.expenses, data.archivedContributedKopeks);
 const newExpenseParticipantSlugs = await currentObshchakParticipantSlugs();
 
 function rubFromK(k: number): string {
@@ -119,7 +120,7 @@ function rubFromK(k: number): string {
 		}
 
 		(function () {
-			/** @type {{ watcherSlug: string; contributedKopeks: Record<string, number>; expenses: { id: string; label: string; amountKopeks: number; createdAt?: string; participantSlugs?: string[] }[] }} */
+			/** @type {{ watcherSlug: string; contributedKopeks: Record<string, number>; archivedContributedKopeks?: Record<string, number>; expenses: { id: string; label: string; amountKopeks: number; createdAt?: string; participantSlugs?: string[] }[] }} */
 			let state = JSON.parse(initialDataJson);
 			function currentParticipantSlugs() {
 				return Array.isArray(studentSlugs) ? studentSlugs.slice() : [];
@@ -213,6 +214,7 @@ function rubFromK(k: number): string {
 				return {
 					watcherSlug: initialWatcher,
 					contributedKopeks: cont,
+					archivedContributedKopeks: state.archivedContributedKopeks || {},
 					expenses: state.expenses,
 				};
 			}

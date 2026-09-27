@@ -1,13 +1,14 @@
 /**
- * Одноразовая миграция runtime src/content/obshchak.json:
- * убрать взносы ушедших, katya=0, participantSlugs на старых тратах = 9 человек.
+ * Миграция runtime src/content/obshchak.json:
+ * взносы ушедших → archivedContributedKopeks, katya=0,
+ * participantSlugs на старых тратах = исходные 13 (без Кати).
  *
  * node scripts/migrate-obshchak-participants.mjs
  */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateObshchakData } from '../src/lib/obshchakRoster.mjs';
+import { migrateObshchakData, OBSHCHAK_DELETED_CONTRIB_SLUGS } from '../src/lib/obshchakRoster.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const obPath = join(root, 'src', 'content', 'obshchak.json');
@@ -24,11 +25,11 @@ try {
 }
 
 const before = JSON.parse(raw);
-const dropped = Object.keys(before.contributedKopeks || {}).filter((k) =>
-	['anya', 'galya', 'seryozha', 'yulya-1'].includes(k),
-);
-const droppedAmounts = Object.fromEntries(
-	dropped.map((k) => [k, before.contributedKopeks[k]]),
+const fromLive = Object.fromEntries(
+	OBSHCHAK_DELETED_CONTRIB_SLUGS.filter((k) => k in (before.contributedKopeks || {})).map((k) => [
+		k,
+		before.contributedKopeks[k],
+	]),
 );
 
 const migrated = migrateObshchakData(before);
@@ -40,9 +41,6 @@ await mkdir(lkgDir, { recursive: true });
 await writeFile(join(lkgDir, 'obshchak.json'), out, 'utf8');
 
 console.log('OK: migrated', obPath);
-if (dropped.length) {
-	console.log('dropped contributedKopeks:', JSON.stringify(droppedAmounts));
-} else {
-	console.log('dropped contributedKopeks: none still present');
-}
+console.log('archived from live contributedKopeks:', JSON.stringify(fromLive));
+console.log('archivedContributedKopeks:', JSON.stringify(migrated.archivedContributedKopeks || {}));
 console.log('expenses', migrated.expenses?.length ?? 0);

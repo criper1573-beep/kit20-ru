@@ -140,7 +140,7 @@ export async function readObshchak(): Promise<ObshchakData> {
 /**
  * Собирает взносы только по slug'ам из `students/`: нули по умолчанию,
  * лишние ключи (старые карточки) отбрасываем — касса и сумма балансов не «размазываются».
- * Ушедшие (`seryozha` и др.) не возвращаются; `katya` всегда есть (0, если ещё нет карточки).
+ * Ушедшие не в live-взносах (их суммы в archived); `katya` всегда есть (0, если ещё нет карточки).
  */
 async function normalizeObshchakContribKeys(data: ObshchakData): Promise<ObshchakData> {
 	const migrated = migrateObshchakData(data) as ObshchakData;
@@ -151,7 +151,11 @@ async function normalizeObshchakContribKeys(data: ObshchakData): Promise<Obshcha
 		contributed[slug] = migrated.contributedKopeks[slug] ?? 0;
 	}
 	contributed[KATYA_KUZINA_SLUG] = migrated.contributedKopeks[KATYA_KUZINA_SLUG] ?? 0;
-	return { ...migrated, contributedKopeks: contributed };
+	return {
+		...migrated,
+		contributedKopeks: contributed,
+		archivedContributedKopeks: migrated.archivedContributedKopeks ?? {},
+	};
 }
 
 function etudeTopicsPath(): string {

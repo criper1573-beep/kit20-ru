@@ -1,6 +1,6 @@
 /**
- * Сходимость балансов общака. Запуск: node scripts/verify-obshchak.mjs
- * Траты со снимком `participantSlugs` делятся только на них; без снимка — на 9 исторических.
+ * Сходимость общака. Запуск: node scripts/verify-obshchak.mjs
+ * Касса = live + archived − траты. Исторические траты — на исходных 13 (без Кати).
  */
 import { readFile, readdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
@@ -33,18 +33,21 @@ try {
 	throw e;
 }
 const j = migrateObshchakData(JSON.parse(raw));
-const { watcherSlug, contributedKopeks = {}, expenses = [] } = j;
+const { watcherSlug, contributedKopeks = {}, archivedContributedKopeks = {}, expenses = [] } = j;
 
 if (!watcherSlug) {
 	console.error('Нет watcherSlug');
 	process.exit(1);
 }
 
-// Порядок как в readStudentsSorted: сортировка по order внутри .md
 async function readOrder(slug) {
-	const t = await readFile(join(studentsDir, `${slug}.md`), 'utf8');
-	const m = t.match(/^\s*order:\s*(\d+)/m);
-	return m ? parseInt(m[1], 10) : 9999;
+	try {
+		const t = await readFile(join(studentsDir, `${slug}.md`), 'utf8');
+		const m = t.match(/^\s*order:\s*(\d+)/m);
+		return m ? parseInt(m[1], 10) : 9999;
+	} catch {
+		return 9999;
+	}
 }
 const slugs = md.map((f) => f.replace(/\.md$/, '')).filter((slug) => !isDeletedObshchakContributor(slug));
 const withOrder = await Promise.all(
@@ -69,34 +72,37 @@ function splitExpenseK(amountK, participants) {
 	return m;
 }
 
-let totalContrib = 0;
-const contrib = {};
-for (const slug of orderActive) {
-	const v = isDeletedObshchakContributor(slug) ? 0 : (contributedKopeks[slug] ?? 0);
-	contrib[slug] = v;
-	totalContrib += v;
+function sumRecord(rec) {
+	return Object.values(rec).reduce((a, b) => a + (Number(b) || 0), 0);
 }
+
+const liveTotal = sumRecord(contributedKopeks);
+const archivedTotal = sumRecord(archivedContributedKopeks);
 let expSum = 0;
+let shareSum = 0;
 const share = Object.fromEntries(orderActive.map((s) => [s, 0]));
 for (const e of expenses) {
 	expSum += e.amountKopeks;
 	const parts = participantsForExpense(e, orderActive);
 	const part = splitExpenseK(e.amountKopeks, parts);
+	let partSum = 0;
 	for (const [s, k] of part) {
 		share[s] = (share[s] ?? 0) + k;
+		partSum += k;
+		shareSum += k;
+	}
+	if (partSum !== e.amountKopeks) {
+		console.error('доля траты не сходится', e.id, partSum, e.amountKopeks);
+		process.exit(1);
 	}
 }
-const pot = totalContrib - expSum;
-let sumBal = 0;
-for (const s of orderActive) {
-	sumBal += contrib[s] - (share[s] ?? 0);
-}
-if (sumBal !== pot) {
-	console.error('Несходится: sum(balances)=', sumBal, 'totalPot=', pot);
+if (shareSum !== expSum) {
+	console.error('сумма долей', shareSum, '≠ траты', expSum);
 	process.exit(1);
 }
 
-const katyaBal = (contrib[KATYA_KUZINA_SLUG] ?? 0) - (share[KATYA_KUZINA_SLUG] ?? 0);
+const pot = liveTotal + archivedTotal - expSum;
+const katyaBal = (contributedKopeks[KATYA_KUZINA_SLUG] ?? 0) - (share[KATYA_KUZINA_SLUG] ?? 0);
 const historicalOnly = expenses.every((e) => {
 	const p = e.participantSlugs;
 	return Array.isArray(p) && p.length > 0 && !p.includes(KATYA_KUZINA_SLUG);
@@ -109,5 +115,18 @@ if (historicalOnly && katyaBal !== 0) {
 if (orderActive[0] !== 'nastya') {
 	console.warn('Примечание: первый по order — не nastya, ожидали визуал «смотрящий» = nastya — проверьте order в students.');
 }
-console.log('OK: баланс сходится, касса', pot, 'коп., трат', expenses.length, 'katya', katyaBal);
+console.log(
+	'OK: касса',
+	pot,
+	'коп. (live',
+	liveTotal,
+	'+ archived',
+	archivedTotal,
+	'− траты',
+	expSum,
+	'), трат',
+	expenses.length,
+	'katya',
+	katyaBal,
+);
 process.exit(0);

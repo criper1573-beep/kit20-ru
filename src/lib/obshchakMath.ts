@@ -1,4 +1,4 @@
-import { isDeletedObshchakContributor, participantsForExpense } from './obshchakRoster.mjs';
+import { participantsForExpense } from './obshchakRoster.mjs';
 
 export type ObshchakExpenseShare = {
 	amountKopeks: number;
@@ -49,12 +49,10 @@ export function totalShareKopeksBySlug(
 	return total;
 }
 
-/** Взносы (коп.) по slug, без ключей ушедших учеников. */
-export function contributedKopeksTotal(contributed: Record<string, number>): number {
-	return Object.entries(contributed).reduce((a, [slug, b]) => {
-		if (isDeletedObshchakContributor(slug)) return a;
-		return a + b;
-	}, 0);
+/** Сумма взносов (коп.) по записи slug→коп. */
+export function contributedKopeksTotal(contributed: Record<string, number> | undefined): number {
+	if (!contributed) return 0;
+	return Object.values(contributed).reduce((a, b) => a + b, 0);
 }
 
 export function expensesTotalKopeks(expenses: { amountKopeks: number }[]): number {
@@ -77,12 +75,13 @@ export function balanceKopeksBySlug(
 	return out;
 }
 
-/** Сумма в общей кассе: все взносы − все траты (коп.) */
+/** Касса: живые взносы + архив ушедших − траты (коп.). */
 export function totalPotKopeks(
 	contributed: Record<string, number>,
 	expenses: { amountKopeks: number }[],
+	archived: Record<string, number> = {},
 ): number {
-	return contributedKopeksTotal(contributed) - expensesTotalKopeks(expenses);
+	return contributedKopeksTotal(contributed) + contributedKopeksTotal(archived) - expensesTotalKopeks(expenses);
 }
 
 export function formatRubKopeks(kopeks: number): string {

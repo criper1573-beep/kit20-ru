@@ -1,26 +1,31 @@
 /**
  * Состав общака после ухода учеников и прихода Кати Кузиной (`katya`).
- * Исторические траты (без снимка) делим на девятерых — без Кати.
+ * Исторические траты делим на исходных 13 (включая ушедших), без Кати.
+ * Деньги ушедших живут в `archivedContributedKopeks` и входят в кассу.
  */
 
-/** Взносы этих slug не входят в кассу (карточки удалены). */
+/** Живые взносы этих slug не показываем; суммы переносятся в archived. */
 export const OBSHCHAK_DELETED_CONTRIB_SLUGS = Object.freeze(['anya', 'galya', 'seryozha', 'yulya-1']);
 
 /** Катя Кузина — на старых тратах не участвует, взнос 0. */
 export const KATYA_KUZINA_SLUG = 'katya';
 
 /**
- * Активный состав на момент уже записанных трат, без `katya`.
- * Порядок = `order` с карточек: Настя, Катя М., Ира, Газик, Егор, Коля, Вика, Наташа, Маруся.
+ * Кто был в группе, когда писали уже существующие траты (без `katya`).
+ * Порядок = `order` с карточек, при равенстве — slug.
  */
 export const OBSHCHAK_HISTORICAL_PARTICIPANT_SLUGS = Object.freeze([
 	'nastya',
 	'katya-2',
 	'ira',
+	'galya',
 	'gazik',
 	'egor',
+	'seryozha',
 	'kolya',
 	'vika',
+	'yulya-1',
+	'anya',
 	'natasha',
 	'marusya',
 ]);
@@ -42,22 +47,41 @@ export function participantsForExpense(expense, fallbackSlugs) {
 }
 
 /**
- * Убрать взносы ушедших, поставить `katya: 0`, проставить снимок 9 участников
- * на тратах без `participantSlugs`.
+ * @param {unknown} rec
+ * @returns {Record<string, number>}
+ */
+function asKopeksRecord(rec) {
+	if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return {};
+	/** @type {Record<string, number>} */
+	const out = {};
+	for (const [slug, value] of Object.entries(rec)) {
+		const n = Number(value);
+		if (Number.isFinite(n)) out[slug] = n;
+	}
+	return out;
+}
+
+/**
+ * Живые взносы без ушедших; их деньги → archived; katya=0;
+ * на тратах без снимка — исходные 13 участников.
  *
  * @param {Record<string, unknown>} data
  * @returns {Record<string, unknown>}
  */
 export function migrateObshchakData(data) {
 	const src = data && typeof data === 'object' ? data : {};
-	const contributedIn =
-		src.contributedKopeks && typeof src.contributedKopeks === 'object' && !Array.isArray(src.contributedKopeks)
-			? src.contributedKopeks
-			: {};
+	const contributedIn = asKopeksRecord(src.contributedKopeks);
+	const archived = asKopeksRecord(src.archivedContributedKopeks);
+
 	/** @type {Record<string, number>} */
 	const contributed = {};
 	for (const [slug, value] of Object.entries(contributedIn)) {
-		if (isDeletedObshchakContributor(slug)) continue;
+		if (isDeletedObshchakContributor(slug)) {
+			if (!(slug in archived)) {
+				archived[slug] = value;
+			}
+			continue;
+		}
 		contributed[slug] = value;
 	}
 	if (!(KATYA_KUZINA_SLUG in contributed)) {
@@ -71,5 +95,5 @@ export function migrateObshchakData(data) {
 		return { ...e, participantSlugs: [...OBSHCHAK_HISTORICAL_PARTICIPANT_SLUGS] };
 	});
 
-	return { ...src, contributedKopeks: contributed, expenses };
+	return { ...src, contributedKopeks: contributed, archivedContributedKopeks: archived, expenses };
 }

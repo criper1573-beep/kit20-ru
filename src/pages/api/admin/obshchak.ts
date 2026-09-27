@@ -59,7 +59,11 @@ export const PUT: APIRoute = async ({ request, cookies }) => {
 			}
 			return e;
 		});
-		await writeObshchak({ ...parsed.data, expenses });
+		const incomingArchived = parsed.data.archivedContributedKopeks ?? {};
+		const beforeArchived = beforeData.archivedContributedKopeks ?? {};
+		const archivedContributedKopeks =
+			Object.keys(incomingArchived).length > 0 ? incomingArchived : beforeArchived;
+		await writeObshchak({ ...parsed.data, expenses, archivedContributedKopeks });
 		const afterData = await readObshchak();
 		const afterRaw = JSON.stringify(afterData, null, 2) + '\n';
 		await logAdminContentChange({

@@ -2,7 +2,6 @@
  * Оценка «богатства» obshchak.json — чтобы не затереть живые данные пустым шаблоном.
  */
 import { readFile } from 'node:fs/promises';
-import { isDeletedObshchakContributor } from '../src/lib/obshchakRoster.mjs';
 
 /** @typedef {{ expenseCount: number; expenseKopeks: number; contribKopeks: number; potKopeks: number; score: number; isEmpty: boolean }} ObshchakMetrics */
 
@@ -12,13 +11,14 @@ import { isDeletedObshchakContributor } from '../src/lib/obshchakRoster.mjs';
  */
 export function metricsFromObshchak(data) {
 	const contributed = data && typeof data === 'object' && data.contributedKopeks ? data.contributedKopeks : {};
+	const archived =
+		data && typeof data === 'object' && data.archivedContributedKopeks ? data.archivedContributedKopeks : {};
 	const expenses = data && typeof data === 'object' && Array.isArray(data.expenses) ? data.expenses : [];
 	const expenseCount = expenses.length;
 	const expenseKopeks = expenses.reduce((a, e) => a + (Number(e?.amountKopeks) || 0), 0);
-	const contribKopeks = Object.entries(contributed).reduce((a, [slug, v]) => {
-		if (isDeletedObshchakContributor(slug)) return a;
-		return a + (Number(v) || 0);
-	}, 0);
+	const liveKopeks = Object.values(contributed).reduce((a, v) => a + (Number(v) || 0), 0);
+	const archivedKopeks = Object.values(archived).reduce((a, v) => a + (Number(v) || 0), 0);
+	const contribKopeks = liveKopeks + archivedKopeks;
 	const potKopeks = contribKopeks - expenseKopeks;
 	const isEmpty = expenseCount === 0 && contribKopeks === 0;
 	// Траты важнее всего: 30 трат >> пустой файл с большими взносами по ошибке
