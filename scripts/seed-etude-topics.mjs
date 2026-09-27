@@ -7,7 +7,7 @@
  * Индекс etudes[] у студента:
  *   0 → Предмет
  *   1 → Животное
- *   2 → Органичное молчание («3 стихии»)
+ *   2 → Органичное молчание (без названия этюда)
  * Наблюдение за людьми и Пименов — пустые.
  * Пименов создаётся последним → слева в меню (newest-left).
  */
@@ -51,12 +51,14 @@ for (const topic of TOPIC_DEFS) {
 	for (const student of live) {
 		const slug = student?.slug;
 		const row = Array.isArray(student?.etudes) ? student.etudes[topic.etudeIndex] : null;
-		if (!slug || !row?.title) continue;
+		if (!slug || !row) continue;
+		const hideTitle = topic.id === 'organichnoe-molchanie';
+		if (!hideTitle && !row.title) continue;
 		const comment = typeof row.teacherComment === 'string' ? row.teacherComment : '';
 		etudes.push({
 			id: `${topic.id}--${slug}`,
 			topicId: topic.id,
-			title: row.title,
+			title: hideTitle ? '' : row.title,
 			teacherComment: comment,
 			participantSlugs: [slug],
 		});

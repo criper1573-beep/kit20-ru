@@ -18,7 +18,7 @@ export const etudeTopicSchema = z.object({
 export const classEtudeSchema = z.object({
 	id: z.string().min(1),
 	topicId: z.string().min(1),
-	title: z.string().min(1),
+	title: z.string().optional().default(''),
 	teacherComment: z.string().optional().default(''),
 	participantSlugs: z.array(z.string().min(1)).default([]),
 });

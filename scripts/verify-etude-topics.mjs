@@ -43,7 +43,8 @@ for (const t of raw.topics) {
 
 const etudeIds = new Set();
 for (const e of raw.etudes) {
-	if (!e?.id || !e?.topicId || !e?.title) fail(`этюд без id/topicId/title: ${JSON.stringify(e)}`);
+	if (!e?.id || !e?.topicId) fail(`этюд без id/topicId: ${JSON.stringify(e)}`);
+	if (e.title === '3 стихии') fail(`этюд ${e.id}: не должно быть названия «3 стихии»`);
 	if (etudeIds.has(e.id)) fail(`дубликат id этюда: ${e.id}`);
 	if (!topicIds.has(e.topicId)) fail(`этюд ${e.id} → неизвестная тема ${e.topicId}`);
 	if (!Array.isArray(e.participantSlugs)) fail(`этюд ${e.id}: нет participantSlugs`);
@@ -80,8 +81,9 @@ for (const student of live) {
 		const topic = byTitle[indexToTitle[i]];
 		const row = raw.etudes.find((e) => e.topicId === topic.id && e.participantSlugs.includes(slug));
 		if (!row) fail(`нет строки ${indexToTitle[i]} / ${slug}`);
-		if (row.title !== src.title) {
-			fail(`${slug} [${i}]: title «${row.title}» ≠ «${src.title}»`);
+		const expectedTitle = i === 2 ? '' : src.title;
+		if ((row.title ?? '') !== expectedTitle) {
+			fail(`${slug} [${i}]: title «${row.title}» ≠ «${expectedTitle}»`);
 		}
 		const comment = typeof src.teacherComment === 'string' ? src.teacherComment : '';
 		if ((row.teacherComment ?? '') !== comment) {
@@ -90,20 +92,11 @@ for (const student of live) {
 		if (row.participantSlugs.length !== 1 || row.participantSlugs[0] !== slug) {
 			fail(`${slug} [${i}]: ожидался один участник ${slug}`);
 		}
-		if (i === 2 && src.title === '3 стихии' && topic.title !== 'Органичное молчание') {
-			fail('«3 стихии» должны быть в «Органичное молчание»');
-		}
 	}
 }
 
 if (raw.etudes.length !== expectedRows) {
 	fail(`этюдов ${raw.etudes.length}, ожидалось ${expectedRows}`);
-}
-
-const threeStihii = raw.etudes.filter((e) => e.title === '3 стихии');
-const silenceId = byTitle['Органичное молчание'].id;
-if (threeStihii.some((e) => e.topicId !== silenceId)) {
-	fail('есть «3 стихии» вне «Органичное молчание»');
 }
 
 console.error(`OK: etude-topics topics=${raw.topics.length} etudes=${raw.etudes.length}`);

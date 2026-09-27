@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import EtudeTopicSheets from '../components/EtudeTopicSheets.astro';
 import StudentProfileDialogs from '../components/StudentProfileDialogs.astro';
 import { readEtudeTopics, readStudentsSorted } from '../lib/siteContent';
-import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft } from '../lib/etudeTopics';
+import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft, topicHidesEtudeTitle } from '../lib/etudeTopics';
 
 const students = await readStudentsSorted();
 const catalog = await readEtudeTopics();
@@ -17,9 +17,10 @@ const rows = active
 			const ao = orderBySlug.get(a.participantSlugs[0] ?? '') ?? 9999;
 			const bo = orderBySlug.get(b.participantSlugs[0] ?? '') ?? 9999;
 			if (ao !== bo) return ao - bo;
-			return a.title.localeCompare(b.title, 'ru');
+			return (a.title || a.id).localeCompare(b.title || b.id, 'ru');
 		})
 	: [];
+const hideTitle = topicHidesEtudeTitle(active);
 
 const studentBySlug = new Map(students.map((s) => [s.slug, s]));
 const studentBlocks = students.map((entry, i) => ({
@@ -53,16 +54,23 @@ const studentBlocks = students.map((entry, i) => ({
 				В этой теме пока нет этюдов.
 			</div>
 		) : (
-			<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
-				<table class="w-full min-w-[36rem] border-collapse text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
+			<div class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
+				<table class="kit-data-table text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
 					<thead>
 						<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-							<th class="w-[28%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+							<th class:list={[
+								'border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider',
+								hideTitle ? 'w-[38%]' : 'w-[30%]',
+							]}>
 								Участники
 							</th>
-							<th class="w-[28%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
-								Название этюда
-							</th>
+							{
+								!hideTitle && (
+									<th class="w-[28%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+										Название этюда
+									</th>
+								)
+							}
 							<th class="px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
 								Комментарий педагога
 							</th>
@@ -92,9 +100,13 @@ const studentBlocks = students.map((entry, i) => ({
 										)}
 									</div>
 								</td>
-								<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
-									{row.title}
-								</td>
+								{
+									!hideTitle && (
+										<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
+											{row.title?.trim() ? row.title : '—'}
+										</td>
+									)
+								}
 								<td class="px-1.5 py-2 align-top text-ink/90 normal-case sm:px-4 sm:py-3">
 									{row.teacherComment?.trim() ? row.teacherComment : '—'}
 								</td>

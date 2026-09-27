@@ -3,7 +3,7 @@ export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import EtudeTopicSheets from '../../components/EtudeTopicSheets.astro';
 import { readEtudeTopics, readStudentsSorted } from '../../lib/siteContent';
-import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft } from '../../lib/etudeTopics';
+import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft, topicHidesEtudeTitle } from '../../lib/etudeTopics';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
 
 if (!hasValidAdminSession(Astro.cookies)) {
@@ -21,14 +21,16 @@ const rows = active
 			const ao = orderBySlug.get(a.participantSlugs[0] ?? '') ?? 9999;
 			const bo = orderBySlug.get(b.participantSlugs[0] ?? '') ?? 9999;
 			if (ao !== bo) return ao - bo;
-			return a.title.localeCompare(b.title, 'ru');
+			return (a.title || a.id).localeCompare(b.title || b.id, 'ru');
 		})
 	: [];
+const hideTitle = topicHidesEtudeTitle(active);
 
 const initialJson = JSON.stringify({
 	topics: catalog.topics,
 	etudes: catalog.etudes,
 	activeTopicId: active?.id ?? '',
+	hideTitle,
 	students: students.map((s) => ({ slug: s.slug, displayName: s.data.displayName })),
 });
 ---
@@ -89,20 +91,31 @@ const initialJson = JSON.stringify({
 					</button>
 				</div>
 
-				<div class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
-					<table class="w-full min-w-[44rem] border-collapse text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
+				<div class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
+					<table
+						class="kit-data-table text-left font-sans text-[10px] sm:text-sm"
+						id="class-etudes-table"
+						data-hide-title={hideTitle ? '1' : '0'}
+					>
 						<thead>
 							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-								<th class="w-[28%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
+								<th class:list={[
+									'border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base',
+									hideTitle ? 'w-[36%]' : 'w-[28%]',
+								]}>
 									Участники
 								</th>
-								<th class="w-[24%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
-									Название этюда
-								</th>
+								{
+									!hideTitle && (
+										<th class="w-[24%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
+											Название этюда
+										</th>
+									)
+								}
 								<th class="border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base">
 									Комментарий педагога
 								</th>
-								<th class="w-14 px-1 py-2 text-center font-display text-[10px] font-normal sm:text-base"> </th>
+								<th class="w-8 px-1 py-2 text-center font-display text-[10px] font-normal sm:w-14 sm:text-base"> </th>
 							</tr>
 						</thead>
 						<tbody id="etude-tbody">
@@ -118,7 +131,7 @@ const initialJson = JSON.stringify({
 														<label class="flex cursor-pointer items-center gap-2 text-[10px] text-ink sm:text-xs">
 															<input
 																type="checkbox"
-																class="et-part h-4 w-4 border-[2px] border-ink accent-accent"
+																class="et-part h-4 w-4 shrink-0 border-[2px] border-ink accent-accent"
 																value={s.slug}
 																checked={row.participantSlugs.includes(s.slug)}
 															/>
@@ -129,16 +142,20 @@ const initialJson = JSON.stringify({
 											</details>
 										</div>
 									</td>
-									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-										<input
-											type="text"
-											class="et-title w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
-											value={row.title}
-										/>
-									</td>
+									{
+										!hideTitle && (
+											<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+												<input
+													type="text"
+													class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
+													value={row.title}
+												/>
+											</td>
+										)
+									}
 									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
 										<textarea
-											class="et-comment w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
+											class="et-comment w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
 											rows="2"
 										>{row.teacherComment ?? ''}</textarea>
 									</td>
@@ -205,7 +222,13 @@ const initialJson = JSON.stringify({
 			participantSlugs: string[];
 		};
 		type StudentOpt = { slug: string; displayName: string };
-		type Catalog = { topics: Topic[]; etudes: Etude[]; activeTopicId: string; students: StudentOpt[] };
+		type Catalog = {
+			topics: Topic[];
+			etudes: Etude[];
+			activeTopicId: string;
+			hideTitle?: boolean;
+			students: StudentOpt[];
+		};
 
 		const initialEl = document.getElementById('class-initial');
 		const status = document.getElementById('class-status');
@@ -222,7 +245,7 @@ const initialJson = JSON.stringify({
 
 		function readInitial(): Catalog {
 			if (!initialEl?.textContent) {
-				return { topics: [], etudes: [], activeTopicId: '', students: [] };
+				return { topics: [], etudes: [], activeTopicId: '', hideTitle: false, students: [] };
 			}
 			return JSON.parse(initialEl.textContent) as Catalog;
 		}
@@ -257,12 +280,19 @@ const initialJson = JSON.stringify({
 			document.querySelectorAll('.etude-row').forEach((row) => refreshSelectedNames(row));
 		}
 
+		function hidesTitle(): boolean {
+			const table = document.getElementById('class-etudes-table');
+			return table?.getAttribute('data-hide-title') === '1' || Boolean(catalog.hideTitle);
+		}
+
 		function collectCurrentTopicEtudes(): Etude[] {
 			if (!tbody || !catalog.activeTopicId) return [];
 			const out: Etude[] = [];
+			const noTitle = hidesTitle();
 			tbody.querySelectorAll('.etude-row').forEach((row) => {
-				const title = (row.querySelector('.et-title') as HTMLInputElement | null)?.value?.trim() ?? '';
-				if (!title) return;
+				const title = noTitle
+					? ''
+					: ((row.querySelector('.et-title') as HTMLInputElement | null)?.value?.trim() ?? '');
 				const teacherComment =
 					(row.querySelector('.et-comment') as HTMLTextAreaElement | null)?.value?.trim() ?? '';
 				const participantSlugs = Array.from(row.querySelectorAll('.et-part'))
@@ -340,13 +370,16 @@ const initialJson = JSON.stringify({
 			const tr = document.createElement('tr');
 			tr.className = 'etude-row border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface';
 			tr.setAttribute('data-etude-id', newId('etude'));
+			const titleCell = hidesTitle()
+				? ''
+				: `<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
+					<input type="text" class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" />
+				</td>`;
 			tr.innerHTML = `
 				<td class="border-r-[2px] border-ink px-1.5 py-2 align-top sm:px-3 sm:py-3">${participantEditorHtml([])}</td>
+				${titleCell}
 				<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-					<input type="text" class="et-title w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" />
-				</td>
-				<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-					<textarea class="et-comment w-full border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" rows="2"></textarea>
+					<textarea class="et-comment w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" rows="2"></textarea>
 				</td>
 				<td class="px-1 py-2 text-center align-top">
 					<button type="button" class="remove-etude-btn text-muted hover:text-accent" title="Удалить этюд">✕</button>
