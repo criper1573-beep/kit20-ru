@@ -33,16 +33,15 @@ const studentBlocks = students.map((entry, i) => ({
 <Layout title="Класс" description="Темы этюдов и комментарии педагога">
 	<EtudeTopicSheets slot="after-ticker" topics={topics} activeId={active?.id ?? null} basePath="/class" />
 
-	<div class="mb-8 border-b-[3px] border-ink pb-4">
-		<h1 class="font-display text-4xl font-normal uppercase tracking-widest text-ink sm:text-5xl">Класс</h1>
-		{
-			active && (
-				<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">
-					Тема: <span class="text-ink">{active.title}</span>
-				</p>
-			)
-		}
-	</div>
+	{
+		active && (
+			<h1 class="mb-6 inline-flex max-w-full items-center border-[3px] border-ink bg-accent px-2.5 py-1.5 shadow-[var(--shadow-card)] sm:px-4 sm:py-2">
+				<span class="whitespace-nowrap font-display text-[clamp(1.25rem,6.4vw,2.75rem)] font-normal uppercase leading-none tracking-[0.06em] text-canvas sm:tracking-[0.12em]">
+					{active.title}
+				</span>
+			</h1>
+		)
+	}
 
 	{
 		!active ? (
