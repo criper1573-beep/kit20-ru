@@ -14,6 +14,11 @@ import {
 } from './schemas';
 import { emptyEtudeTopics } from './etudeTopics';
 import { parseMarkdownFile, stringifyMarkdownFile } from './mdFile';
+import {
+	isDeletedObshchakContributor,
+	KATYA_KUZINA_SLUG,
+	migrateObshchakData,
+} from './obshchakRoster.mjs';
 
 function contentRoot(): string {
 	return path.join(process.cwd(), 'src', 'content');
@@ -125,7 +130,7 @@ export async function readObshchak(): Promise<ObshchakData> {
 		throw e;
 	}
 	const json = JSON.parse(raw) as unknown;
-	const parsed = obshchakDataSchema.safeParse(json);
+	const parsed = obshchakDataSchema.safeParse(migrateObshchakData(json as Record<string, unknown>));
 	if (!parsed.success) {
 		throw new Error(`obshchak.json: ${parsed.error.message}`);
 	}
@@ -135,14 +140,18 @@ export async function readObshchak(): Promise<ObshchakData> {
 /**
  * Собирает взносы только по slug'ам из `students/`: нули по умолчанию,
  * лишние ключи (старые карточки) отбрасываем — касса и сумма балансов не «размазываются».
+ * Ушедшие (`seryozha` и др.) не возвращаются; `katya` всегда есть (0, если ещё нет карточки).
  */
 async function normalizeObshchakContribKeys(data: ObshchakData): Promise<ObshchakData> {
+	const migrated = migrateObshchakData(data) as ObshchakData;
 	const students = await readStudentsSorted();
 	const contributed: Record<string, number> = {};
 	for (const { slug } of students) {
-		contributed[slug] = data.contributedKopeks[slug] ?? 0;
+		if (isDeletedObshchakContributor(slug)) continue;
+		contributed[slug] = migrated.contributedKopeks[slug] ?? 0;
 	}
-	return { ...data, contributedKopeks: contributed };
+	contributed[KATYA_KUZINA_SLUG] = migrated.contributedKopeks[KATYA_KUZINA_SLUG] ?? 0;
+	return { ...migrated, contributedKopeks: contributed };
 }
 
 function etudeTopicsPath(): string {
@@ -179,10 +188,21 @@ export async function writeEtudeTopics(data: EtudeTopicsData): Promise<void> {
 	await fs.writeFile(path.join(lkgDir, 'etude-topics.json'), raw, 'utf8');
 }
 
+/** Текущий состав для новой траты: ученики сайта без ушедших; Катя Кузина участвует. */
+export async function currentObshchakParticipantSlugs(): Promise<string[]> {
+	const students = await readStudentsSorted();
+	const slugs = students.map((s) => s.slug).filter((slug) => !isDeletedObshchakContributor(slug));
+	if (!slugs.includes(KATYA_KUZINA_SLUG)) {
+		slugs.push(KATYA_KUZINA_SLUG);
+	}
+	return slugs;
+}
+
 export async function writeObshchak(data: ObshchakData): Promise<void> {
 	const p = path.join(contentRoot(), 'obshchak.json');
-	obshchakDataSchema.parse(data);
-	const normalized = await normalizeObshchakContribKeys(data);
+	const migrated = migrateObshchakData(data) as ObshchakData;
+	obshchakDataSchema.parse(migrated);
+	const normalized = await normalizeObshchakContribKeys(migrated);
 	const raw = `${JSON.stringify(normalized, null, 2)}\n`;
 	await fs.writeFile(p, raw, 'utf8');
 	// Дублируем на диск: восстановление после git pull / деплоя

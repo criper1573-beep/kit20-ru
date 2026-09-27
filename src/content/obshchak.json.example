@@ -1,5 +1,7 @@
 {
   "watcherSlug": "nastya",
-  "contributedKopeks": {},
+  "contributedKopeks": {
+    "katya": 0
+  },
   "expenses": []
 }

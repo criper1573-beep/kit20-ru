@@ -1,12 +1,19 @@
+import { isDeletedObshchakContributor, participantsForExpense } from './obshchakRoster.mjs';
+
+export type ObshchakExpenseShare = {
+	amountKopeks: number;
+	participantSlugs?: string[];
+};
+
 /**
- * Раскидать сумму траты в копейках поровну на всех из `studentSlugsOrdered`; остаток (0..N-1 коп.)
- * получают первые по списку (порядок `order` с сайта).
+ * Раскидать сумму траты в копейках поровну на `participantSlugsOrdered`; остаток (0..N-1 коп.)
+ * получают первые по списку (порядок `order` с сайта в снимке).
  */
 export function splitExpenseKopeksPerPerson(
 	amountKopeks: number,
-	studentSlugsOrdered: string[],
+	participantSlugsOrdered: string[],
 ): Map<string, number> {
-	const n = studentSlugsOrdered.length;
+	const n = participantSlugsOrdered.length;
 	if (n < 1) {
 		throw new Error('obshchak: нужен хотя бы один участник');
 	}
@@ -16,34 +23,38 @@ export function splitExpenseKopeksPerPerson(
 	const base = Math.floor(amountKopeks / n);
 	const rem = amountKopeks - base * n;
 	const out = new Map<string, number>();
-	for (let i = 0; i < studentSlugsOrdered.length; i++) {
-		const slug = studentSlugsOrdered[i]!;
+	for (let i = 0; i < participantSlugsOrdered.length; i++) {
+		const slug = participantSlugsOrdered[i]!;
 		out.set(slug, base + (i < rem ? 1 : 0));
 	}
 	return out;
 }
 
-/** Сколько с человека по всем тратам (коп.) */
+/** Сколько с человека по всем тратам (коп.). Трата со снимком — только на этих участников. */
 export function totalShareKopeksBySlug(
 	studentSlugsOrdered: string[],
-	expenses: { amountKopeks: number }[],
+	expenses: ObshchakExpenseShare[],
 ): Map<string, number> {
 	const total = new Map<string, number>();
 	for (const slug of studentSlugsOrdered) {
 		total.set(slug, 0);
 	}
 	for (const e of expenses) {
-		const part = splitExpenseKopeksPerPerson(e.amountKopeks, studentSlugsOrdered);
-		for (const slug of studentSlugsOrdered) {
-			total.set(slug, (total.get(slug) ?? 0) + (part.get(slug) ?? 0));
+		const parts = participantsForExpense(e, studentSlugsOrdered);
+		const part = splitExpenseKopeksPerPerson(e.amountKopeks, parts);
+		for (const [slug, kopeks] of part) {
+			total.set(slug, (total.get(slug) ?? 0) + kopeks);
 		}
 	}
 	return total;
 }
 
-/** Взносы (коп.) по slug, только известные ключи. */
+/** Взносы (коп.) по slug, без ключей ушедших учеников. */
 export function contributedKopeksTotal(contributed: Record<string, number>): number {
-	return Object.values(contributed).reduce((a, b) => a + b, 0);
+	return Object.entries(contributed).reduce((a, [slug, b]) => {
+		if (isDeletedObshchakContributor(slug)) return a;
+		return a + b;
+	}, 0);
 }
 
 export function expensesTotalKopeks(expenses: { amountKopeks: number }[]): number {
@@ -54,7 +65,7 @@ export function expensesTotalKopeks(expenses: { amountKopeks: number }[]): numbe
 export function balanceKopeksBySlug(
 	studentSlugsOrdered: string[],
 	contributed: Record<string, number>,
-	expenses: { amountKopeks: number }[],
+	expenses: ObshchakExpenseShare[],
 ): Map<string, number> {
 	const share = totalShareKopeksBySlug(studentSlugsOrdered, expenses);
 	const out = new Map<string, number>();
