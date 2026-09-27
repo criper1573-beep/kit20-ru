@@ -36,7 +36,7 @@ export function emptyEtudeTopics(): EtudeTopicsData {
 	return { topics: [], etudes: [] };
 }
 
-/** В «Органичное молчание» названия этюдов не показываем и не требуем. */
+/** В «Органичное молчание» название и комментарий пустые (колонки остаются). */
 export function topicHidesEtudeTitle(topic: { id?: string; title?: string } | null | undefined): boolean {
 	if (!topic) return false;
 	if (topic.id === 'organichnoe-molchanie') return true;

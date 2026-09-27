@@ -85,8 +85,8 @@ for (const student of live) {
 		if ((row.title ?? '') !== expectedTitle) {
 			fail(`${slug} [${i}]: title «${row.title}» ≠ «${expectedTitle}»`);
 		}
-		const comment = typeof src.teacherComment === 'string' ? src.teacherComment : '';
-		if ((row.teacherComment ?? '') !== comment) {
+		const expectedComment = i === 2 ? '' : typeof src.teacherComment === 'string' ? src.teacherComment : '';
+		if ((row.teacherComment ?? '') !== expectedComment) {
 			fail(`${slug} [${i}]: comment mismatch`);
 		}
 		if (row.participantSlugs.length !== 1 || row.participantSlugs[0] !== slug) {

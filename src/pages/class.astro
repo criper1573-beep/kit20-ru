@@ -96,7 +96,7 @@ const studentBlocks = students.map((entry, i) => ({
 									{hideTitle ? '' : row.title?.trim() ? row.title : '—'}
 								</td>
 								<td class="px-1.5 py-2 align-top text-ink/90 normal-case sm:px-4 sm:py-3">
-									{row.teacherComment?.trim() ? row.teacherComment : '—'}
+									{hideTitle ? '' : row.teacherComment?.trim() ? row.teacherComment : '—'}
 								</td>
 							</tr>
 						))}

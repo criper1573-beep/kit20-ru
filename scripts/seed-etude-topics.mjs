@@ -7,7 +7,7 @@
  * Индекс etudes[] у студента:
  *   0 → Предмет
  *   1 → Животное
- *   2 → Органичное молчание (без названия этюда)
+ *   2 → Органичное молчание (без названия и комментария)
  * Наблюдение за людьми и Пименов — пустые.
  * Пименов создаётся последним → слева в меню (newest-left).
  */
@@ -59,7 +59,7 @@ for (const topic of TOPIC_DEFS) {
 			id: `${topic.id}--${slug}`,
 			topicId: topic.id,
 			title: hideTitle ? '' : row.title,
-			teacherComment: comment,
+			teacherComment: hideTitle ? '' : comment,
 			participantSlugs: [slug],
 		});
 	}
