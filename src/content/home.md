@@ -12,10 +12,10 @@ subtitleWeight: normal
 subtitleItalic: false
 semesters:
   - label: 2026/27 · семестр 1
-    progress: 45
+    progress: 100
     color: accent
   - label: 2026/27 · семестр 2
-    progress: 0
+    progress: 8
     color: ink
   - label: 2027/28 · семестр 3
     progress: 0
@@ -24,4 +24,3 @@ semesters:
     progress: 0
     color: ink
 ---
-Официальная страница группы КИТ-20 Парт Академии

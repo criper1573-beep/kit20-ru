@@ -110,6 +110,7 @@ export const obshchakExpenseSchema = z.object({
 	label: z.string().min(1),
 	amountKopeks: z.number().int().positive(),
 	createdAt: z.string().optional(),
+	participantSlugs: z.array(z.string().min(1)).optional(),
 });
 
 export const obshchakDataSchema = z.object({
@@ -117,7 +118,26 @@ export const obshchakDataSchema = z.object({
 	watcherSlug: z.string().default('nastya'),
 	/** Сколько внёс в кассу, коп. Ключ = slug. */
 	contributedKopeks: z.record(z.string(), z.number().int().min(0)).default({}),
+	/** Взносы ушедших учеников: в кассе считаются, в личных балансах текущих — нет. */
+	archivedContributedKopeks: z.record(z.string(), z.number().int().min(0)).default({}),
 	expenses: z.array(obshchakExpenseSchema).default([]),
+});
+
+
+export const spectacleSchema = z.object({
+	id: z.string().min(1),
+	title: z.string(),
+	heroPhoto: z.string(),
+	directorName: z.string(),
+	directorRegalia: z.string(),
+	directorPhoto: z.string(),
+	gallery: z.array(z.string()).default([]),
+	/** Меньше — выше на главной. */
+	order: z.number(),
+});
+
+export const spectaclesDataSchema = z.object({
+	spectacles: z.array(spectacleSchema).default([]),
 });
 
 export type HomeFrontmatter = z.infer<typeof homeFrontmatterSchema>;
@@ -128,3 +148,5 @@ export type ObshchakExpense = z.infer<typeof obshchakExpenseSchema>;
 export type EtudeTopic = z.infer<typeof etudeTopicSchema>;
 export type ClassEtude = z.infer<typeof classEtudeSchema>;
 export type EtudeTopicsData = z.infer<typeof etudeTopicsDataSchema>;
+export type Spectacle = z.infer<typeof spectacleSchema>;
+export type SpectaclesData = z.infer<typeof spectaclesDataSchema>;

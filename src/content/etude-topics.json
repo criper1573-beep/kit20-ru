@@ -28,37 +28,19 @@
   ],
   "etudes": [
     {
-      "id": "predmet--egor",
+      "id": "predmet--nastya",
       "topicId": "predmet",
-      "title": "Лампочка",
-      "teacherComment": "Проработать конец.Разобраться с хвостиками.",
+      "title": "Свеча",
+      "teacherComment": "Сдан",
       "participantSlugs": [
-        "egor"
-      ]
-    },
-    {
-      "id": "predmet--gazik",
-      "topicId": "predmet",
-      "title": "Дозатор",
-      "teacherComment": "Проработать костюм.Отредактировать конец.",
-      "participantSlugs": [
-        "gazik"
-      ]
-    },
-    {
-      "id": "predmet--ira",
-      "topicId": "predmet",
-      "title": "Ластик",
-      "teacherComment": "Проработать этюд.",
-      "participantSlugs": [
-        "ira"
+        "nastya"
       ]
     },
     {
       "id": "predmet--katya-2",
       "topicId": "predmet",
       "title": "Степлер",
-      "teacherComment": "",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "katya-2"
       ]
@@ -67,106 +49,61 @@
       "id": "predmet--kolya",
       "topicId": "predmet",
       "title": "Тряпка",
-      "teacherComment": "Проработать своё оружее,поправить конец истории.",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "kolya"
       ]
     },
     {
-      "id": "predmet--marusya",
+      "id": "predmet--egor",
       "topicId": "predmet",
-      "title": "Фен",
-      "teacherComment": "Проработать историю и характер персонажа",
+      "title": "Лампочка",
+      "teacherComment": "Сдан",
       "participantSlugs": [
-        "marusya"
-      ]
-    },
-    {
-      "id": "predmet--nastya",
-      "topicId": "predmet",
-      "title": "Свеча",
-      "teacherComment": "Работать с темпо ритмом.Смотреть зрителям в глаза.",
-      "participantSlugs": [
-        "nastya"
+        "egor"
       ]
     },
     {
       "id": "predmet--natasha",
       "topicId": "predmet",
       "title": "Носовой платок",
-      "teacherComment": "Проработать конец.Проработать историю.",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "natasha"
+      ]
+    },
+    {
+      "id": "predmet--gazik",
+      "topicId": "predmet",
+      "title": "Дозатор",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "gazik"
+      ]
+    },
+    {
+      "id": "predmet--ira",
+      "topicId": "predmet",
+      "title": "Ластик",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "ira"
       ]
     },
     {
       "id": "predmet--vika",
       "topicId": "predmet",
       "title": "Красная помада",
-      "teacherComment": "Проработать движения.",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "vika"
       ]
     },
     {
-      "id": "predmet--yulya-1",
+      "id": "predmet--marusya",
       "topicId": "predmet",
-      "title": "Штопор",
-      "teacherComment": "Проработать историю.Проработать характер персонажа.",
-      "participantSlugs": [
-        "yulya-1"
-      ]
-    },
-    {
-      "id": "zhivotnoe--egor",
-      "topicId": "zhivotnoe",
-      "title": "Лис",
-      "teacherComment": "Убрать себя,найти характер персонажа.Проработать историю , непонятно как показывать снег на сцене.",
-      "participantSlugs": [
-        "egor"
-      ]
-    },
-    {
-      "id": "zhivotnoe--gazik",
-      "topicId": "zhivotnoe",
-      "title": "Лев",
-      "teacherComment": "Поработать над пластикой движений",
-      "participantSlugs": [
-        "gazik"
-      ]
-    },
-    {
-      "id": "zhivotnoe--ira",
-      "topicId": "zhivotnoe",
-      "title": "Львица",
-      "teacherComment": "Поменять причёску.Больше проработать историю.",
-      "participantSlugs": [
-        "ira"
-      ]
-    },
-    {
-      "id": "zhivotnoe--katya-2",
-      "topicId": "zhivotnoe",
-      "title": "Сова",
-      "teacherComment": "Поменять положение зеркала.Укоротить историю.Проработать характер персонажа.",
-      "participantSlugs": [
-        "katya-2"
-      ]
-    },
-    {
-      "id": "zhivotnoe--kolya",
-      "topicId": "zhivotnoe",
-      "title": "Олень",
-      "teacherComment": "Отрепетировать дуэт с Егором.Поставить волосы в рога.",
-      "participantSlugs": [
-        "kolya"
-      ]
-    },
-    {
-      "id": "zhivotnoe--marusya",
-      "topicId": "zhivotnoe",
-      "title": "Сурок",
-      "teacherComment": "",
+      "title": "Фен",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "marusya"
       ]
@@ -175,36 +112,101 @@
       "id": "zhivotnoe--nastya",
       "topicId": "zhivotnoe",
       "title": "Кошка",
-      "teacherComment": "Убрать волосы",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "nastya"
+      ]
+    },
+    {
+      "id": "zhivotnoe--katya-2",
+      "topicId": "zhivotnoe",
+      "title": "Сова",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "katya-2"
+      ]
+    },
+    {
+      "id": "zhivotnoe--kolya",
+      "topicId": "zhivotnoe",
+      "title": "Олень",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "kolya"
+      ]
+    },
+    {
+      "id": "zhivotnoe--egor",
+      "topicId": "zhivotnoe",
+      "title": "Лис",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "egor"
       ]
     },
     {
       "id": "zhivotnoe--natasha",
       "topicId": "zhivotnoe",
       "title": "Кенгуру",
-      "teacherComment": "Удлинить этюд.",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "natasha"
+      ]
+    },
+    {
+      "id": "zhivotnoe--gazik",
+      "topicId": "zhivotnoe",
+      "title": "Лев",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "gazik"
+      ]
+    },
+    {
+      "id": "zhivotnoe--ira",
+      "topicId": "zhivotnoe",
+      "title": "Львица",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "ira"
       ]
     },
     {
       "id": "zhivotnoe--vika",
       "topicId": "zhivotnoe",
       "title": "Ленивец",
-      "teacherComment": "",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "vika"
       ]
     },
     {
-      "id": "zhivotnoe--yulya-1",
+      "id": "zhivotnoe--marusya",
       "topicId": "zhivotnoe",
-      "title": "Курица",
+      "title": "Сурок",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "marusya"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--nastya",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
       "teacherComment": "",
       "participantSlugs": [
-        "yulya-1"
+        "nastya",
+        "kolya"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--katya-2",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "katya-2",
+        "natasha"
       ]
     },
     {
@@ -213,7 +215,8 @@
       "title": "",
       "teacherComment": "",
       "participantSlugs": [
-        "egor"
+        "egor",
+        "marusya"
       ]
     },
     {
@@ -226,75 +229,144 @@
       ]
     },
     {
-      "id": "organichnoe-molchanie--ira",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
-      "participantSlugs": [
-        "ira"
-      ]
-    },
-    {
-      "id": "organichnoe-molchanie--katya-2",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
-      "participantSlugs": [
-        "katya-2"
-      ]
-    },
-    {
-      "id": "organichnoe-molchanie--kolya",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
-      "participantSlugs": [
-        "kolya"
-      ]
-    },
-    {
-      "id": "organichnoe-molchanie--marusya",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
-      "participantSlugs": [
-        "marusya"
-      ]
-    },
-    {
-      "id": "organichnoe-molchanie--nastya",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
+      "id": "etude-multdnoy-b8gg1n",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Толик",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "nastya"
       ]
     },
     {
-      "id": "organichnoe-molchanie--natasha",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
+      "id": "etude-multdoeo-ih8ugl",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Бабка",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "gazik"
+      ]
+    },
+    {
+      "id": "etude-multdop8-18kudn",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Тёща",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "kolya"
+      ]
+    },
+    {
+      "id": "etude-multdouh-91z797",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Тётка",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "katya-2"
+      ]
+    },
+    {
+      "id": "etude-multdoz9-4ptan9",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Девочка подросток",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "egor"
+      ]
+    },
+    {
+      "id": "etude-multdp3y-p9m4g3",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Мужик",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "natasha"
       ]
     },
     {
-      "id": "organichnoe-molchanie--vika",
-      "topicId": "organichnoe-molchanie",
-      "title": "",
-      "teacherComment": "",
+      "id": "etude-multdp8y-y396l2",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Бабка",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "ira"
+      ]
+    },
+    {
+      "id": "etude-multdpcw-flinxh",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Мамкин сын",
+      "teacherComment": "Сдан",
       "participantSlugs": [
         "vika"
       ]
     },
     {
-      "id": "organichnoe-molchanie--yulya-1",
-      "topicId": "organichnoe-molchanie",
+      "id": "etude-multgaaj-uf5v3c",
+      "topicId": "nablyudenie-za-lyudmi",
+      "title": "Ребёнок",
+      "teacherComment": "Сдан",
+      "participantSlugs": [
+        "marusya"
+      ]
+    },
+    {
+      "id": "etude-multgoj8-c3u0p7",
+      "topicId": "pimenov",
+      "title": "Лирическое новоселье",
+      "teacherComment": "",
+      "participantSlugs": [
+        "nastya",
+        "kolya"
+      ]
+    },
+    {
+      "id": "etude-multgoor-1syqyy",
+      "topicId": "pimenov",
+      "title": "Лирическое новоселье",
+      "teacherComment": "",
+      "participantSlugs": [
+        "kolya",
+        "ira"
+      ]
+    },
+    {
+      "id": "etude-multgotk-ch5mh7",
+      "topicId": "pimenov",
+      "title": "Лирическое новоселье",
+      "teacherComment": "+?",
+      "participantSlugs": [
+        "katya-2",
+        "kolya"
+      ]
+    },
+    {
+      "id": "etude-multgpff-hzh08k",
+      "topicId": "pimenov",
+      "title": "Лирическое новоселье",
+      "teacherComment": "?",
+      "participantSlugs": [
+        "kolya",
+        "marusya"
+      ]
+    },
+    {
+      "id": "etude-multgpm5-hh8e3s",
+      "topicId": "pimenov",
+      "title": "Лирическое новоселье",
+      "teacherComment": "+?",
+      "participantSlugs": [
+        "egor",
+        "natasha"
+      ]
+    },
+    {
+      "id": "etude-multiuy6-142j96",
+      "topicId": "pimenov",
       "title": "",
       "teacherComment": "",
       "participantSlugs": [
-        "yulya-1"
+        "gazik",
+        "katya"
       ]
     }
   ]

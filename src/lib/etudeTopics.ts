@@ -35,10 +35,3 @@ export function pickActiveTopic<T extends Pick<EtudeTopic, 'id' | 'createdAt'>>(
 export function emptyEtudeTopics(): EtudeTopicsData {
 	return { topics: [], etudes: [] };
 }
-
-/** В «Органичное молчание» название и комментарий пустые (колонки остаются). */
-export function topicHidesEtudeTitle(topic: { id?: string; title?: string } | null | undefined): boolean {
-	if (!topic) return false;
-	if (topic.id === 'organichnoe-molchanie') return true;
-	return (topic.title ?? '').trim().toLocaleLowerCase('ru') === 'органичное молчание';
-}

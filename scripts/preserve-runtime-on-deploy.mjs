@@ -28,6 +28,7 @@ const OBSHCHAK_BAK = 'src/content/obshchak.json.bak';
 const HOME_MD = 'src/content/home.md';
 const ATTENDANCE_MD = 'src/content/attendance.md';
 const ETUDE_TOPICS = 'src/content/etude-topics.json';
+const SPECTACLES = 'src/content/spectacles.json';
 const BIRTHDAY = 'storage/birthday-dial-labels.json';
 const GAME_SCORES = 'src/content/game-scores.json';
 const JUMP_SCORES = 'src/content/game-scores-jump.json';
@@ -167,6 +168,7 @@ async function phasePrePull() {
 	await copyIfExists(rel(HOME_MD), dir, 'home.md');
 	await copyIfExists(rel(ATTENDANCE_MD), dir, 'attendance.md');
 	await copyIfExists(rel(ETUDE_TOPICS), dir, 'etude-topics.json');
+	await copyIfExists(rel(SPECTACLES), dir, 'spectacles.json');
 	try {
 		const { cp } = await import('node:fs/promises');
 		const students = rel('src/content/students');
@@ -298,6 +300,16 @@ function countClassEtudes(raw) {
 	}
 }
 
+function countSpectacles(raw) {
+	if (!raw) return 0;
+	try {
+		const parsed = JSON.parse(raw);
+		return Array.isArray(parsed?.spectacles) ? parsed.spectacles.length : 0;
+	} catch {
+		return 0;
+	}
+}
+
 async function restoreEtudeTopicsIfNeeded(backupDir) {
 	const target = rel(ETUDE_TOPICS);
 	const curRaw = await readTextIfExists(target);
@@ -322,6 +334,33 @@ async function restoreEtudeTopicsIfNeeded(backupDir) {
 	await mkdir(dirname(target), { recursive: true });
 	await writeFile(target, bestRaw.endsWith('\n') ? bestRaw : `${bestRaw}\n`, 'utf8');
 	log(`OK: restored etude-topics.json (${curN} -> ${bestN} etudes)`);
+	return true;
+}
+
+async function restoreSpectaclesIfNeeded(backupDir) {
+	const target = rel(SPECTACLES);
+	const curRaw = await readTextIfExists(target);
+	const curN = countSpectacles(curRaw);
+	const candidates = [];
+	if (backupDir) candidates.push(join(backupDir, 'spectacles.json'));
+	candidates.push(rel('storage/last-known-good/spectacles.json'));
+	let bestPath = null;
+	let bestN = curN;
+	let bestRaw = curRaw;
+	for (const c of candidates) {
+		const raw = await readTextIfExists(c);
+		const n = countSpectacles(raw);
+		if (raw && n > bestN) {
+			bestN = n;
+			bestPath = c;
+			bestRaw = raw;
+		}
+	}
+	if (!bestPath || !bestRaw) return false;
+	const { dirname } = await import('node:path');
+	await mkdir(dirname(target), { recursive: true });
+	await writeFile(target, bestRaw.endsWith('\n') ? bestRaw : `${bestRaw}\n`, 'utf8');
+	log(`OK: restored spectacles.json (${curN} -> ${bestN} spectacles)`);
 	return true;
 }
 
@@ -379,6 +418,7 @@ async function phasePostPull() {
 	await restoreGenericIfSmaller(ATTENDANCE_MD, genericCandidates('attendance.md'));
 	await restoreGenericIfSmaller(HOME_MD, genericCandidates('home.md'));
 	await restoreEtudeTopicsIfNeeded(backupDir);
+	await restoreSpectaclesIfNeeded(backupDir);
 	await restoreGenericIfSmaller(BIRTHDAY, genericCandidates('birthday-dial-labels.json'));
 	await restoreGenericIfSmaller(JUMP_SCORES, genericCandidates('game-scores-jump.json'));
 

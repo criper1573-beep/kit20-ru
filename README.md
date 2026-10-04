@@ -134,6 +134,7 @@ npm run dev
 | Путь | Назначение |
 |------|------------|
 | `src/content/home.md` | Главная (заголовок, подзаголовок, markdown-текст) |
+| `src/content/spectacles.json` | Спектакли на главной — правки из `/admin/spectacles` |
 | `src/content/students/*.md` | Карточки учеников, этюды, опционально фото |
 | `src/content/attendance.md` | Список занятий и отметки посещаемости |
 | `src/content/obshchak.json` | Общак: взносы и траты — **только на сервере**, правки из `/admin/obschak` (шаблон: `obshchak.json.example`) |

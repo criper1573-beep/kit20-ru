@@ -3,7 +3,7 @@ export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import EtudeTopicSheets from '../../components/EtudeTopicSheets.astro';
 import { readEtudeTopics, readStudentsSorted } from '../../lib/siteContent';
-import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft, topicHidesEtudeTitle } from '../../lib/etudeTopics';
+import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft } from '../../lib/etudeTopics';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
 
 if (!hasValidAdminSession(Astro.cookies)) {
@@ -24,13 +24,11 @@ const rows = active
 			return (a.title || a.id).localeCompare(b.title || b.id, 'ru');
 		})
 	: [];
-const hideTitle = topicHidesEtudeTitle(active);
 
 const initialJson = JSON.stringify({
 	topics: catalog.topics,
 	etudes: catalog.etudes,
 	activeTopicId: active?.id ?? '',
-	hideTitle,
 	students: students.map((s) => ({ slug: s.slug, displayName: s.data.displayName })),
 });
 ---
@@ -95,7 +93,6 @@ const initialJson = JSON.stringify({
 					<table
 						class="kit-data-table text-left font-sans text-[10px] sm:text-sm"
 						id="class-etudes-table"
-						data-hide-title={hideTitle ? '1' : '0'}
 					>
 						<thead>
 							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
@@ -139,16 +136,14 @@ const initialJson = JSON.stringify({
 										<input
 											type="text"
 											class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
-											value={hideTitle ? '' : row.title}
-											readonly={hideTitle}
+											value={row.title?.trim() ?? ''}
 										/>
 									</td>
 									<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
 										<textarea
 											class="et-comment w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm"
 											rows="2"
-											readonly={hideTitle}
-										>{hideTitle ? '' : row.teacherComment ?? ''}</textarea>
+										>{row.teacherComment ?? ''}</textarea>
 									</td>
 									<td class="px-1 py-2 text-center align-top">
 										<button
@@ -217,7 +212,6 @@ const initialJson = JSON.stringify({
 			topics: Topic[];
 			etudes: Etude[];
 			activeTopicId: string;
-			hideTitle?: boolean;
 			students: StudentOpt[];
 		};
 
@@ -236,7 +230,7 @@ const initialJson = JSON.stringify({
 
 		function readInitial(): Catalog {
 			if (!initialEl?.textContent) {
-				return { topics: [], etudes: [], activeTopicId: '', hideTitle: false, students: [] };
+				return { topics: [], etudes: [], activeTopicId: '', students: [] };
 			}
 			return JSON.parse(initialEl.textContent) as Catalog;
 		}
@@ -271,22 +265,13 @@ const initialJson = JSON.stringify({
 			document.querySelectorAll('.etude-row').forEach((row) => refreshSelectedNames(row));
 		}
 
-		function hidesTitle(): boolean {
-			const table = document.getElementById('class-etudes-table');
-			return table?.getAttribute('data-hide-title') === '1' || Boolean(catalog.hideTitle);
-		}
-
 		function collectCurrentTopicEtudes(): Etude[] {
 			if (!tbody || !catalog.activeTopicId) return [];
 			const out: Etude[] = [];
-			const noTitle = hidesTitle();
 			tbody.querySelectorAll('.etude-row').forEach((row) => {
-				const title = noTitle
-					? ''
-					: ((row.querySelector('.et-title') as HTMLInputElement | null)?.value?.trim() ?? '');
-				const teacherComment = noTitle
-					? ''
-					: ((row.querySelector('.et-comment') as HTMLTextAreaElement | null)?.value?.trim() ?? '');
+				const title = (row.querySelector('.et-title') as HTMLInputElement | null)?.value?.trim() ?? '';
+				const teacherComment =
+					(row.querySelector('.et-comment') as HTMLTextAreaElement | null)?.value?.trim() ?? '';
 				const participantSlugs = Array.from(row.querySelectorAll('.et-part'))
 					.filter((el) => (el as HTMLInputElement).checked)
 					.map((el) => (el as HTMLInputElement).value);
@@ -362,15 +347,14 @@ const initialJson = JSON.stringify({
 			const tr = document.createElement('tr');
 			tr.className = 'etude-row border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface';
 			tr.setAttribute('data-etude-id', newId('etude'));
-			const titleReadonly = hidesTitle() ? 'readonly' : '';
 			const titleCell = `<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-					<input type="text" class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" ${titleReadonly} />
+					<input type="text" class="et-title w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] uppercase text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" value="" />
 				</td>`;
 			tr.innerHTML = `
 				<td class="border-r-[2px] border-ink px-1.5 py-2 align-top sm:px-3 sm:py-3">${participantEditorHtml([])}</td>
 				${titleCell}
 				<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top sm:px-3 sm:py-3">
-					<textarea class="et-comment w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" rows="2" ${titleReadonly}></textarea>
+					<textarea class="et-comment w-full min-w-0 border-[2px] border-ink bg-surface px-2 py-1.5 font-sans text-[10px] leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-accent sm:text-sm" rows="2"></textarea>
 				</td>
 				<td class="px-1 py-2 text-center align-top">
 					<button type="button" class="remove-etude-btn text-muted hover:text-accent" title="Удалить этюд">✕</button>

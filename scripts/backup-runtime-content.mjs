@@ -18,6 +18,7 @@ const FILES = [
 	'src/content/home.md',
 	'src/content/attendance.md',
 	'src/content/etude-topics.json',
+	'src/content/spectacles.json',
 	'storage/birthday-dial-labels.json',
 	'src/content/game-scores-jump.json',
 ];

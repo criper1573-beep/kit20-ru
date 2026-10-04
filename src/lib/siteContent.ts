@@ -5,14 +5,17 @@ import {
 	etudeTopicsDataSchema,
 	homeFrontmatterSchema,
 	obshchakDataSchema,
+	spectaclesDataSchema,
 	studentFrontmatterSchema,
 	type AttendanceFrontmatter,
 	type EtudeTopicsData,
 	type HomeFrontmatter,
 	type ObshchakData,
+	type SpectaclesData,
 	type StudentFrontmatter,
 } from './schemas';
 import { emptyEtudeTopics } from './etudeTopics';
+import { emptySpectacles } from './spectacles';
 import { parseMarkdownFile, stringifyMarkdownFile } from './mdFile';
 
 function contentRoot(): string {
@@ -177,6 +180,40 @@ export async function writeEtudeTopics(data: EtudeTopicsData): Promise<void> {
 	const lkgDir = path.join(process.cwd(), 'storage', 'last-known-good');
 	await fs.mkdir(lkgDir, { recursive: true });
 	await fs.writeFile(path.join(lkgDir, 'etude-topics.json'), raw, 'utf8');
+}
+
+function spectaclesPath(): string {
+	return path.join(contentRoot(), 'spectacles.json');
+}
+
+export async function readSpectacles(): Promise<SpectaclesData> {
+	const p = spectaclesPath();
+	let raw: string;
+	try {
+		raw = await fs.readFile(p, 'utf8');
+	} catch (e) {
+		const err = e as { code?: string };
+		if (err?.code === 'ENOENT') return emptySpectacles();
+		throw e;
+	}
+	const json = JSON.parse(raw) as unknown;
+	const parsed = spectaclesDataSchema.safeParse(json);
+	if (!parsed.success) {
+		throw new Error(`spectacles.json: ${parsed.error.message}`);
+	}
+	return parsed.data;
+}
+
+export async function writeSpectacles(data: SpectaclesData): Promise<void> {
+	const p = spectaclesPath();
+	const parsed = spectaclesDataSchema.parse(data);
+	const raw = `${JSON.stringify(parsed, null, 2)}\n`;
+	const tmp = `${p}.tmp`;
+	await fs.writeFile(tmp, raw, 'utf8');
+	await fs.rename(tmp, p);
+	const lkgDir = path.join(process.cwd(), 'storage', 'last-known-good');
+	await fs.mkdir(lkgDir, { recursive: true });
+	await fs.writeFile(path.join(lkgDir, 'spectacles.json'), raw, 'utf8');
 }
 
 export async function writeObshchak(data: ObshchakData): Promise<void> {

@@ -1,0 +1,41 @@
+{
+  "spectacles": [
+    {
+      "id": "a1b2c3d4-e5f6-4789-a012-3456789abcde",
+      "title": "Спектакль-заглушка",
+      "heroPhoto": "/uploads/3d612b64-8291-40c6-b614-b23e9524f7a8.jpg",
+      "directorName": "Таня Вайнштейн",
+      "directorRegalia": "Художественная руководительница Парт Академии, режиссер и хореограф.    Образование : СПбГУ, Исторический факультет, кафедра этнографии и антропологии (2003), СПбГАТИ, Режиссура театра (2008), Академия Русского балета им. А. Я. Вагановой, Магистерская программа «Композиция современных форм танца» (2014), UWM, University of Wisconsin-Milwaukee (Университет Висконсина в Милуоки), Факультет кино (стажировка 2017–2018)",
+      "directorPhoto": "/placeholders/spectacle-director.jpg",
+      "gallery": [
+        "/placeholders/spectacle-gallery-1.jpg",
+        "/placeholders/spectacle-gallery-2.jpg",
+        "/placeholders/spectacle-gallery-3.jpg",
+        "/placeholders/spectacle-gallery-4.jpg",
+        "/placeholders/spectacle-gallery-5.jpg",
+        "/placeholders/spectacle-gallery-6.jpg"
+      ],
+      "order": 0
+    },
+    {
+      "id": "cefb4a4c-7cce-47d7-92f6-f156cc77a8de",
+      "title": "Новости Кит20",
+      "heroPhoto": "/uploads/b4994519-9deb-4416-b964-08cb3e231491.jpg",
+      "directorName": "Юлия Скирина",
+      "directorRegalia": "Преподаватель актерского мастерства Актриса театра и кино. Выпускница ГИТИСа, мастерская И. Л. Райхельгауза, факультет режиссуры по специальности актриса драматического театра и кино.",
+      "directorPhoto": "",
+      "gallery": [],
+      "order": 1
+    },
+    {
+      "id": "80f5f256-9a5e-4487-b11e-f22f1b16c9b8",
+      "title": "Незнакомцы",
+      "heroPhoto": "/uploads/dde05299-febc-454d-8dde-3a42e1d65ecf.jpg",
+      "directorName": "Дарья Дерябина",
+      "directorRegalia": "Преподаватель сценического движения Профессиональная танцовщица, хореограф, педагог курсов «Старт»",
+      "directorPhoto": "",
+      "gallery": [],
+      "order": 2
+    }
+  ]
+}

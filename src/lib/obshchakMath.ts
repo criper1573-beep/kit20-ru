@@ -26,14 +26,18 @@ export function splitExpenseKopeksPerPerson(
 /** Сколько с человека по всем тратам (коп.) */
 export function totalShareKopeksBySlug(
 	studentSlugsOrdered: string[],
-	expenses: { amountKopeks: number }[],
+	expenses: { amountKopeks: number; participantSlugs?: string[] }[],
 ): Map<string, number> {
 	const total = new Map<string, number>();
 	for (const slug of studentSlugsOrdered) {
 		total.set(slug, 0);
 	}
 	for (const e of expenses) {
-		const part = splitExpenseKopeksPerPerson(e.amountKopeks, studentSlugsOrdered);
+		const participants =
+			e.participantSlugs && e.participantSlugs.length > 0
+				? e.participantSlugs
+				: studentSlugsOrdered;
+		const part = splitExpenseKopeksPerPerson(e.amountKopeks, participants);
 		for (const slug of studentSlugsOrdered) {
 			total.set(slug, (total.get(slug) ?? 0) + (part.get(slug) ?? 0));
 		}
@@ -54,7 +58,7 @@ export function expensesTotalKopeks(expenses: { amountKopeks: number }[]): numbe
 export function balanceKopeksBySlug(
 	studentSlugsOrdered: string[],
 	contributed: Record<string, number>,
-	expenses: { amountKopeks: number }[],
+	expenses: { amountKopeks: number; participantSlugs?: string[] }[],
 ): Map<string, number> {
 	const share = totalShareKopeksBySlug(studentSlugsOrdered, expenses);
 	const out = new Map<string, number>();
@@ -66,12 +70,17 @@ export function balanceKopeksBySlug(
 	return out;
 }
 
-/** Сумма в общей кассе: все взносы − все траты (коп.) */
+/** Сумма в общей кассе: живые взносы + архив ушедших − все траты (коп.) */
 export function totalPotKopeks(
 	contributed: Record<string, number>,
 	expenses: { amountKopeks: number }[],
+	archived: Record<string, number> = {},
 ): number {
-	return contributedKopeksTotal(contributed) - expensesTotalKopeks(expenses);
+	return (
+		contributedKopeksTotal(contributed) +
+		contributedKopeksTotal(archived) -
+		expensesTotalKopeks(expenses)
+	);
 }
 
 export function formatRubKopeks(kopeks: number): string {

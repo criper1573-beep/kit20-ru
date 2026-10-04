@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import EtudeTopicSheets from '../components/EtudeTopicSheets.astro';
 import StudentProfileDialogs from '../components/StudentProfileDialogs.astro';
 import { readEtudeTopics, readStudentsSorted } from '../lib/siteContent';
-import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft, topicHidesEtudeTitle } from '../lib/etudeTopics';
+import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft } from '../lib/etudeTopics';
 
 const students = await readStudentsSorted();
 const catalog = await readEtudeTopics();
@@ -20,7 +20,6 @@ const rows = active
 			return (a.title || a.id).localeCompare(b.title || b.id, 'ru');
 		})
 	: [];
-const hideTitle = topicHidesEtudeTitle(active);
 
 const studentBySlug = new Map(students.map((s) => [s.slug, s]));
 const studentBlocks = students.map((entry, i) => ({
@@ -93,10 +92,10 @@ const studentBlocks = students.map((entry, i) => ({
 									</div>
 								</td>
 								<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
-									{hideTitle ? '' : row.title?.trim() ? row.title : '—'}
+									{row.title?.trim() ? row.title : '—'}
 								</td>
 								<td class="px-1.5 py-2 align-top text-ink/90 normal-case sm:px-4 sm:py-3">
-									{hideTitle ? '' : row.teacherComment?.trim() ? row.teacherComment : '—'}
+									{row.teacherComment?.trim() ? row.teacherComment : '—'}
 								</td>
 							</tr>
 						))}

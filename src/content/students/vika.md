@@ -4,13 +4,13 @@ displayName: Вика
 fullName: Кекуа Виктория Николаевна
 birthday: 25.07.2000
 photo: /uploads/17c45ad2-f1a7-449b-a1e0-5184d9566562.jpg
-order: 10
+order: 11
 etudes:
   - title: Красная помада
     passed: true
     teacherComment: Проработать движения.
   - title: Ленивец
-    passed: false
+    passed: true
   - title: 3 стихии
-    passed: false
+    passed: true
 ---

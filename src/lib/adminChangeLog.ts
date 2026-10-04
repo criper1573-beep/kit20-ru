@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 
-export type AdminChangeEntity = 'home' | 'attendance' | 'student' | 'obshchak' | 'etude-topics';
+export type AdminChangeEntity = 'home' | 'attendance' | 'student' | 'obshchak' | 'etude-topics' | 'spectacles';
 export type AdminChangeKind = 'update' | 'rollback';
 
 export interface AdminChangeEntry {
@@ -33,7 +33,8 @@ function ensureAllowedTargetPath(targetPath: string): string {
 	const allowed =
 		(normalized.startsWith('src/content/') && normalized.endsWith('.md')) ||
 		normalized === 'src/content/obshchak.json' ||
-		normalized === 'src/content/etude-topics.json';
+		normalized === 'src/content/etude-topics.json' ||
+		normalized === 'src/content/spectacles.json';
 	if (!allowed) {
 		throw new Error('Недопустимый путь файла для журнала изменений');
 	}
