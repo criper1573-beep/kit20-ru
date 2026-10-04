@@ -5,9 +5,11 @@ import StudentAvatar from '../components/StudentAvatar.astro';
 import { readObshchak, readStudentsSorted } from '../lib/siteContent';
 import {
 	balanceKopeksBySlug,
-	formatRubKopeks,
+	contributedKopeksTotal,
+	expensesTotalKopeks,
 	totalPotKopeks,
 } from '../lib/obshchakMath';
+import { fmtRub } from '../lib/programmka';
 
 const students = await readStudentsSorted();
 const slugs = students.map((s) => s.slug);
@@ -16,14 +18,19 @@ const data = await readObshchak();
 const watcherSlug = data.watcherSlug;
 const bySlug = new Map(students.map((r, i) => [r.data.slug, { row: r, i }]));
 
-const potK = totalPotKopeks(data.contributedKopeks, data.expenses, data.archivedContributedKopeks ?? {});
+// Математика — без изменений (src/lib/obshchakMath.ts): касса = взносы + архив выбывших − траты; баланс = взнос − доля.
+const archived = data.archivedContributedKopeks ?? {};
+const potK = totalPotKopeks(data.contributedKopeks, data.expenses, archived);
 const balMap = balanceKopeksBySlug(slugs, data.contributedKopeks, data.expenses);
+const contribK = contributedKopeksTotal(data.contributedKopeks) + contributedKopeksTotal(archived);
+const spentK = expensesTotalKopeks(data.expenses);
 
 const watcher = bySlug.get(watcherSlug);
 if (!watcher) {
 	throw new Error(`obshchak: смотрящий «${watcherSlug}» не найден в списке учеников`);
 }
-const otherStudents = students.filter((s) => s.data.slug !== watcherSlug);
+const others = students.filter((s) => s.data.slug !== watcherSlug);
+const maxAbs = Math.max(1, ...others.map((s) => Math.abs(balMap.get(s.slug) ?? 0)));
 
 const expenses = [...(data.expenses ?? [])].sort((a, b) => {
 	const ta = a.createdAt ? Date.parse(a.createdAt) : 0;
@@ -31,152 +38,88 @@ const expenses = [...(data.expenses ?? [])].sort((a, b) => {
 	if (ta !== tb) return tb - ta;
 	return b.id.localeCompare(a.id, 'en');
 });
+const dateFmt = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Moscow' });
+const nameOf = (slug: string) => bySlug.get(slug)?.row.data.displayName ?? slug;
+const watcherBal = balMap.get(watcherSlug) ?? 0;
 ---
 
-<Layout title="Общак" description="Взносы и траты группы">
-	<div class="relative pb-16 sm:pb-20">
-		<header class="mb-8 border-b-[3px] border-ink pb-4">
-			<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Общак</h1>
-			<p class="mt-2 font-sans text-sm uppercase tracking-wider text-muted">Касса, взносы и равные доли в тратах</p>
-		</header>
-
-		<section
-			class="mb-6 border-[3px] border-ink bg-surface px-5 py-6 shadow-[var(--shadow-card)] sm:px-8 sm:py-8"
-			aria-label="Общий остаток кассы"
-		>
-			<p class="mb-2 font-mono text-[10px] uppercase tracking-widest text-muted">В кассе</p>
-			<p class="font-display text-4xl tabular-nums tracking-wide text-ink sm:text-5xl">{formatRubKopeks(potK)}</p>
-		</section>
-
-		<div class="mb-6 border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-card)] sm:p-5">
-			<p class="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">Смотрящий</p>
-			<div class="flex flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6">
-				<div class="h-32 w-28 shrink-0 self-center border-[3px] border-ink bg-muted-surface sm:self-start">
-					{watcher.row.data.photo ? (
-						<img
-							src={watcher.row.data.photo}
-							alt={`${watcher.row.data.displayName}`}
-							class="h-full w-full object-cover object-top"
-							loading="lazy"
-						/>
-					) : (
-						<StudentAvatar variant={watcher.i} displayName={watcher.row.data.displayName} class="h-full w-full" />
-					)}
-				</div>
-				<div class="flex-1 min-w-0">
-					<h2 class="font-display text-2xl font-normal uppercase tracking-wider text-ink sm:text-3xl">
-						{watcher.row.data.displayName}
-					</h2>
-					<p class="mt-1 font-sans text-sm text-muted">Смотрящий</p>
-					<p
-						class:list={[
-							'mt-4 font-display text-2xl tabular-nums',
-							(balMap.get(watcherSlug) ?? 0) < 0 ? 'text-accent' : 'text-ink',
-						]}
-					>
-						{formatRubKopeks(balMap.get(watcherSlug) ?? 0)}
-					</p>
-					<p class="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">Личный баланс</p>
-				</div>
-			</div>
-		</div>
-
-		<section class="mb-6" aria-label="Остальные участники">
-			<p class="mb-3 font-mono text-[10px] uppercase tracking-widest text-muted">Баланс по группе</p>
-			<div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-				{otherStudents.map((entry) => {
-					const b = balMap.get(entry.data.slug) ?? 0;
-					const neg = b < 0;
-					const idx = bySlug.get(entry.data.slug)?.i ?? 0;
-					return (
-						<div
-							class="flex flex-col overflow-hidden border-[3px] border-ink bg-surface text-center shadow-[var(--shadow-card)]"
-						>
-							<div
-								class="flex shrink-0 items-center justify-center border-b-[3px] border-ink bg-muted-surface py-2 sm:py-2.5"
-							>
-								<div class="size-16 shrink-0 sm:size-[4.5rem]">
-									{entry.data.photo ? (
-										<img
-											src={entry.data.photo}
-											alt={entry.data.displayName}
-											class="h-full w-full object-contain object-top"
-											loading="lazy"
-										/>
-									) : (
-										<StudentAvatar
-											variant={idx}
-											displayName={entry.data.displayName}
-											class="h-full w-full"
-										/>
-									)}
-								</div>
-							</div>
-							<div class="flex flex-1 flex-col justify-center px-2 py-2.5 sm:px-3 sm:py-3">
-								<p class="font-sans text-xs font-bold uppercase tracking-wide text-ink sm:text-sm">
-									{entry.data.displayName}
-								</p>
-								<p
-									class:list={[
-										'mt-1.5 font-mono text-sm tabular-nums sm:text-base',
-										neg ? 'text-accent' : 'text-ink',
-									]}
-								>
-									{formatRubKopeks(b)}
-								</p>
+<Layout title="Касса" description="Общак группы КиТ20: взносы, равные доли в тратах, балансы">
+	<div class="page-top" aria-hidden="true"></div>
+	<section class="sec" id="kassa" aria-labelledby="kassa-h">
+		<div class="wrap">
+			<header class="sec__h">
+				<span class="sec__no">Антракт</span>
+				<h1 id="kassa-h" class="sec__title">Касса</h1>
+				<p>Общак: взносы и равные доли в тратах. Честно до копейки.</p>
+			</header>
+			<div class="till">
+				<div>
+					<div class="ticket reveal">
+						<p class="overline">В кассе сейчас</p>
+						<p class="sum">{fmtRub(potK)}<small>₽</small></p>
+						<div class="perf" aria-hidden="true"></div>
+						<div class="calc">
+							<span>Внесено{Object.keys(archived).length > 0 ? ' (с взносами выбывших)' : ''}</span><b>{fmtRub(contribK)} ₽</b>
+							<span>Потрачено</span><b>−{fmtRub(spentK)} ₽</b>
+							<span class="eq">Остаток</span><b class="eq">{fmtRub(potK)} ₽</b>
+						</div>
+						<div class="watch">
+							{watcher.row.data.photo ? (
+								<img src={watcher.row.data.photo} alt="" width="64" height="64" loading="lazy" decoding="async" />
+							) : (
+								<span class="watch__svg"><StudentAvatar variant={watcher.i} displayName={watcher.row.data.displayName} class="h-full w-full" /></span>
+							)}
+							<div>
+								<span class="mono">Смотрящий</span>
+								<b>{watcher.row.data.displayName}</b>
+								<span class:list={['mono', { neg: watcherBal < 0 }]}>личный баланс {fmtRub(watcherBal)} ₽</span>
 							</div>
 						</div>
-					);
-				})}
+					</div>
+					<p class="motto">Тут не Питер на развод, но честно до копейки: доля на всех, как на крыше.</p>
+				</div>
+				<div>
+					<h2 class="h3">Баланс по группе</h2>
+					<ul class="bals">
+						{others.map((s) => {
+							const b = balMap.get(s.slug) ?? 0;
+							const cls = b < 0 ? 'neg' : b === 0 ? 'zero' : 'pos';
+							return (
+								<li class={`bal bal--${cls}`} style={`--w:${((Math.abs(b) / maxAbs) * 100).toFixed(1)}`}>
+									<span class="bal__n">{s.data.displayName}</span>
+									<span class="bal__track"><b /></span>
+									<span class="bal__v mono">{fmtRub(b)} ₽</span>
+								</li>
+							);
+						})}
+					</ul>
+					<h2 class="h3">Траты</h2>
+					{expenses.length === 0 ? (
+						<p class="empty">Пока нет записанных трат.</p>
+					) : (
+						<ul class="receipt">
+							{expenses.map((e) => (
+								<li>
+									<span class="mono">
+										{e.createdAt ? dateFmt.format(new Date(e.createdAt)).replace(/\s?г\.$/, '') : 'дата не указана'}
+										{(() => {
+											const ps = e.participantSlugs ?? [];
+											const outside = ps.length > 0 ? slugs.filter((x) => !ps.includes(x)) : [];
+											return outside.length > 0 ? <> · без доли: {outside.map(nameOf).join(', ')}</> : null;
+										})()}
+									</span>
+									<span class="l">{e.label}</span>
+									<b>{fmtRub(e.amountKopeks)} ₽</b>
+								</li>
+							))}
+							<li class="tot">
+								<span class="l">Итого по чеку</span>
+								<b>{fmtRub(spentK)} ₽</b>
+							</li>
+						</ul>
+					)}
+				</div>
 			</div>
-		</section>
-
-		<section
-			class="border-[3px] border-ink bg-surface px-4 py-5 shadow-[var(--shadow-card)] sm:px-6 sm:py-6"
-			aria-label="Список трат"
-		>
-			<h2 class="mb-4 font-display text-xl tracking-widest text-ink uppercase sm:text-2xl">Траты</h2>
-			{expenses.length === 0 ? (
-				<p class="font-sans text-sm text-muted">Пока нет записанных трат.</p>
-			) : (
-				<ul class="divide-y-2 divide-ink/15 font-sans text-sm">
-					{expenses.map((e) => (
-						<li class="flex flex-wrap items-baseline justify-between gap-2 py-3 first:pt-0 last:pb-0">
-							<div class="min-w-0">
-								{e.createdAt && (
-									<p class="mb-0.5 font-mono text-[10px] uppercase text-muted">
-										{new Date(e.createdAt).toLocaleDateString('ru-RU', {
-											day: 'numeric',
-											month: 'long',
-											year: 'numeric',
-										})}
-									</p>
-								)}
-								<p class="text-ink">{e.label}</p>
-							</div>
-							<p class="shrink-0 font-mono tabular-nums text-ink">{formatRubKopeks(e.amountKopeks)}</p>
-						</li>
-					))}
-				</ul>
-			)}
-		</section>
-
-		<div class="mt-10 flex justify-center px-2">
-			<img
-				src="/obshchak-lihie-90e.webp"
-				alt="Лихие 90-е"
-				class="h-auto w-full max-w-3xl select-none"
-				width="880"
-				height="491"
-				loading="lazy"
-				decoding="async"
-			/>
 		</div>
-
-		<p
-			class="pointer-events-none fixed bottom-3 right-3 z-[5] max-w-[14rem] text-right font-mono text-[9px] leading-snug text-muted/80 sm:bottom-5 sm:right-5 sm:max-w-xs sm:text-[10px]"
-		>
-			Тут не Питер на развод, но честно до копейки: доля на всех, как на крыше.
-		</p>
-	</div>
+	</section>
 </Layout>

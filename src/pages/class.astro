@@ -1,109 +1,211 @@
 ---
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
-import EtudeTopicSheets from '../components/EtudeTopicSheets.astro';
-import StudentProfileDialogs from '../components/StudentProfileDialogs.astro';
-import { readEtudeTopics, readStudentsSorted } from '../lib/siteContent';
-import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft } from '../lib/etudeTopics';
+import StudentAvatar from '../components/StudentAvatar.astro';
+import { readEtudeTopics, readObshchak, readStudentsSorted } from '../lib/siteContent';
+import { etudesForTopic, sortTopicsNewestLeft } from '../lib/etudeTopics';
+import { castRoles, dayMonthText, plural, tidy } from '../lib/programmka';
 
 const students = await readStudentsSorted();
 const catalog = await readEtudeTopics();
 const topics = sortTopicsNewestLeft(catalog.topics);
-const active = pickActiveTopic(topics, Astro.url.searchParams.get('topic'));
+const watcherSlug = await readObshchak()
+	.then((o) => o.watcherSlug)
+	.catch(() => '');
 const orderBySlug = new Map(students.map((s) => [s.slug, s.data.order]));
+const studentBySlug = new Map(students.map((s) => [s.slug, s]));
+const nameOf = (slug: string) => studentBySlug.get(slug)?.data.displayName ?? slug;
 
-const rows = active
-	? etudesForTopic(catalog.etudes, active.id).slice().sort((a, b) => {
+const cast = students.map((s, i) => {
+	const roles = castRoles(s.slug, s.data, topics, catalog.etudes, nameOf);
+	const titles = [...new Set(roles.map((r) => r.title).filter(Boolean))].join(', ');
+	return { slug: s.slug, data: s.data, variant: i, roles, titles };
+});
+
+const claps = topics.map((t, i) => {
+	const rows = etudesForTopic(catalog.etudes, t.id)
+		.slice()
+		.sort((a, b) => {
 			const ao = orderBySlug.get(a.participantSlugs[0] ?? '') ?? 9999;
 			const bo = orderBySlug.get(b.participantSlugs[0] ?? '') ?? 9999;
 			if (ao !== bo) return ao - bo;
 			return (a.title || a.id).localeCompare(b.title || b.id, 'ru');
 		})
-	: [];
-
-const studentBySlug = new Map(students.map((s) => [s.slug, s]));
-const studentBlocks = students.map((entry, i) => ({
-	slug: entry.slug,
-	data: entry.data,
-	variant: i,
-}));
+		.map((e) => {
+			const c = (e.teacherComment ?? '').trim();
+			return {
+				id: e.id,
+				title: (e.title ?? '').trim(),
+				who: e.participantSlugs.map(nameOf),
+				whoSlugs: e.participantSlugs,
+				passed: c === 'Сдан',
+				mark: c && c !== 'Сдан' && c.length <= 4 ? c : '',
+				comment: c && c !== 'Сдан' && c.length > 4 ? c : '',
+			};
+		});
+	return { id: t.id, title: t.title, n: i + 1, rows };
+});
+const nEtudes = catalog.etudes.length;
 ---
 
-<Layout title="Класс" description="Темы этюдов и комментарии педагога">
-	<EtudeTopicSheets slot="after-ticker" topics={topics} activeId={active?.id ?? null} basePath="/class" />
+<Layout title="Труппа и этюды" description="Действующие лица и исполнители группы КиТ20, темы этюдов и комментарии педагога">
+	<div class="page-top" aria-hidden="true"></div>
 
-	{
-		active && (
-			<h1 class="mb-6 box-border w-full max-w-full border-[3px] border-ink bg-accent px-2.5 py-1.5 shadow-[var(--shadow-card)] sm:px-4 sm:py-2">
-				<span class="block min-w-0 break-words font-display text-[clamp(1rem,5vw,2.75rem)] font-normal uppercase leading-none tracking-[0.04em] text-canvas [overflow-wrap:anywhere] sm:tracking-[0.1em]">
-					{active.title}
-				</span>
-			</h1>
-		)
-	}
+	<!-- ДЕЙСТВИЕ ВТОРОЕ: ТРУППА -->
+	<section class="sec" id="truppa" aria-labelledby="truppa-h">
+		<div class="wrap">
+			<header class="sec__h">
+				<span class="sec__no">Действие второе</span>
+				<h1 id="truppa-h" class="sec__title">Действующие лица и исполнители</h1>
+				<p>Слева — роли из этюдов, справа — кто их играл. Нажмите на имя: откроется карточка с этюдами и заметками педагога.</p>
+			</header>
+			<ol class="cast">
+				{
+					cast.map((c, i) => (
+						<li class="cast__row reveal">
+							<button class="cast__btn" type="button" data-actor={c.slug} aria-haspopup="dialog">
+								<span class="cast__no">{String(i + 1).padStart(2, '0')}</span>
+								<span class="cast__roles">{c.titles || 'роли распределяются'}</span>
+								<span class="cast__dots" aria-hidden="true" />
+								<span class="cast__who">
+									<span class="cast__name">{c.data.displayName}</span>
+									{c.slug === watcherSlug && <span class="tag">смотрящий кассы</span>}
+									<span class="cast__fio">{c.data.fullName}</span>
+								</span>
+								{c.data.photo ? (
+									<img class="cast__ph" src={c.data.photo} alt="" width="96" height="96" loading="lazy" decoding="async" />
+								) : (
+									<span class="cast__ph cast__ph--svg"><StudentAvatar variant={c.variant} displayName={c.data.displayName} class="h-full w-full" /></span>
+								)}
+							</button>
+						</li>
+					))
+				}
+			</ol>
+		</div>
+	</section>
 
-	{
-		!active ? (
-			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
-				Нет тем этюдов.
-			</div>
-		) : rows.length === 0 ? (
-			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
-				В этой теме пока нет этюдов.
-			</div>
-		) : (
-			<div class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
-				<table class="kit-data-table text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
-					<thead>
-						<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-							<th class="w-[30%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
-								Участники
-							</th>
-							<th class="w-[28%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
-								Название этюда
-							</th>
-							<th class="px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
-								Комментарий педагога
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{rows.map((row) => (
-							<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface">
-								<td class="border-r-[2px] border-ink px-1.5 py-2 align-top uppercase tracking-normal text-ink sm:px-4 sm:py-3 sm:tracking-wider">
-									<div class="flex flex-wrap gap-x-2 gap-y-1">
-										{row.participantSlugs.length === 0 ? (
-											<span class="text-muted">—</span>
-										) : (
-											row.participantSlugs.map((slug) => {
-												const s = studentBySlug.get(slug);
-												const label = s?.data.displayName ?? slug;
-												return (
-													<button
-														type="button"
-														class="etude-participant border-b-[2px] border-transparent text-left uppercase hover:border-accent"
-														data-open-profile={slug}
-													>
-														{label}
-													</button>
-												);
-											})
-										)}
-									</div>
-								</td>
-								<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
-									{row.title?.trim() ? row.title : '—'}
-								</td>
-								<td class="px-1.5 py-2 align-top text-ink/90 normal-case sm:px-4 sm:py-3">
-									{row.teacherComment?.trim() ? row.teacherComment : '—'}
-								</td>
-							</tr>
+	<!-- ДЕЙСТВИЕ ТРЕТЬЕ: ЭТЮДЫ -->
+	<section class="sec" id="etudy" aria-labelledby="etudy-h" style="padding-top:0">
+		<div class="wrap">
+			<header class="sec__h">
+				<span class="sec__no">Действие третье</span>
+				<h2 id="etudy-h">Этюды</h2>
+				<p>{topics.length} {plural(topics.length, 'тема', 'темы', 'тем')}, {nEtudes} {plural(nEtudes, 'запись', 'записи', 'записей')}, свежие слева направо. «+?» и «?» — пометки педагога.</p>
+			</header>
+			<nav class="topics-nav" aria-label="Темы этюдов">
+				{topics.map((t) => <a href={`#topic-${t.id}`}>{t.title}</a>)}
+			</nav>
+			{
+				claps.length === 0 ? (
+					<p class="empty">Нет тем этюдов.</p>
+				) : (
+					<div class="claps">
+						{claps.map((cl) => (
+							<article class="clap reveal" id={`topic-${cl.id}`}>
+								<header class="clap__top" aria-hidden="true">
+									<i />
+									<i />
+									<i />
+									<i />
+									<i />
+									<i />
+								</header>
+								<div class="clap__head">
+									<span>СЦЕНА {String(cl.n).padStart(2, '0')}</span>
+									<span>ДУБЛЕЙ {cl.rows.length}</span>
+								</div>
+								<h3>{cl.title}</h3>
+								{cl.rows.length === 0 ? (
+									<p class="clap__empty">В этой теме пока нет этюдов.</p>
+								) : (
+									<ol>
+										{cl.rows.map((r) => (
+											<li>
+												<span class="clap__t">{r.title || <span class="muted">без названия</span>}</span>
+												<span class="clap__w">
+													{r.who.length === 0
+														? '—'
+														: r.who.map((w, wi) => (
+																<>
+																	{wi > 0 && ' и '}
+																	<button type="button" class="clap__who" data-actor={r.whoSlugs[wi]}>{w}</button>
+																</>
+															))}
+												</span>
+												{r.passed && <span class="ok" title="Сдан">сдан</span>}
+												{r.mark && <span class="mark" title="Комментарий педагога">{r.mark}</span>}
+												{r.comment && <span class="clap__c">«{r.comment}»</span>}
+											</li>
+										))}
+									</ol>
+								)}
+							</article>
 						))}
-					</tbody>
-				</table>
-			</div>
-		)
+					</div>
+				)
+			}
+		</div>
+	</section>
+
+	{
+		cast.map((c) => {
+			const bd = dayMonthText(c.data.birthday);
+			return (
+				<dialog class="actor" id={`actor-${c.slug}`} aria-labelledby={`actor-${c.slug}-h`}>
+					<form method="dialog">
+						<button class="actor__x" aria-label="Закрыть">×</button>
+					</form>
+					{c.data.photo ? (
+						<img src={c.data.photo} alt={`${c.data.displayName}, портрет`} width="220" height="220" loading="lazy" decoding="async" />
+					) : (
+						<span class="actor__svg"><StudentAvatar variant={c.variant} displayName={c.data.displayName} class="h-full w-full" /></span>
+					)}
+					<div>
+						<p class="mono">Исполнитель{bd ? ` · день рождения ${bd}` : ''}</p>
+						<h3 id={`actor-${c.slug}-h`}>{c.data.displayName}</h3>
+						<p class="actor__fio">{c.data.fullName}</p>
+						<ul class="actor__roles">
+							{c.roles.length === 0 ? (
+								<li class="muted">Этюдов в программе пока нет.</li>
+							) : (
+								c.roles.map((r) => (
+									<li>
+										<span class="mono">{r.topic}</span>
+										<b>{r.title || 'без названия'}</b>
+										{r.partners.length > 0 && <span class="muted"> · вместе: {r.partners.join(', ')}</span>}
+										{r.note && <em>«{tidy(r.note)}»</em>}
+									</li>
+								))
+							)}
+						</ul>
+					</div>
+				</dialog>
+			);
+		})
 	}
 
-	<StudentProfileDialogs students={studentBlocks} />
+	<script is:inline>
+		(function () {
+			document.querySelectorAll('[data-actor]').forEach(function (b) {
+				var slug = b.getAttribute('data-actor');
+				if (!slug) return;
+				b.addEventListener('click', function () {
+					var d = document.getElementById('actor-' + slug);
+					if (!d || typeof d.showModal !== 'function') return;
+					d.showModal();
+					d.addEventListener('close', function () { b.focus(); }, { once: true });
+				});
+			});
+			document.querySelectorAll('dialog.actor').forEach(function (d) {
+				d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
+			});
+			// совместимость со старыми ссылками /class?topic=<id>
+			var t = new URLSearchParams(location.search).get('topic');
+			if (t) {
+				var el = document.getElementById('topic-' + t);
+				if (el) setTimeout(function () { el.scrollIntoView({ block: 'start' }); }, 50);
+			}
+		})();
+	</script>
 </Layout>

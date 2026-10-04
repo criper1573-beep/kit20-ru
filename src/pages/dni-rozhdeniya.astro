@@ -3,193 +3,96 @@ export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import StudentAvatar from '../components/StudentAvatar.astro';
 import { readStudentsSorted } from '../lib/siteContent';
-import { parseBirthdayDmy } from '../lib/birthdayUtils';
 import { readBirthdayDialLayoutFile } from '../lib/birthdayDialLayoutFile';
 import { renderMarkdownToHtml } from '../lib/renderMarkdown';
+import { dayMonth, dayMonthText } from '../lib/programmka';
 
 const rows = await readStudentsSorted();
-type DialRow = { displayName: string; m: number; d: number; birthday: string; slug: string };
-const payload: DialRow[] = [];
-const cards: {
-	slug: string;
-	data: (typeof rows)[0]['data'];
-	bodyHtml: string;
-	variant: number;
-}[] = [];
+// Публично — только день и месяц: год рождения в разметку не попадает (152-ФЗ).
+const payload: { displayName: string; m: number; d: number; slug: string }[] = [];
+const cards: { slug: string; data: (typeof rows)[0]['data']; bodyHtml: string; variant: number; bd: string }[] = [];
 let v = 0;
 for (const r of rows) {
-	const p = parseBirthdayDmy(r.data.birthday);
-	if (!p) continue;
-	payload.push({
-		slug: r.data.slug,
-		displayName: r.data.displayName,
-		m: p.month,
-		d: p.day,
-		birthday: r.data.birthday,
-	});
-	cards.push({
-		slug: r.data.slug,
-		data: r.data,
-		bodyHtml: renderMarkdownToHtml(r.body),
-		variant: v,
-	});
+	const dm = dayMonth(r.data.birthday);
+	if (!dm) continue;
+	payload.push({ slug: r.data.slug, displayName: r.data.displayName, m: dm.m, d: dm.d });
+	cards.push({ slug: r.data.slug, data: r.data, bodyHtml: renderMarkdownToHtml(r.body), variant: v, bd: dayMonthText(r.data.birthday) ?? '' });
 	v += 1;
 }
+const list = [...payload].sort((a, b) => a.m - b.m || a.d - b.d);
 const layoutOverrides = await readBirthdayDialLayoutFile();
 ---
 
-<Layout title="Дни рождения" description="Календарь дней рождения группы">
-	<div
-		id="bd-banner"
-		class="mb-6 hidden border-[3px] border-accent bg-muted-surface px-5 py-4 text-ink shadow-[var(--shadow-card)]"
-		role="status"
-	>
-		<p class="font-display text-xl tracking-wider sm:text-2xl"></p>
-	</div>
-
-	<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-		<div
-			class="border-[3px] border-ink bg-surface px-5 py-4 shadow-[var(--shadow-card)]"
-		>
-			<p class="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">Сегодня</p>
-			<p id="bd-today" class="bd-today-date font-sans text-sm leading-snug text-ink sm:text-base">—</p>
+<Layout title="Дни рождения" description="Дни рождения группы КиТ20 на годовом круге">
+	<div class="page-top page-top--paper" aria-hidden="true"></div>
+	<section class="paper sec" id="dr" aria-labelledby="dr-h">
+		<div class="wrap">
+			<header class="sec__h">
+				<span class="sec__no">Эпилог</span>
+				<h1 id="dr-h" class="sec__title">Дни рождения</h1>
+				<p>Год по кругу. Красная стрелка — сегодня, красная точка — ближайший праздник. Нажмите на имя — откроется карточка.</p>
+			</header>
+			<div id="bd-banner" class="bd-banner hidden" role="status"><p></p></div>
+			<div class="bdays">
+				<svg id="bd-dial" class="bd-dial" viewBox="-22 -22 244 244" role="group" aria-label="Дни рождения группы на годовом круге">
+					<circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="1.2" class="track" />
+					<g id="bd-months" />
+					<g id="bd-segments" />
+					<text class="center-t" x="100" y="106" id="bd-ring-days">—</text>
+					<text class="center-s" x="100" y="118">дней до праздника</text>
+					<g id="bd-dots" />
+					<line id="bd-hand" class="now" x1="100" y1="100" x2="100" y2="32" stroke-linecap="round" pointer-events="none" />
+					<circle cx="100" cy="100" r="2.6" class="hub" pointer-events="none" />
+				</svg>
+				<div>
+					<p class="overline" data-bd-today>Сегодня</p>
+					<p class="bd-next" data-bd-next>—</p>
+					<ul class="bdlist">
+						{list.map((x) => (
+							<li data-m={x.m} data-d={x.d} data-slug={x.slug}>
+								<span class="mono">{String(x.d).padStart(2, '0')}.{String(x.m).padStart(2, '0')}</span>
+								<button type="button" class="bdlist__btn" data-open-actor={x.slug}>{x.displayName}</button>
+							</li>
+						))}
+					</ul>
+					<p class="privacy">Год рождения на открытой странице не показываем: дата с годом — лишние персональные данные.</p>
+				</div>
+			</div>
 		</div>
-		<div
-			class="border-[3px] border-ink bg-surface px-5 py-4 shadow-[var(--shadow-card)]"
-		>
-			<p class="mb-1 font-mono text-[10px] uppercase tracking-widest text-muted">До ближайшего дня рождения</p>
-			<p id="bd-until" class="font-sans text-lg text-ink sm:text-xl">—</p>
-			<p id="bd-until-sub" class="mt-2 font-sans text-xs leading-snug text-muted"></p>
-		</div>
-	</div>
-
-	<section
-		class="border-[3px] border-ink bg-surface p-4 shadow-[var(--shadow-card)] sm:p-6"
-		aria-label="Календарный циферблат года"
-	>
-		<svg
-			id="bd-dial"
-			class="bd-dial mx-auto w-full max-w-md text-ink"
-			viewBox="-22 -22 244 244"
-			width="100%"
-			height="100%"
-		>
-			<circle cx="100" cy="100" r="90" fill="none" stroke="currentColor" stroke-width="1.2" class="text-ink" />
-			<g id="bd-months" />
-			<g id="bd-segments" />
-			<g id="bd-dots" />
-			<line
-				id="bd-hand"
-				x1="100"
-				y1="100"
-				x2="100"
-				y2="32"
-				stroke="currentColor"
-				stroke-width="2.5"
-				stroke-linecap="round"
-				class="text-accent"
-				pointer-events="none"
-			/>
-			<circle cx="100" cy="100" r="4" fill="currentColor" class="text-ink" pointer-events="none" />
-		</svg>
 	</section>
 
 	{
-		cards.map(({ slug, data, bodyHtml, variant }) => (
-			<dialog
-				id={`bd-dlg-${slug}`}
-				class="birthday-student-dlg fixed left-1/2 top-1/2 z-[100] w-[min(100vw-2rem,28rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden border-[3px] border-ink bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
-			>
-				<div class="border-b-[3px] border-ink bg-muted-surface px-5 py-4">
-					<div class="flex items-start justify-between gap-4">
-						<div>
-							<h2 class="font-display text-2xl font-normal text-ink sm:text-3xl uppercase tracking-wider">
-								{data.displayName}
-							</h2>
-							{data.fullName && <p class="text-sm font-sans text-muted uppercase">{data.fullName}</p>}
-						</div>
-						<button
-							type="button"
-							class="type-cta border-[3px] border-ink bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift transition-colors"
-							data-close-dialog=""
-						>
-							Закрыть
-						</button>
-					</div>
-				</div>
-				<div class="max-h-[min(70vh,32rem)] overflow-y-auto px-5 py-6">
-					<div class="mb-6 flex gap-5">
-						<div class="h-28 w-24 shrink-0 border-[3px] border-ink bg-muted-surface overflow-hidden">
-							{data.photo ? (
-								<img
-									src={data.photo}
-									alt={`Фото: ${data.displayName}`}
-									class="h-full w-full object-cover object-top"
-									loading="lazy"
-								/>
-							) : (
-								<StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" />
-							)}
-						</div>
-						<dl class="grid flex-1 gap-2 text-sm font-sans">
-							{data.fullName && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">ФИО</dt>
-									<dd class="text-right font-bold text-ink">{data.fullName}</dd>
-								</div>
-							)}
-							{data.birthday && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">ДР</dt>
-									<dd class="text-right font-bold text-ink">{data.birthday}</dd>
-								</div>
-							)}
-							{data.nickname && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">НИК</dt>
-									<dd class="text-right font-bold text-ink">{data.nickname}</dd>
-								</div>
-							)}
-							{data.phone && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">ТЕЛ</dt>
-									<dd class="text-right font-bold text-ink">{data.phone}</dd>
-								</div>
-							)}
-						</dl>
-					</div>
-					<div class="markdown-body border-t-[3px] border-ink pt-6 text-sm" set:html={bodyHtml} />
+		cards.map(({ slug, data, bodyHtml, variant, bd }) => (
+			<dialog class="actor" id={`actor-${slug}`} aria-labelledby={`actor-${slug}-h`}>
+				<form method="dialog">
+					<button class="actor__x" aria-label="Закрыть">×</button>
+				</form>
+				{data.photo ? (
+					<img src={data.photo} alt={`${data.displayName}, портрет`} width="220" height="220" loading="lazy" decoding="async" />
+				) : (
+					<span class="actor__svg"><StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" /></span>
+				)}
+				<div>
+					<p class="mono">Исполнитель · день рождения {bd}</p>
+					<h3 id={`actor-${slug}-h`}>{data.displayName}</h3>
+					<p class="actor__fio">{data.fullName}</p>
+					{bodyHtml.trim() && <div class="markdown-body prog-md" set:html={bodyHtml} />}
 				</div>
 			</dialog>
 		))
 	}
 
-	<script
-		is:inline
-		type="application/json"
-		id="bd-payload"
-		set:html={JSON.stringify(
-			payload.map((p) => ({ displayName: p.displayName, m: p.m, d: p.d, birthday: p.birthday, slug: p.slug })),
-		)}
-	></script>
-	<script
-		is:inline
-		type="application/json"
-		id="bd-layout-overrides"
-		set:html={JSON.stringify(layoutOverrides)}
-	></script>
-
+	<script is:inline type="application/json" id="bd-payload" set:html={JSON.stringify(payload)}></script>
+	<script is:inline type="application/json" id="bd-layout-overrides" set:html={JSON.stringify(layoutOverrides)}></script>
 	<script is:inline>
-		document.querySelectorAll('.birthday-student-dlg [data-close-dialog]').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const dlg = btn.closest('dialog');
-				dlg?.close();
+		document.querySelectorAll('[data-open-actor]').forEach(function (b) {
+			b.addEventListener('click', function () {
+				var d = document.getElementById('actor-' + b.getAttribute('data-open-actor'));
+				if (d && typeof d.showModal === 'function') d.showModal();
 			});
 		});
-		document.querySelectorAll('dialog.birthday-student-dlg').forEach((dlg) => {
-			dlg.addEventListener('click', (e) => {
-				if (e.target === dlg) dlg.close();
-			});
+		document.querySelectorAll('dialog.actor').forEach(function (d) {
+			d.addEventListener('click', function (e) { if (e.target === d) d.close(); });
 		});
 	</script>
 
@@ -207,6 +110,44 @@ const layoutOverrides = await readBirthdayDialLayoutFile();
 		import type { BirthdayLabelOverride } from '../lib/birthdayDialLayoutFile';
 
 		type Row = { displayName: string; m: number; d: number; birthday: string; slug: string };
+
+		const MONTHS_GEN = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+		function renderSide(
+			rows: Row[],
+			nextEv: { daysUntil: number; names: string[]; eventDate: Date } | null,
+			now: Date,
+		) {
+			const nx = document.querySelector('[data-bd-next]');
+			const tdy = document.querySelector('[data-bd-today]');
+			const ring = document.getElementById('bd-ring-days');
+			if (!nextEv || rows.length === 0) {
+				if (nx) nx.textContent = 'Дат пока нет';
+				return;
+			}
+			if (ring) ring.textContent = String(nextEv.daysUntil);
+			const same = nextEv.names.join(' и ');
+			if (nx) {
+				nx.textContent = nextEv.daysUntil === 0 ? 'Сегодня — ' : 'Следующий — ';
+				const sp = document.createElement('span');
+				sp.textContent = same;
+				nx.appendChild(sp);
+			}
+			if (tdy) {
+				tdy.textContent =
+					'Сегодня ' + now.getDate() + ' ' + MONTHS_GEN[now.getMonth()] + ' · до праздника ' + nextEv.daysUntil + ' ' + declensionDays(nextEv.daysUntil);
+			}
+			const em = nextEv.eventDate.getMonth() + 1;
+			const ed = nextEv.eventDate.getDate();
+			document.querySelectorAll('.bdlist li').forEach((li) => {
+				const on = Number(li.getAttribute('data-m')) === em && Number(li.getAttribute('data-d')) === ed;
+				li.classList.toggle('is-next', on);
+			});
+			document.querySelectorAll('#bd-dots [data-birthday-slug]').forEach((g) => {
+				const slug = g.getAttribute('data-birthday-slug');
+				const li = slug ? document.querySelector(`.bdlist li[data-slug="${slug}"]`) : null;
+				g.classList.toggle('is-next', Boolean(li?.classList.contains('is-next')));
+			});
+		}
 
 		const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'] as const;
 
@@ -280,9 +221,12 @@ const layoutOverrides = await readBirthdayDialLayoutFile();
 
 		function run() {
 			const raw = document.getElementById('bd-payload')?.textContent;
-			const rows: Row[] = raw
-				? (JSON.parse(raw) as Row[])
-				: [];
+			// В разметке нет года рождения (152-ФЗ): движку циферблата нужна строка ДД.ММ.ГГГГ,
+			// подставляем технический високосный год 2000 только в памяти (29.02 тоже валиден).
+			const rows: Row[] = (raw ? (JSON.parse(raw) as Omit<Row, 'birthday'>[]) : []).map((r) => ({
+				...r,
+				birthday: `${String(r.d).padStart(2, '0')}.${String(r.m).padStart(2, '0')}.2000`,
+			}));
 			const now = new Date();
 			const y = now.getFullYear();
 			const lenY = daysInYear(y);
@@ -376,13 +320,20 @@ const layoutOverrides = await readBirthdayDialLayoutFile();
 				}
 				const placements = computeBirthdayDialPlacements(rows, y, lenY, layoutMap);
 				for (const p of placements) {
-					gDots.appendChild(createBirthdayDialItem(p, { interactive: true }).g);
+					const nodes = createBirthdayDialItem(p, { interactive: true });
+					const parts = p.birthday.split('.');
+					const human = `${Number(parts[0])} ${MONTHS_GEN[Number(parts[1]) - 1] ?? ''}`;
+					nodes.g.setAttribute('aria-label', `Карточка: ${p.displayName}, ${human}`);
+					nodes.text.setAttribute('title', `${p.displayName} — ${human}`);
+					nodes.circle.setAttribute('r', '2.8');
+					gDots.appendChild(nodes.g);
 				}
+				renderSide(rows, nextEv, now);
 			}
 		}
 
 		function openBirthdayDialogBySlug(slug: string) {
-			const el = document.getElementById(`bd-dlg-${slug}`);
+			const el = document.getElementById(`actor-${slug}`);
 			if (el instanceof HTMLDialogElement) {
 				el.showModal();
 			}
@@ -430,31 +381,4 @@ const layoutOverrides = await readBirthdayDialLayoutFile();
 			6 * 60 * 60 * 1000,
 		);
 	</script>
-
-	<style is:global>
-		.bd-today-date {
-			font-size: clamp(0.8125rem, 2.6vw + 0.4rem, 1rem);
-			line-height: 1.35;
-		}
-		.bd-dial g[data-birthday-slug] {
-			outline: none;
-			cursor: pointer;
-		}
-		/* SVG <text> иначе даёт курсор ввода текста */
-		.bd-dial g[data-birthday-slug] text,
-		.bd-dial g[data-birthday-slug] circle,
-		.bd-dial g[data-birthday-slug] .bd-birthday-label-wrap {
-			cursor: pointer;
-		}
-		.bd-dial g[data-birthday-slug]:focus-visible {
-			outline: 2px solid var(--color-accent, #a63d3d);
-			outline-offset: 1px;
-			border-radius: 2px;
-		}
-		.bd-dial g[data-birthday-slug] .bd-birthday-label {
-			paint-order: stroke fill;
-			stroke: var(--color-canvas, #f0ebe0);
-			stroke-width: 0.5px;
-		}
-	</style>
 </Layout>

@@ -19,139 +19,133 @@ function regaliaSizeClass(text: string): string {
 ---
 {
 	items.length > 0 && (
-		<section class="mt-10 border-t-[3px] border-ink pt-8" aria-labelledby="spectacles-heading">
-			<h2 id="spectacles-heading" class="mb-6 font-display text-lg font-normal uppercase tracking-[0.18em] text-ink">
-				Спектакли
-			</h2>
-			<div class="flex flex-col gap-14">
-				{items.map((spec, spectacleIndex) => {
-					const gallery = spec.gallery.filter((url) => url.trim());
-					return (
-						<article class="spectacle-block" data-spectacle-id={spec.id}>
-							<div class="spectacle-pair">
-								<figure class="spectacle-frame">
-									{spec.heroPhoto ? (
-										<img
-											src={spec.heroPhoto}
-											alt={spec.title || 'Спектакль'}
-											class="spectacle-photo"
-											loading={spectacleIndex === 0 ? 'eager' : 'lazy'}
-											decoding="async"
-										/>
-									) : (
-										<div class="spectacle-empty" aria-hidden="true">
-											нет фото
-										</div>
-									)}
-								</figure>
-								<div class="spectacle-caption" data-fit-caption>
-									<p class="spectacle-kicker">Спектакль</p>
-									<h3
-										class="spectacle-title"
-										data-fit-title
-										style={`--fit-chars: ${longestWordChars(spec.title || 'Без названия')}`}
-									>
-										{spec.title || 'Без названия'}
-									</h3>
-								</div>
-							</div>
-							<div class="spectacle-pair spectacle-pair--director mt-3 sm:mt-4">
-								<div class="spectacle-caption" data-fit-caption>
-									<p class="spectacle-kicker">Режиссёр</p>
-									<h3
-										class="spectacle-title spectacle-title--dir"
-										data-fit-title
-										style={`--fit-chars: ${longestWordChars(spec.directorName || '—')}`}
-									>
-										{spec.directorName || '—'}
-									</h3>
-									{spec.directorRegalia.trim() && (
-										<div class="spectacle-regalia-wrap" data-regalia-wrap>
-											<p class={regaliaSizeClass(spec.directorRegalia)} data-regalia>
-												{spec.directorRegalia}
-											</p>
-											<button type="button" class="spectacle-more" data-regalia-toggle aria-expanded="false" hidden>
-												Подробнее
-											</button>
-										</div>
-									)}
-								</div>
-								<figure class="spectacle-frame">
-									{spec.directorPhoto ? (
-										<img
-											src={spec.directorPhoto}
-											alt={spec.directorName || 'Режиссёр'}
-											class="spectacle-photo"
-											loading="lazy"
-											decoding="async"
-										/>
-									) : (
-										<div class="spectacle-empty" aria-hidden="true">
-											нет фото
-										</div>
-									)}
-								</figure>
-							</div>
-							{gallery.length > 0 && (
-								<div class="spectacle-coverflow-wrap mt-4" data-spectacle-coverflow>
-									<p class="spectacle-kicker mb-2 px-1">Кадры</p>
-									<div class="spectacle-coverflow" data-coverflow-root>
-										<button
-											type="button"
-											class="spectacle-coverflow-nav spectacle-coverflow-nav--prev"
-											data-coverflow-prev
-											aria-label="Предыдущий кадр"
-										>
-											‹
-										</button>
-										<div class="spectacle-coverflow-stage" data-coverflow-stage>
-											{gallery.map((url, i) => (
-												<button
-													type="button"
-													class="spectacle-coverflow-item"
-													data-coverflow-item
-													data-lightbox-src={url}
-													data-index={i}
-													aria-label={`Открыть кадр ${i + 1} спектакля ${spec.title || ''}`}
-												>
-													<img
-														data-src={url}
-														data-coverflow-photo
-														alt=""
-														class="spectacle-coverflow-photo"
-														loading="lazy"
-														decoding="async"
-														draggable="false"
-													/>
-												</button>
-											))}
-										</div>
-										<button
-											type="button"
-											class="spectacle-coverflow-nav spectacle-coverflow-nav--next"
-											data-coverflow-next
-											aria-label="Следующий кадр"
-										>
-											›
-										</button>
+		<section class="specs" aria-label="Спектакли">
+			{items.map((spec, spectacleIndex) => {
+				const gallery = spec.gallery.filter((url) => url.trim());
+				const hasDirPhoto = Boolean(spec.directorPhoto?.trim());
+				return (
+					<article class="spec reveal" data-spectacle-id={spec.id}>
+						<div class="spec__main">
+							<figure class="spec__poster" style={`--r:${spectacleIndex % 2 ? '1.2deg' : '-1.5deg'}`}>
+								{spec.heroPhoto ? (
+									<img
+										src={spec.heroPhoto}
+										alt={`Афиша: ${spec.title || 'спектакль'}`}
+										loading={spectacleIndex === 0 ? 'eager' : 'lazy'}
+										decoding="async"
+									/>
+								) : (
+									<div class="spec__noposter">
+										<span>Афиша</span>
+										<small>появится позже</small>
 									</div>
-									<div class="spectacle-coverflow-dots" data-coverflow-dots role="tablist" aria-label="Кадры галереи">
-										{gallery.map((_, i) => (
+								)}
+							</figure>
+							<div class="spec__info">
+								<p class="overline">Спектакль · <b>{String(spectacleIndex + 1).padStart(2, '0')}</b></p>
+								<h3 class="spec__title">{spec.title || 'Название уточняется'}</h3>
+								<dl class="facts">
+									<dt>Режиссёр</dt>
+									<dd>{spec.directorName || <span class="muted">уточняется</span>}</dd>
+									<dt>Дата</dt>
+									<dd class="muted">уточняется</dd>
+								</dl>
+								{(spec.directorName || spec.directorRegalia.trim()) && (
+									<div class:list={['spectacle-pair spectacle-pair--director', { 'spectacle-pair--nophoto': !hasDirPhoto }]}>
+										<div class="spectacle-caption" data-fit-caption>
+											<p class="spectacle-kicker">Режиссёр</p>
+											<h4
+												class="spectacle-title spectacle-title--dir"
+												data-fit-title
+												style={`--fit-chars: ${longestWordChars(spec.directorName || '—')}`}
+											>
+												{spec.directorName || '—'}
+											</h4>
+											{spec.directorRegalia.trim() && (
+												<div class="spectacle-regalia-wrap" data-regalia-wrap>
+													<p class={regaliaSizeClass(spec.directorRegalia)} data-regalia>
+														{spec.directorRegalia}
+													</p>
+													<button type="button" class="spectacle-more" data-regalia-toggle aria-expanded="false" hidden>
+														Подробнее
+													</button>
+												</div>
+											)}
+										</div>
+										{hasDirPhoto && (
+											<figure class="spectacle-frame">
+												<img
+													src={spec.directorPhoto}
+													alt={spec.directorName || 'Режиссёр'}
+													class="spectacle-photo"
+													loading="lazy"
+													decoding="async"
+												/>
+											</figure>
+										)}
+									</div>
+								)}
+							</div>
+						</div>
+						{gallery.length > 0 && (
+							<div class="spectacle-coverflow-wrap" data-spectacle-coverflow>
+								<p class="spectacle-kicker">Кадры · {gallery.length}</p>
+								<div class="spectacle-coverflow" data-coverflow-root>
+									<button
+										type="button"
+										class="spectacle-coverflow-nav spectacle-coverflow-nav--prev"
+										data-coverflow-prev
+										aria-label="Предыдущий кадр"
+									>
+										‹
+									</button>
+									<div class="spectacle-coverflow-stage" data-coverflow-stage>
+										{gallery.map((url, i) => (
 											<button
 												type="button"
-												class="spectacle-coverflow-dot"
-												data-coverflow-dot
+												class="spectacle-coverflow-item"
+												data-coverflow-item
+												data-lightbox-src={url}
 												data-index={i}
-												aria-label={`Кадр ${i + 1}`}
-											/>
+												aria-label={`Открыть кадр ${i + 1} спектакля ${spec.title || ''}`}
+											>
+												<img
+													data-src={url}
+													data-coverflow-photo
+													alt=""
+													class="spectacle-coverflow-photo"
+													loading="lazy"
+													decoding="async"
+													draggable="false"
+												/>
+											</button>
 										))}
 									</div>
+									<button
+										type="button"
+										class="spectacle-coverflow-nav spectacle-coverflow-nav--next"
+										data-coverflow-next
+										aria-label="Следующий кадр"
+									>
+										›
+									</button>
 								</div>
-							)}
-						</article>
-					);
-				})}
-			</div>
+								<div class="spectacle-coverflow-dots" data-coverflow-dots role="tablist" aria-label="Кадры галереи">
+									{gallery.map((_, i) => (
+										<button
+											type="button"
+											class="spectacle-coverflow-dot"
+											data-coverflow-dot
+											data-index={i}
+											aria-label={`Кадр ${i + 1}`}
+										/>
+									))}
+								</div>
+							</div>
+						)}
+					</article>
+				);
+			})}
 			<dialog id="spectacle-lightbox" class="spectacle-lightbox" aria-label="Просмотр кадра">
 				<button type="button" class="spectacle-lightbox-close" data-lightbox-close aria-label="Закрыть">
 					Закрыть
@@ -168,30 +162,85 @@ function regaliaSizeClass(text: string): string {
 	)
 }
 <style>
+	/* «Программка»: афиши как в концепте (повёрнутый постер + факты), подпись режиссёра с прежней подгонкой кегля. */
+	.specs {
+		display: grid;
+		gap: clamp(56px, 8vw, 110px);
+	}
+	.spec__main {
+		display: grid;
+		grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+		gap: clamp(24px, 4vw, 56px);
+		align-items: start;
+	}
+	.spec:nth-child(even) .spec__main {
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+	}
+	.spec:nth-child(even) .spec__poster {
+		order: 2;
+	}
+	.spec__poster {
+		position: relative;
+		max-width: 520px;
+		margin: 0;
+		background: var(--ink);
+		box-shadow: 0 30px 60px -30px rgba(27, 21, 18, 0.55);
+		transform: rotate(var(--r, 0deg));
+		transition: transform 0.5s var(--ease-out);
+	}
+	.spec:hover .spec__poster {
+		transform: rotate(0) translateY(-6px);
+	}
+	.spec__poster img {
+		width: 100%;
+		height: auto;
+	}
+	.spec__noposter {
+		aspect-ratio: 720 / 1018;
+		display: grid;
+		place-content: center;
+		text-align: center;
+		color: var(--on-dark);
+		background: radial-gradient(ellipse 70% 55% at 50% 40%, rgba(255, 90, 85, 0.16), transparent 70%), var(--ink);
+	}
+	.spec__noposter span {
+		font: 900 clamp(48px, 6vw, 84px) / 0.85 var(--f-poster);
+		text-transform: uppercase;
+	}
+	.spec__noposter small {
+		font: 500 12px/1.4 var(--f-mono);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--on-dark-2);
+		margin-top: 10px;
+	}
+	.spec__info .overline {
+		margin-top: 8px;
+	}
+	.spec__title {
+		font: 900 clamp(44px, 5.6vw, 88px) / 0.85 var(--f-poster);
+		text-transform: uppercase;
+		margin: 8px 0 16px;
+		overflow-wrap: normal;
+		word-break: normal;
+		hyphens: none;
+	}
+	.spec .facts {
+		margin-bottom: 22px;
+	}
 	.spectacle-pair {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		border: 3px solid var(--color-ink);
-		background-color: var(--color-canvas);
+		grid-template-columns: minmax(0, 1fr) minmax(0, 0.62fr);
+		border-top: 2px solid var(--ink);
 	}
-	/* Keep the director's caption left and portrait right at every breakpoint. */
-	.spectacle-pair--director .spectacle-caption {
-		order: 1;
-	}
-	.spectacle-pair--director .spectacle-frame {
-		order: 2;
-		border-right: 0;
-		border-left: 3px solid var(--color-ink);
+	.spectacle-pair--nophoto {
+		grid-template-columns: minmax(0, 1fr);
 	}
 	.spectacle-frame {
 		aspect-ratio: 2 / 3;
 		min-width: 0;
 		margin: 0;
-		border-right: 3px solid var(--color-ink);
-		background-color: var(--color-muted-bg);
-		background-image:
-			repeating-linear-gradient(0deg, transparent, transparent 11px, rgb(10 10 10 / 0.07) 11px, rgb(10 10 10 / 0.07) 12px),
-			repeating-linear-gradient(90deg, transparent, transparent 11px, rgb(10 10 10 / 0.07) 11px, rgb(10 10 10 / 0.07) 12px);
+		background: var(--paper-2);
 	}
 	.spectacle-photo {
 		display: block;
@@ -199,41 +248,28 @@ function regaliaSizeClass(text: string): string {
 		height: 100%;
 		object-fit: cover;
 		object-position: center;
-	}
-	.spectacle-empty {
-		display: flex;
-		height: 100%;
-		align-items: center;
-		justify-content: center;
-		font-family: var(--font-sans);
-		font-size: 10px;
-		letter-spacing: 0.2em;
-		text-transform: uppercase;
-		color: var(--color-muted);
+		filter: grayscale(0.2);
 	}
 	.spectacle-caption {
 		display: flex;
 		min-width: 0;
 		min-height: 0;
 		flex-direction: column;
-		justify-content: center;
-		justify-content: safe center;
-		gap: 0.45rem;
-		padding: 0.85rem 0.65rem;
+		justify-content: flex-start;
+		gap: 0.5rem;
+		padding: 14px 18px 4px 0;
 		overflow: hidden;
-		/* Size containment: подпись не влияет на высоту ряда — её высота = высоте фото 2:3.
-		   Заодно даёт единицы cqi/cqh для подгонки кегля. */
+		/* Высота подписи = высоте портрета 2:3; даёт единицы cqi для подгонки кегля. */
 		container-type: size;
-		background-color: var(--color-canvas);
-		background-image:
-			repeating-linear-gradient(0deg, transparent, transparent 11px, rgb(10 10 10 / 0.06) 11px, rgb(10 10 10 / 0.06) 12px),
-			repeating-linear-gradient(90deg, transparent, transparent 11px, rgb(10 10 10 / 0.06) 11px, rgb(10 10 10 / 0.06) 12px);
 	}
-	/* «Подробнее» раскрыто: подпись может стать выше фото, фото прижато кверху. */
+	.spectacle-pair--nophoto > .spectacle-caption {
+		container-type: inline-size;
+		overflow: visible;
+		padding-right: 0;
+	}
 	.spectacle-pair.is-expanded > .spectacle-caption {
 		container-type: inline-size;
 		overflow: visible;
-		justify-content: flex-start;
 	}
 	.spectacle-pair.is-expanded > .spectacle-frame {
 		align-self: start;
@@ -241,65 +277,50 @@ function regaliaSizeClass(text: string): string {
 	.spectacle-kicker {
 		margin: 0;
 		flex: none;
-		font-family: var(--font-sans);
-		font-size: 9px;
+		font: 500 12px/1.4 var(--f-mono);
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
-		color: var(--color-accent);
+		color: var(--red);
 	}
 	.spectacle-title {
 		--fit-chars: 8;
 		margin: 0;
 		flex: none;
-		font-family: var(--font-display);
-		font-size: clamp(1.1rem, 6vw, 3.4rem);
-		/* Самое длинное слово целиком влезает в ширину подписи (у кириллицы Bebas Neue нет глифов → fallback-гротеск ≈ 0.65em на букву). */
-		font-size: clamp(0.8rem, min(calc(150cqi / var(--fit-chars)), 24cqi), 3.4rem);
-		font-weight: 400;
-		line-height: 0.95;
-		letter-spacing: 0.05em;
+		font-family: var(--f-poster);
+		font-weight: 900;
+		font-size: clamp(1.4rem, min(calc(190cqi / var(--fit-chars)), 22cqi), 3.2rem);
+		line-height: 0.9;
 		text-transform: uppercase;
-		color: var(--color-ink);
-		/* Никогда не рвать слово: переносы только между словами. */
+		color: var(--ink);
 		overflow-wrap: normal;
 		word-break: keep-all;
 		hyphens: none;
 		-webkit-hyphens: none;
-	}
-	.spectacle-title--dir {
-		font-size: clamp(1rem, 5vw, 2.6rem);
-		font-size: clamp(0.75rem, min(calc(150cqi / var(--fit-chars)), 17cqi), 2.6rem);
 	}
 	.spectacle-regalia-wrap {
 		display: flex;
 		min-height: 0;
 		flex: 0 1 auto;
 		flex-direction: column;
-		gap: 0.35rem;
+		gap: 0.4rem;
 	}
 	.spectacle-regalia {
 		margin: 0;
 		min-height: 0;
 		flex: 0 1 auto;
-		max-width: 32ch;
+		max-width: 52ch;
 		overflow: hidden;
-		font-family: var(--font-serif);
-		font-size: 0.78rem;
-		font-size: clamp(0.66rem, 5.4cqi, 0.82rem);
-		font-style: italic;
-		line-height: 1.35;
-		color: var(--color-muted);
+		font: italic 400 16px/1.45 var(--f-serif);
+		color: var(--ink-2);
 		overflow-wrap: break-word;
 	}
 	.spectacle-regalia--long {
-		font-size: 0.72rem;
-		font-size: clamp(0.64rem, 4.6cqi, 0.76rem);
-		line-height: 1.3;
+		font-size: 15px;
+		line-height: 1.4;
 	}
 	.spectacle-regalia--xlong {
-		font-size: 0.68rem;
-		font-size: clamp(0.625rem, 4cqi, 0.72rem);
-		line-height: 1.28;
+		font-size: 14.5px;
+		line-height: 1.38;
 	}
 	.spectacle-regalia-wrap.is-clamped .spectacle-regalia {
 		-webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 2.6em), transparent);
@@ -314,15 +335,15 @@ function regaliaSizeClass(text: string): string {
 		flex: none;
 		align-self: flex-start;
 		margin: 0;
-		padding: 0 0 1px;
+		padding: 0 0 2px;
+		min-height: 32px;
 		border: 0;
-		border-bottom: 2px solid var(--color-accent);
+		border-bottom: 2px solid var(--red);
 		background: none;
-		font-family: var(--font-sans);
-		font-size: 9px;
-		letter-spacing: 0.14em;
+		font: 600 12px/1 var(--f-mono);
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: var(--color-accent);
+		color: var(--red);
 		cursor: pointer;
 	}
 	.spectacle-more[hidden] {
@@ -330,24 +351,46 @@ function regaliaSizeClass(text: string): string {
 	}
 	.spectacle-coverflow-wrap {
 		min-width: 0;
+		margin-top: clamp(28px, 4vw, 48px);
+	}
+	.spectacle-coverflow-wrap > .spectacle-kicker {
+		margin-bottom: 10px;
 	}
 	.spectacle-coverflow {
 		position: relative;
 		display: flex;
 		align-items: center;
-		gap: 0.35rem;
-		border: 3px solid var(--color-ink);
-		background-color: var(--color-canvas);
-		padding: 0.75rem 0.35rem;
+		gap: 0.5rem;
+		background: var(--ink);
+		padding: 22px 10px;
+		border-radius: 4px;
 		touch-action: pan-y;
 		user-select: none;
 		-webkit-user-select: none;
+	}
+	/* перфорация киноплёнки */
+	.spectacle-coverflow::before,
+	.spectacle-coverflow::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 14px;
+		background: radial-gradient(ellipse 5px 3.5px at 50% 50%, var(--paper) 0 98%, transparent 100%) 0 50% / 20px 14px repeat-x;
+		opacity: 0.18;
+		pointer-events: none;
+	}
+	.spectacle-coverflow::before {
+		top: 4px;
+	}
+	.spectacle-coverflow::after {
+		bottom: 4px;
 	}
 	.spectacle-coverflow-stage {
 		position: relative;
 		flex: 1 1 auto;
 		min-width: 0;
-		height: clamp(11.5rem, 48vw, 18rem);
+		height: clamp(12rem, 48vw, 20rem);
 		perspective: 900px;
 		overflow: hidden;
 	}
@@ -359,14 +402,15 @@ function regaliaSizeClass(text: string): string {
 		aspect-ratio: 2 / 3;
 		margin: 0;
 		padding: 0;
-		border: 3px solid var(--color-ink);
-		background: var(--color-muted-bg);
+		border: 0;
+		border-radius: 2px;
+		background: var(--stage-2);
 		transform: translate(-50%, -50%) scale(0.55);
 		opacity: 0;
 		pointer-events: none;
 		cursor: pointer;
 		transition:
-			transform 280ms ease,
+			transform 280ms var(--ease-out),
 			opacity 280ms ease,
 			z-index 0s,
 			box-shadow 280ms ease;
@@ -379,35 +423,35 @@ function regaliaSizeClass(text: string): string {
 		opacity: 1;
 		pointer-events: auto;
 		z-index: 5;
-		box-shadow: 0 10px 28px rgb(10 10 10 / 0.28);
+		box-shadow: 0 18px 36px rgb(0 0 0 / 0.55);
 	}
 	.spectacle-coverflow-item.is-slot-m1 {
 		transform: translate(calc(-50% - 62%), -50%) scale(0.78);
-		opacity: 0.88;
+		opacity: 0.7;
 		pointer-events: auto;
 		z-index: 4;
 	}
 	.spectacle-coverflow-item.is-slot-p1 {
 		transform: translate(calc(-50% + 62%), -50%) scale(0.78);
-		opacity: 0.88;
+		opacity: 0.7;
 		pointer-events: auto;
 		z-index: 4;
 	}
 	.spectacle-coverflow-item.is-slot-m2 {
 		transform: translate(calc(-50% - 108%), -50%) scale(0.62);
-		opacity: 0.55;
+		opacity: 0.4;
 		pointer-events: auto;
 		z-index: 3;
 	}
 	.spectacle-coverflow-item.is-slot-p2 {
 		transform: translate(calc(-50% + 108%), -50%) scale(0.62);
-		opacity: 0.55;
+		opacity: 0.4;
 		pointer-events: auto;
 		z-index: 3;
 	}
 	.spectacle-coverflow-item:hover,
 	.spectacle-coverflow-item:focus-visible {
-		outline: 3px solid var(--color-accent);
+		outline: 3px solid var(--red-hi);
 		outline-offset: -3px;
 	}
 	.spectacle-coverflow-photo {
@@ -419,86 +463,65 @@ function regaliaSizeClass(text: string): string {
 	}
 	.spectacle-coverflow-nav {
 		flex: 0 0 auto;
-		width: 2.1rem;
-		height: 2.1rem;
-		border: 3px solid var(--color-ink);
-		background: var(--color-ink);
-		color: var(--color-canvas);
-		font-family: var(--font-display), sans-serif;
-		font-size: 1.35rem;
-		line-height: 1;
+		width: 44px;
+		height: 44px;
+		border: 1.5px solid var(--on-dark-2);
+		border-radius: 50%;
+		background: transparent;
+		color: var(--on-dark);
+		font: 600 26px/1 var(--f-body);
 		cursor: pointer;
 		z-index: 6;
+		transition: background 0.2s, color 0.2s, border-color 0.2s;
 	}
 	.spectacle-coverflow-nav:hover,
 	.spectacle-coverflow-nav:focus-visible {
-		background: var(--color-accent);
-		outline: none;
+		background: var(--red);
+		border-color: var(--red);
 	}
 	.spectacle-coverflow-dots {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
-		gap: 0.4rem;
-		margin-top: 0.65rem;
+		gap: 4px;
+		margin-top: 10px;
 	}
 	.spectacle-coverflow-dot {
-		width: 0.55rem;
-		height: 0.55rem;
+		width: 24px;
+		height: 24px;
 		padding: 0;
-		border: 2px solid var(--color-ink);
-		border-radius: 999px;
-		background: transparent;
+		border: 0;
+		background: radial-gradient(circle, var(--ink-2) 0 4px, transparent 4.5px);
 		cursor: pointer;
 	}
 	.spectacle-coverflow-dot.is-active {
-		background: var(--color-accent);
-		border-color: var(--color-accent);
+		background: radial-gradient(circle, var(--red) 0 5px, transparent 5.5px);
 	}
 	@media (min-width: 640px) {
-		.spectacle-caption {
-			gap: 0.75rem;
-			padding: 1.75rem 1.5rem;
-		}
-		.spectacle-kicker {
-			font-size: 10px;
-			letter-spacing: 0.22em;
-		}
-		.spectacle-title {
-			letter-spacing: 0.08em;
-		}
-		.spectacle-regalia {
-			font-size: 0.95rem;
-			font-size: clamp(0.72rem, 4.4cqi, 0.95rem);
-			line-height: 1.45;
-		}
-		.spectacle-regalia--long {
-			font-size: 0.85rem;
-			font-size: clamp(0.66rem, 3.8cqi, 0.88rem);
-			line-height: 1.38;
-		}
-		.spectacle-regalia--xlong {
-			font-size: 0.8rem;
-			font-size: clamp(0.62rem, 3.3cqi, 0.82rem);
-			line-height: 1.32;
-		}
-		.spectacle-coverflow {
-			padding: 1rem 0.5rem;
-			gap: 0.5rem;
-		}
 		.spectacle-coverflow-stage {
-			height: clamp(14rem, 32vw, 20rem);
+			height: clamp(14rem, 30vw, 22rem);
 		}
 		.spectacle-coverflow-item {
-			width: min(28%, 8.5rem);
+			width: min(26%, 9rem);
 		}
 		.spectacle-coverflow-item.is-slot-0 {
-			width: min(34%, 11rem);
+			width: min(32%, 12rem);
 		}
-		.spectacle-coverflow-nav {
-			width: 2.5rem;
-			height: 2.5rem;
-			font-size: 1.6rem;
+	}
+	@media (max-width: 760px) {
+		.spec__main,
+		.spec:nth-child(even) .spec__main {
+			grid-template-columns: 1fr;
+		}
+		.spec:nth-child(even) .spec__poster {
+			order: 0;
+		}
+		.spec__poster {
+			max-width: min(420px, 100%);
+			transform: rotate(calc(var(--r, 0deg) * 0.6));
+		}
+		.spectacle-regalia {
+			font-size: 15px;
 		}
 	}
 </style>
@@ -511,7 +534,7 @@ function regaliaSizeClass(text: string): string {
 		margin: 0;
 		padding: 0;
 		border: none;
-		background: rgb(10 10 10 / 0.94);
+		background: rgb(16 13 12 / 0.95);
 	}
 	.spectacle-lightbox[open] {
 		display: flex;
@@ -519,43 +542,44 @@ function regaliaSizeClass(text: string): string {
 		justify-content: center;
 	}
 	.spectacle-lightbox::backdrop {
-		background: rgb(10 10 10 / 0.88);
+		background: rgb(16 13 12 / 0.9);
 	}
 	.spectacle-lightbox-img {
 		max-width: 92vw;
 		max-height: 86vh;
 		object-fit: contain;
-		border: 3px solid var(--color-canvas);
+		box-shadow: 0 40px 80px rgb(0 0 0 / 0.6);
 	}
 	.spectacle-lightbox-close {
 		position: fixed;
 		top: 1rem;
 		right: 1rem;
 		z-index: 2;
-		border: 3px solid var(--color-canvas);
-		background: var(--color-accent);
-		padding: 0.45rem 0.85rem;
-		font-family: var(--font-display), sans-serif;
-		font-size: 0.95rem;
-		letter-spacing: 0.16em;
-		text-transform: uppercase;
-		color: var(--color-canvas);
+		min-height: 44px;
+		padding: 0 18px;
+		border: 0;
+		border-radius: 999px;
+		background: var(--red, #b8141b);
+		font: 600 14px/1 var(--f-body, sans-serif);
+		color: #fff;
 		cursor: pointer;
 	}
 	.spectacle-lightbox-nav {
 		position: fixed;
 		top: 50%;
 		z-index: 2;
-		width: 2.75rem;
-		height: 2.75rem;
+		width: 48px;
+		height: 48px;
 		transform: translateY(-50%);
-		border: 3px solid var(--color-canvas);
-		background: var(--color-ink);
-		font-family: var(--font-display), sans-serif;
-		font-size: 1.8rem;
-		line-height: 1;
-		color: var(--color-canvas);
+		border: 1.5px solid var(--on-dark-2, #b9ab9c);
+		border-radius: 50%;
+		background: rgb(16 13 12 / 0.6);
+		font: 600 28px/1 var(--f-body, sans-serif);
+		color: var(--on-dark, #f4ede0);
 		cursor: pointer;
+	}
+	.spectacle-lightbox-nav:hover {
+		background: var(--red, #b8141b);
 	}
 	.spectacle-lightbox-nav--prev {
 		left: 0.75rem;

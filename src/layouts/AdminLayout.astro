@@ -1,0 +1,280 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title: string;
+	description?: string;
+	/** Режим встроенной админки: те же экраны, но под `/admin` */
+	admin?: boolean;
+}
+
+const { title, description = 'Сайт учебной группы театра и кино', admin = false } = Astro.props;
+
+const pathname = Astro.url.pathname;
+const showFooterGame = false;
+
+
+const links = admin
+	? [
+			{ href: '/admin', label: 'Главная', match: (p: string) => p === '/admin' || p === '/admin/' },
+			{
+				href: '/admin/class',
+				label: 'Класс',
+				match: (p: string) => p.startsWith('/admin/class') || p.startsWith('/admin/student'),
+			},
+			{ href: '/admin/attendance', label: 'Посещаемость', match: (p: string) => p.startsWith('/admin/attendance') },
+			{ href: '/admin/spectacles', label: 'Спектакли', match: (p: string) => p.startsWith('/admin/spectacles') },
+			{ href: '/admin/obschak', label: 'Общак', match: (p: string) => p.startsWith('/admin/obschak') },
+			{ href: '/admin/birthday-dial', label: 'ДР циферблат', match: (p: string) => p.startsWith('/admin/birthday-dial') },
+			{ href: '/admin/logs', label: 'Логи', match: (p: string) => p.startsWith('/admin/logs') },
+		]
+	: [
+			{ href: '/', label: 'Главная', match: (p: string) => p === '/' },
+			{ href: '/class', label: 'Класс', match: (p: string) => p.startsWith('/class') },
+			{ href: '/attendance', label: 'Посещаемость', match: (p: string) => p.startsWith('/attendance') },
+			{ href: '/obshchak', label: 'Общак', match: (p: string) => p.startsWith('/obshchak') },
+			{ href: '/dni-rozhdeniya', label: 'Дни рождения', match: (p: string) => p.startsWith('/dni-rozhdeniya') },
+		];
+---
+
+<!doctype html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="description" content={description} />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body class="admin-shell relative overflow-x-hidden bg-canvas font-sans text-ink antialiased">
+		<div class="relative z-10 flex min-h-dvh flex-col">
+			<div class="sticky top-0 z-40 bg-stage">
+				<header
+					class="site-header flex h-[60px] items-center gap-0 overflow-visible border-b border-[#3a302b] bg-stage/95 pr-1 text-canvas backdrop-blur sm:pr-2"
+				>
+					<div
+						class="flex h-full min-w-0 shrink-0 select-none items-center px-4 font-display text-canvas sm:px-6"
+					>
+						<a href={admin ? '/admin' : '/'} class="text-canvas no-underline">
+							<span class="text-[30px] font-extrabold leading-none">КиТ<b class="font-extrabold text-[#ff5a55]">20</b></span>
+						</a>
+					</div>
+					<div class="ml-auto flex h-full flex-1 items-center justify-end gap-0 sm:gap-1">
+						{
+							admin && (
+								<span class="hidden max-w-0 rounded-full bg-accent px-2.5 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-white sm:mr-3 sm:max-w-none sm:inline">
+									Служебный вход
+								</span>
+							)
+						}
+						{
+							admin ? (
+								<a
+									href="/"
+									class="hidden px-3 font-mono text-[12px] uppercase tracking-[0.08em] text-[#b9ab9c] transition-colors hover:text-canvas sm:inline"
+								>
+									На сайт
+								</a>
+							) : (
+								<span class="hidden font-display text-xl tracking-widest text-[#333] sm:inline sm:text-2xl">01</span>
+							)
+						}
+						<button
+							type="button"
+							class="site-nav-toggle flex h-14 w-12 flex-col items-center justify-center gap-[5px] border-l border-[#3a302b] bg-transparent px-2 text-canvas sm:w-14"
+							aria-expanded="false"
+							aria-controls="site-nav-panel"
+							aria-label="Открыть меню"
+						>
+							<span class="burger-line block h-0.5 w-5 origin-center bg-canvas transition-transform duration-200"></span>
+							<span class="burger-line block h-0.5 w-5 bg-canvas transition-opacity duration-200"></span>
+							<span class="burger-line block h-0.5 w-5 origin-center bg-canvas transition-transform duration-200"></span>
+						</button>
+					</div>
+				</header>
+				<nav
+					id="site-nav-panel"
+					class="site-nav-panel hidden border-b border-[#3a302b] bg-stage text-canvas"
+					aria-label="Основная навигация"
+					hidden
+				>
+					<ul class="flex flex-col py-1">
+						{
+							links.map(({ href, label, match }) => (
+								<li class="border-b border-[#3a302b] last:border-0">
+									<a
+										href={href}
+										class:list={[
+											'block w-full py-3.5 pl-5 pr-4 font-mono text-[13px] uppercase tracking-[0.12em] transition-colors sm:py-4 sm:pl-8 sm:text-sm',
+											match(pathname)
+												? 'bg-stage-2 text-[#ff5a55]'
+												: 'text-[#b9ab9c] hover:bg-stage-2 hover:text-canvas',
+										]}
+									>
+										{label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</nav>
+				<style is:global>
+					.site-nav-toggle--open .burger-line:nth-child(1) {
+						transform: translateY(7px) rotate(45deg);
+					}
+					.site-nav-toggle--open .burger-line:nth-child(2) {
+						opacity: 0;
+					}
+					.site-nav-toggle--open .burger-line:nth-child(3) {
+						transform: translateY(-7px) rotate(-45deg);
+					}
+					#site-nav-panel:not([hidden]) {
+						max-height: min(60vh, 28rem);
+						overflow-y: auto;
+					}
+				</style>
+				<script is:inline>
+					(function () {
+						var btn = document.querySelector('.site-nav-toggle');
+						var panel = document.getElementById('site-nav-panel');
+						if (!btn || !panel) return;
+						var open = false;
+						function setOpen(should) {
+							open = should;
+							btn.setAttribute('aria-expanded', should ? 'true' : 'false');
+							btn.setAttribute('aria-label', should ? 'Закрыть меню' : 'Открыть меню');
+							btn.classList.toggle('site-nav-toggle--open', should);
+							if (should) {
+								panel.removeAttribute('hidden');
+								panel.classList.remove('hidden');
+							} else {
+								panel.setAttribute('hidden', '');
+								panel.classList.add('hidden');
+							}
+						}
+						btn.addEventListener('click', function (e) {
+							e.stopPropagation();
+							setOpen(!open);
+						});
+						panel.querySelectorAll('a').forEach(function (a) {
+							a.addEventListener('click', function () {
+								setOpen(false);
+							});
+						});
+						document.addEventListener('click', function (e) {
+							if (!open) return;
+							var t = e.target;
+							if (btn.contains(t) || panel.contains(t)) return;
+							setOpen(false);
+						});
+						document.addEventListener('keydown', function (e) {
+							if (e.key === 'Escape' && open) setOpen(false);
+						});
+					})();
+				</script>
+				<slot name="after-ticker" />
+			</div>
+			<main class="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+				<slot />
+			</main>
+			<footer
+				class:list={[
+					'mt-auto grid grid-cols-1 gap-6 border-t border-[#3a302b] bg-stage px-5 py-6 text-canvas sm:px-8 sm:py-7',
+					showFooterGame ? 'sm:grid-cols-3' : 'sm:grid-cols-2',
+				]}
+			>
+				<div>
+					<h3 class="mb-2 font-display text-3xl font-extrabold">КиТ<span class="text-[#ff5a55]">20</span> · программка</h3>
+					<p class="font-mono text-[12px] leading-relaxed text-[#b9ab9c]">
+						Учебная группа театра и кино · Парт Академии
+					</p>
+					<div class="mt-2 font-mono text-[11px] text-accent">kit20.ru</div>
+				</div>
+				<div class="flex flex-col justify-between gap-3 sm:items-end sm:text-right">
+					{
+						!admin && (
+							<a
+								href="https://t.me/VAZHEVA_AA"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="type-cta inline-flex items-center justify-center border-[3px] border-ink bg-accent px-4 py-2 text-[11px] tracking-[0.14em] text-canvas shadow-[var(--shadow-card)] transition-colors hover:bg-accent-hover sm:self-end"
+							>
+								Написать старосте
+							</a>
+						)
+					}
+					<p class="font-mono text-[12px] leading-relaxed text-[#b9ab9c]">
+						{
+							admin ? (
+								<form method="POST" action="/api/admin/logout" class="flex sm:justify-end">
+									<button
+										type="submit"
+										class="rounded-full border border-[#ff5a55] px-4 py-2 font-mono text-[12px] uppercase tracking-[0.1em] text-[#ff5a55] transition-colors hover:bg-[#ff5a55] hover:text-stage"
+									>
+										Выйти из админки
+									</button>
+								</form>
+							) : (
+								<a href="/admin" class="uppercase tracking-widest text-muted transition-colors hover:text-canvas">
+									Вход для администратора
+								</a>
+							)
+						}
+					</p>
+					<p class="font-mono text-[11px] tracking-widest text-[#b9ab9c]">2026–2028</p>
+				</div>
+				<div class:list={['col-span-1 border-t border-[#1a1a1a] pt-4 text-center font-mono text-[11px] tracking-[0.14em] text-[#b9ab9c]', showFooterGame ? 'sm:col-span-3' : 'sm:col-span-2']}>
+					КИТ20 · Парт Академия · театр и кино
+				</div>
+			</footer>
+		</div>
+		{
+			!admin && (
+				<>
+					<!-- Yandex.Metrika counter -->
+					<script is:inline>
+						(function (m, e, t, r, i, k, a) {
+							m[i] =
+								m[i] ||
+								function () {
+									(m[i].a = m[i].a || []).push(arguments);
+								};
+							m[i].l = 1 * new Date();
+							for (var j = 0; j < document.scripts.length; j++) {
+								if (document.scripts[j].src === r) {
+									return;
+								}
+							}
+							k = e.createElement(t);
+							a = e.getElementsByTagName(t)[0];
+							k.async = 1;
+							k.src = r;
+							a.parentNode.insertBefore(k, a);
+						})(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=108705431', 'ym');
+						ym(108705431, 'init', {
+							ssr: true,
+							webvisor: true,
+							clickmap: true,
+							ecommerce: 'dataLayer',
+							referrer: document.referrer,
+							url: location.href,
+							accurateTrackBounce: true,
+							trackLinks: true,
+						});
+					</script>
+					<noscript>
+						<div>
+							<img
+								src="https://mc.yandex.ru/watch/108705431"
+								style="position:absolute; left:-9999px;"
+								alt=""
+							/>
+						</div>
+					</noscript>
+					<!-- /Yandex.Metrika counter -->
+				</>
+			)
+		}
+	</body>
+</html>

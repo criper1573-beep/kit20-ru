@@ -1,0 +1,28 @@
+---
+/**
+ * Точка встраивания игры («Антракт»). Сейчас здесь живёт прежняя игра «Прыжок» (FooterJumpGame) без изменений логики:
+ * поле «Имя», рейтинг GET/POST /api/game/scores ({ name, score, sessionId }) → src/content/game-scores-jump.json.
+ *
+ * Чтобы заменить игру на новый одиночный HTML/JS-файл:
+ *   1) положить его в public/game/<имя>.html (или как компонент) и вставить вместо <FooterJumpGame /> ниже
+ *      (например, <iframe src="/game/<имя>.html" ...> внутри .game-stage);
+ *   2) игра шлёт рекорд тем же POST /api/game/scores; если формат очков другой — завести отдельный файл рекордов,
+ *      а game-scores-jump.json оставить архивом (не перетирать).
+ * Оформление рамки — классы .game-* в src/styles/programmka.css.
+ */
+import FooterJumpGame from './FooterJumpGame.astro';
+---
+
+<section class="game paper" id="game" aria-labelledby="game-h" data-game-slot>
+	<div class="wrap game__in">
+		<header class="game__head">
+			<p class="overline">Антракт · <b>мини-игра</b></p>
+			<h2 id="game-h">Прыжок</h2>
+			<p class="game__lede">Пока зал ждёт второго действия — прыгайте через препятствия. Лучшие результаты попадают в рейтинг.</p>
+			<p class="game__hint mono">Пробел, клик или тап — прыжок · «Рейтинг» — таблица рекордов</p>
+		</header>
+		<div class="game-stage">
+			<FooterJumpGame />
+		</div>
+	</div>
+</section>

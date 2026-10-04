@@ -3,188 +3,103 @@ export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import { readStudentsSorted, readAttendance } from '../lib/siteContent';
 import { attendanceCellStatus, attendancePresentCount } from '../lib/attendanceStats';
+import { attendanceSummary, plural, shortDate, sortLessonsNewest } from '../lib/programmka';
 
 const students = await readStudentsSorted();
 const { data: att } = await readAttendance();
 
-
-// Сортируем занятия: самые новые слева (по убыванию даты)
-const lessons = (att.lessons ?? []).sort((a, b) => {
-	return new Date(b.date).getTime() - new Date(a.date).getTime();
-});
-
-const statusLabel: Record<'present' | 'absent', string> = {
-	present: 'Б',
-	absent: 'Н',
-};
-
-const statusTitle: Record<'present' | 'absent', string> = {
-	present: 'Был',
-	absent: 'Не был',
-};
-
+// Самые новые занятия — слева (как и раньше).
+const lessons = sortLessonsNewest(att.lessons ?? []);
 const totalLessons = lessons.length;
+const sum = attendanceSummary(
+	lessons,
+	students.map((s) => s.data.slug),
+);
 ---
 
-<Layout title="Посещаемость" description="График посещаемости занятий">
-	<div class="mb-8 border-b-[3px] border-ink pb-4">
-		<h1 class="font-display text-4xl font-normal tracking-widest text-ink sm:text-5xl uppercase">Посещаемость</h1>
-	</div>
-
-	{
-		lessons.length === 0 ? (
-			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
-				Нет данных.
-			</div>
-		) : (
-			<>
-				<div
-					class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
-					style="--att-name-col-w:4.35rem; --att-name-col-w-sm:7.5rem; --att-count-col-w:2.15rem; --att-count-col-w-sm:3.25rem; --att-cell-w:5.32rem; --att-cell-w-sm:10.8rem;"
-				>
-					<table class="w-max table-fixed border-collapse text-left font-sans text-[10px] sm:text-sm" id="att-table">
-						<thead>
-							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-								<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-0 max-w-[var(--att-name-col-w)] border-r-[2px] border-ink bg-ink px-1 py-2 text-[10px] font-display font-normal leading-none tracking-wide sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
-									УЧЕНИК
-								</th>
-								<th
-									class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-0 max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-0.5 py-2 text-center font-mono text-[9px] font-normal uppercase tracking-[0.06em] text-canvas/80 sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3.5 sm:text-[10px]"
-									title="Посещений из записанных занятий"
-								>
-									Б/все
-								</th>
-								{lessons.map((lesson) => (
-									<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
-										<div class="break-all text-[9px] leading-tight text-accent sm:text-xs">{lesson.date}</div>
-										<div class="mt-0.5 break-words text-[8px] uppercase leading-tight tracking-[0.04em] text-canvas/70 sm:mt-1 sm:text-[10px] sm:tracking-wider">
-											{lesson.label ?? '—'}
-										</div>
-									</th>
-								))}
-							</tr>
-						</thead>
-						<tbody>
-							{students.map((s) => {
-								const presentCount = attendancePresentCount(lessons, s.data.slug);
-								return (
-								<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors">
-									<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-0 max-w-[var(--att-name-col-w)] break-words border-r-[2px] border-ink bg-surface px-1 py-2 uppercase leading-tight tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
-										{s.data.displayName}
-									</td>
-									<td
-										class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-0 max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-surface px-0.5 py-2 text-center font-mono text-[10px] tabular-nums text-ink group-hover:bg-muted-surface transition-colors sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3 sm:text-xs"
-										title={`Был на ${presentCount} из ${totalLessons} занятий`}
-									>
-										{presentCount}/{totalLessons}
-									</td>
-									{lessons.map((lesson) => {
-										const st = attendanceCellStatus(lesson, s.data.slug);
-										const label = statusLabel[st];
-										const t = statusTitle[st];
-										return (
-											<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
-												<span
-													class:list={[
-														'inline-flex min-w-[1.25rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
-														st === 'present' ? 'bg-surface text-ink' : 'bg-accent text-canvas',
-													]}
-													title={t}
-												>
-													{label}
-												</span>
-											</td>
-										);
-									})}
-								</tr>
-							);
-							})}
-						</tbody>
-					</table>
-				</div>
-			</>
-		)
-	}
-
-	<div class="mt-8 flex flex-wrap gap-6 font-sans text-xs uppercase tracking-widest text-muted">
-		<span class="flex items-center gap-2">
-			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-surface px-1.5 py-0.5 text-ink">Б</span> — БЫЛ
-		</span>
-		<span class="flex items-center gap-2">
-			<span class="inline-flex min-w-[2rem] justify-center border-[2px] border-ink bg-accent px-1.5 py-0.5 text-canvas">Н</span> — НЕ БЫЛ
-		</span>
-	</div>
-
-	<script is:inline>
-		(() => {
-			const table = document.getElementById('att-table');
-			if (!table) return;
-			const wrapper = table.closest('.bb-scrollbar') as HTMLElement | null;
-			const headRow = table.querySelector('thead tr');
-			const firstHead = headRow?.children?.[0] as HTMLElement | undefined;
-			const secondHead = headRow?.children?.[1] as HTMLElement | undefined;
-			const firstData = table.querySelector('tbody tr td') as HTMLElement | null;
-			// #region agent log
-			const debugPayload = {sessionId:'cdc693',runId:'attendance-width-v2',hypothesisId:'H1_H2_H3_H9',location:'src/pages/attendance.astro:script',message:'Public attendance runtime width snapshot',data:{viewportWidth:window.innerWidth,isSm:window.matchMedia('(min-width: 640px)').matches,cssVarNameCol:wrapper?getComputedStyle(wrapper).getPropertyValue('--att-name-col-w').trim():'',cssVarNameColSm:wrapper?getComputedStyle(wrapper).getPropertyValue('--att-name-col-w-sm').trim():'',tableClientWidth:table.clientWidth,tableScrollWidth:table.scrollWidth,wrapperClientWidth:wrapper?.clientWidth??null,wrapperScrollWidth:wrapper?.scrollWidth??null,firstHeadClientWidth:firstHead?.clientWidth??null,firstHeadScrollWidth:firstHead?.scrollWidth??null,secondHeadClientWidth:secondHead?.clientWidth??null,secondHeadScrollWidth:secondHead?.scrollWidth??null,firstDataClientWidth:firstData?.clientWidth??null,firstDataScrollWidth:firstData?.scrollWidth??null,firstDataText:firstData?.textContent?.trim()?.slice(0,32)??''},timestamp:Date.now()};
-			fetch('http://127.0.0.1:7285/ingest/cd037db6-f3b9-4893-a32f-5e239cf83106',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cdc693'},body:JSON.stringify(debugPayload)}).catch(()=>{});
-			fetch('/api/debug/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(debugPayload)}).catch(()=>{});
-			// #endregion
-			const tbody = table.querySelector('tbody');
-			const thead = table.querySelector('thead');
-			if (!tbody || !thead) return;
-
-			let activeRowHeader: Element | null = null;
-			let activeColHeader: Element | null = null;
-
-			function clearHighlight() {
-				activeRowHeader?.classList.remove('is-crosshair-highlight');
-				activeColHeader?.classList.remove('is-crosshair-highlight');
-				activeRowHeader = null;
-				activeColHeader = null;
+<Layout title="Явка" description="Посещаемость занятий группы КиТ20: зрительный зал, где кресло — занятие">
+	<div class="page-top page-top--paper" aria-hidden="true"></div>
+	<section class="paper sec" id="yavka" aria-labelledby="yavka-h">
+		<div class="wrap">
+			<header class="sec__h">
+				<span class="sec__no">Перед началом</span>
+				<h1 id="yavka-h" class="sec__title">Явка</h1>
+				<p>Каждый ряд — исполнитель, каждое кресло — занятие. Красное кресло — был, пустое — не был. Свежие занятия слева.</p>
+			</header>
+			{
+				totalLessons === 0 ? (
+					<p class="empty">Нет данных.</p>
+				) : (
+					<div class="hall" id="hall">
+						<div>
+							<div class="scene-edge" aria-hidden="true" />
+							<div class="seats-scroll">
+								<table class="seats" id="att-table">
+									<caption class="sr">
+										Посещаемость: {totalLessons} {plural(totalLessons, 'занятие', 'занятия', 'занятий')}
+									</caption>
+									<thead>
+										<tr>
+											<th scope="col">
+												<span class="sr">Исполнитель</span>
+											</th>
+											{lessons.map((l) => (
+												<th scope="col">
+													<span>{shortDate(l.date)}</span>
+													<small>{l.label ?? '—'}</small>
+												</th>
+											))}
+											<th scope="col">
+												<span class="mono" title="Посещений из записанных занятий">Б/все</span>
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										{students.map((s) => {
+											const presentCount = attendancePresentCount(lessons, s.data.slug);
+											return (
+												<tr>
+													<th scope="row">{s.data.displayName}</th>
+													{lessons.map((l) => {
+														const was = attendanceCellStatus(l, s.data.slug) === 'present';
+														return (
+															<td>
+																<span
+																	class:list={['seat', { 'seat--on': was }]}
+																	role="img"
+																	aria-label={`${shortDate(l.date)}${l.label ? ` (${l.label})` : ''}: ${was ? 'был(а)' : 'не был(а)'}`}
+																	title={`${shortDate(l.date)} · ${l.label ?? ''} — ${was ? 'был(а)' : 'не был(а)'}`}
+																/>
+															</td>
+														);
+													})}
+													<td class="seat__sum mono" title={`Был(а) на ${presentCount} из ${totalLessons} занятий`}>
+														{presentCount}/{totalLessons}
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<aside>
+							<p class="overline">Зал заполнен</p>
+							<p class="big">
+								{sum.pct}
+								<small>%</small>
+							</p>
+							<p>
+								{sum.present} из {sum.slots} мест за {totalLessons} {plural(totalLessons, 'занятие', 'занятия', 'занятий')}.
+							</p>
+							<p class="legend">
+								<span><i class="on" />был</span>
+								<span><i />не был</span>
+							</p>
+						</aside>
+					</div>
+				)
 			}
-
-			function activateByCell(td: HTMLTableCellElement) {
-				const tr = td.closest('tr');
-				if (!tr) return;
-				const colIndex = Array.from(tr.children).indexOf(td);
-				if (colIndex <= 1) return;
-				clearHighlight();
-				activeRowHeader = tr.children[0] ?? null;
-				const theadRow = thead.querySelector('tr');
-				activeColHeader = theadRow?.children[colIndex] ?? null;
-				activeRowHeader?.classList.add('is-crosshair-highlight');
-				activeColHeader?.classList.add('is-crosshair-highlight');
-			}
-
-			const isTouchUi = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-
-			tbody.addEventListener('mouseover', (e) => {
-				if (isTouchUi) return;
-				const target = e.target;
-				const td = target instanceof Element ? target.closest('td') : null;
-				if (!(td instanceof HTMLTableCellElement)) return;
-				activateByCell(td);
-			});
-
-			tbody.addEventListener('mouseleave', () => {
-				if (isTouchUi) return;
-				clearHighlight();
-			});
-
-			tbody.addEventListener('click', (e) => {
-				const target = e.target;
-				const td = target instanceof Element ? target.closest('td') : null;
-				if (!(td instanceof HTMLTableCellElement)) return;
-				activateByCell(td);
-			});
-
-			// Mobile Safari can delay/skip click in some cases; pointerdown makes highlight immediate.
-			tbody.addEventListener('pointerdown', (e) => {
-				const target = e.target;
-				const td = target instanceof Element ? target.closest('td') : null;
-				if (!(td instanceof HTMLTableCellElement)) return;
-				activateByCell(td);
-			});
-		})();
-	</script>
+		</div>
+	</section>
 </Layout>

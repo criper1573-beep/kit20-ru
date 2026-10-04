@@ -1,7 +1,6 @@
 ---
 export const prerender = false;
 import '../../styles/global.css';
-import StageBackdrop from '../../components/StageBackdrop.astro';
 import { cookieName, getSessionSecret, verifySessionToken } from '../../lib/auth';
 
 const secret = getSessionSecret();
@@ -28,42 +27,44 @@ const next = Astro.url.searchParams.get('next') ?? '/admin';
 				}
 			} catch (e) {}
 		</script>
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
-			rel="stylesheet"
-		/>
-		<title>Вход · КИТ</title>
+		<meta name="theme-color" content="#100d0c" />
+		<title>Вход · КиТ20</title>
 	</head>
-	<body class="relative overflow-x-hidden bg-canvas font-sans text-ink antialiased">
-		<StageBackdrop />
-		<div class="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-12">
-			<div
-				class="w-full max-w-md rounded-shell border border-theme bg-surface/95 p-8 shadow-[var(--shadow-card)] backdrop-blur-md"
-			>
-				<h1 class="font-display text-2xl font-normal text-ink">Вход для редактирования</h1>
+	<body class="relative overflow-x-hidden bg-stage font-sans text-canvas antialiased">
+		<div
+			class="pointer-events-none absolute inset-x-0 top-0 h-[46px]"
+			style="background:radial-gradient(circle at 50% 0, #8f1016 0 70%, transparent 71%) 0 0/64px 46px repeat-x, linear-gradient(#5e0a0e,#5e0a0e) 0 0/100% 18px no-repeat;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))"
+			aria-hidden="true"
+		></div>
+		<div
+			class="relative z-10 flex min-h-dvh flex-col items-center justify-center px-4 py-16"
+			style="background:radial-gradient(ellipse 70% 55% at 50% 105%, rgba(255,90,85,.13), transparent 70%)"
+		>
+			<a href="/" class="mb-8 font-display text-[64px] font-black leading-none text-canvas no-underline">КиТ<span class="text-[#ff5a55]">20</span></a>
+			<div class="w-full max-w-md rounded-md bg-canvas p-8 text-ink shadow-[var(--shadow-float)]">
+				<p class="font-mono text-[12px] uppercase tracking-[0.14em] text-muted">Служебный вход · <b class="font-semibold text-accent">администратор</b></p>
+				<h1 class="mt-2 font-display text-5xl font-black uppercase leading-[0.9] text-ink">Вход для редактирования</h1>
 				<form class="mt-6 space-y-4" method="POST" action="/api/admin/login">
 					<input type="hidden" name="next" value={next} />
-					<label class="block text-sm text-ink">
+					<label class="block font-mono text-[12px] uppercase tracking-[0.12em] text-muted">
 						Пароль
 						<input
 							type="password"
 							name="password"
 							required
 							autocomplete="current-password"
-							class="mt-1.5 w-full rounded-xl border border-theme bg-surface px-4 py-3 text-base shadow-sm outline-none ring-[color:var(--color-ring)]/30 focus:ring-4"
+							class="mt-1.5 w-full rounded-md border-[1.5px] border-ink bg-surface px-4 py-3 font-sans text-base normal-case tracking-normal text-ink outline-none focus:ring-4 focus:ring-[#ff5a55]/30"
 						/>
 					</label>
 					<button
 						type="submit"
-						class="type-cta w-full border-[3px] border-ink bg-accent px-4 py-3 text-base text-canvas shadow-[var(--shadow-card)] hover:bg-accent-hover active-shift"
+						class="w-full rounded-full bg-accent px-4 py-3.5 font-sans text-base font-semibold text-white transition-colors hover:bg-accent-hover"
 					>
 						Войти
 					</button>
 				</form>
 				<p class="mt-6 text-center text-sm">
-					<a href="/" class="text-accent hover:text-accent-hover">На сайт</a>
+					<a href="/" class="font-mono text-[12px] uppercase tracking-[0.1em] text-accent hover:text-accent-hover">← На сайт</a>
 				</p>
 			</div>
 		</div>

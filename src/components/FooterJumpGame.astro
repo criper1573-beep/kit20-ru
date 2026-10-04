@@ -210,7 +210,7 @@
 			}
 			ratingBodyEl.innerHTML = scores
 				.map((row, i) => {
-					const name = String(row?.name ?? '');
+					const name = String(row?.name ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 					const score = Number(row?.score ?? 0);
 					return `
 						<tr class="border-t-[2px] border-ink/15">

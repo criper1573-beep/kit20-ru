@@ -1,34 +1,39 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 @theme {
-	/* Бренд-бук: Bebas Neue · Space Mono · Libre Baskerville */
-	--font-display: "Bebas Neue", sans-serif;
-	--font-sans: "Space Mono", ui-monospace, monospace;
-	--font-serif: "Libre Baskerville", ui-serif, Georgia, serif;
+	/* «Программка» (docs/concept): Alumni Sans · Golos Text · Playfair Display · IBM Plex Mono */
+	--font-display: "Alumni Sans", "Arial Narrow", sans-serif;
+	--font-sans: "Golos Text", system-ui, sans-serif;
+	--font-serif: "Playfair Display", Georgia, serif;
+	--font-mono: "IBM Plex Mono", ui-monospace, monospace;
 	/* Высота нижней полосы (t2), см. .bb-ticker--bottom */
 	--site-ticker-h: 2.25rem;
-	--color-canvas: #f0ebe0;
-	--color-surface: #faf7f0;
-	--color-muted: #57534e;
-	--color-ink: #0a0a0a;
-	--color-accent: #d42b2b;
-	--color-accent-hover: #b91c1c;
-	--color-ring: #fca5a5;
-	--color-border: #0a0a0a;
-	--color-border-subtle: rgb(10 10 10 / 0.12);
-	--color-muted-bg: rgb(10 10 10 / 0.04);
-	--radius-shell: 0px;
+	--color-canvas: #f4ede0;
+	--color-surface: #fbf7ef;
+	--color-muted: #5b4e45;
+	--color-ink: #1b1512;
+	--color-accent: #b8141b;
+	--color-accent-hover: #d01c22;
+	--color-ring: #ff5a55;
+	--color-border: #1b1512;
+	--color-border-subtle: rgb(27 21 18 / 0.14);
+	--color-muted-bg: rgb(27 21 18 / 0.05);
+	--color-stage: #100d0c;
+	--color-stage-2: #1a1513;
+	--color-paper-2: #e9dfcc;
+	--radius-shell: 4px;
 	--radius-header: 0px;
-	--shadow-float: 6px 6px 0 #0a0a0a;
-	--shadow-card: 4px 4px 0 #0a0a0a;
+	--shadow-float: 0 30px 60px -24px rgb(16 13 12 / 0.55);
+	--shadow-card: 0 12px 28px -16px rgb(16 13 12 / 0.55);
 }
 
 @layer base {
 	:root {
-		--bb-black: #0a0a0a;
-		--bb-red: #d42b2b;
-		--bb-gray-light: #e0dbd0;
-		--bb-gray: #888888;
+		--bb-black: #1b1512;
+		--bb-red: #b8141b;
+		--bb-gray-light: #e9dfcc;
+		--bb-gray: #5b4e45;
 	}
 	html {
 		@apply scroll-smooth;
@@ -44,7 +49,7 @@
 	h5,
 	h6 {
 		font-family: var(--font-display), sans-serif;
-		font-weight: 400;
+		font-weight: 800;
 	}
 }
 
@@ -155,7 +160,7 @@
 		animation: bb-glitch-a 15s infinite 1s;
 	}
 	.glitch-brand::after {
-		color: #0a0a0a;
+		color: var(--color-ink);
 		clip-path: polygon(0 60%, 100% 60%, 100% 100%, 0 100%);
 		animation: bb-glitch-b 15s infinite 1s;
 	}
@@ -407,16 +412,16 @@ dialog::backdrop {
 }
 .bb-ticker--top {
 	border-bottom: 2px solid rgb(10 10 10 / 0.1);
-	background: #f0ebe0;
+	background: var(--color-canvas);
 	padding: 11px 0;
 }
 .bb-ticker-track--t1 {
-	font-family: "Bebas Neue", sans-serif;
+	font-family: var(--font-display);
 	font-weight: 400;
 	font-size: 20px;
 	line-height: 1;
 	letter-spacing: 0.25em;
-	color: #0a0a0a;
+	color: var(--color-ink);
 	animation: bb-marquee-tick1 18s linear infinite;
 }
 .bb-ticker--bottom {
@@ -426,16 +431,16 @@ dialog::backdrop {
 	right: 0;
 	z-index: 42;
 	border-top: 2px solid rgb(10 10 10 / 0.35);
-	background: #0a0a0a;
+	background: var(--color-stage);
 	padding: 10px 0;
 }
 .bb-ticker-track--t2 {
-	font-family: "Bebas Neue", sans-serif;
+	font-family: var(--font-display);
 	font-weight: 400;
 	font-size: 13px;
 	line-height: 1;
 	letter-spacing: 0.22em;
-	color: #d42b2b;
+	color: #ff5a55;
 	animation: bb-marquee-tick2 12s linear infinite;
 }
 @keyframes bb-marquee-tick1 {
@@ -460,4 +465,47 @@ dialog::backdrop {
 		animation: none !important;
 		transform: none !important;
 	}
+}
+
+/* ===== Админка в языке «Программки»: тоньше рамки, мягкие тени, плакатные заголовки (логика и разметка не менялись) ===== */
+.admin-shell [class*="border-[3px]"] {
+	border-width: 1.5px;
+}
+.admin-shell [class*="border-b-[3px]"],
+.admin-shell [class*="border-t-[3px]"] {
+	border-width: 0;
+}
+.admin-shell [class*="border-b-[3px]"] {
+	border-bottom-width: 2px;
+}
+.admin-shell [class*="border-t-[3px]"] {
+	border-top-width: 2px;
+}
+.admin-shell main h1 {
+	font-weight: 900;
+	letter-spacing: 0.01em;
+	line-height: 0.9;
+}
+.admin-shell main h1.font-display {
+	font-size: clamp(2.6rem, 6vw, 4.5rem);
+}
+.admin-shell main h2,
+.admin-shell main h3 {
+	font-weight: 800;
+}
+.admin-shell main .type-cta {
+	font-family: var(--font-sans);
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: none;
+	border-radius: 999px;
+}
+.admin-shell main input:not([type='checkbox']):not([type='radio']),
+.admin-shell main textarea,
+.admin-shell main select {
+	border-radius: 4px;
+}
+.admin-shell main :focus-visible {
+	outline: 3px solid #ff5a55;
+	outline-offset: 2px;
 }

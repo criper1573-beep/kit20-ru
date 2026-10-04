@@ -2,14 +2,33 @@
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
 import SpectaclesSection from '../components/SpectaclesSection.astro';
-import { readHome, readSpectacles } from '../lib/siteContent';
+import {
+	readAttendance,
+	readEtudeTopics,
+	readHome,
+	readObshchak,
+	readSpectacles,
+	readStudentsSorted,
+} from '../lib/siteContent';
 import { renderMarkdownToHtml } from '../lib/renderMarkdown';
-import type { HomeFrontmatter } from '../lib/schemas';
+import { totalPotKopeks } from '../lib/obshchakMath';
+import {
+	attendanceSummary,
+	dayMonth,
+	fmtRub,
+	numWord,
+	plural,
+	sortLessonsNewest,
+	tickerWords,
+} from '../lib/programmka';
 
 const { data, body } = await readHome();
 const bodyHtml = renderMarkdownToHtml(body);
 const { spectacles } = await readSpectacles();
-const title = data.title;
+const students = await readStudentsSorted();
+const { data: att } = await readAttendance();
+const catalog = await readEtudeTopics();
+const ob = await readObshchak();
 
 const defaultSemesters = [
 	{ label: '2026/27 · семестр 1', progress: 20, color: 'accent' as const },
@@ -18,147 +37,196 @@ const defaultSemesters = [
 	{ label: '2027/28 · семестр 2', progress: 10, color: 'ink' as const },
 ];
 const semesters = data.semesters?.length ? data.semesters : defaultSemesters;
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+const acts = semesters.map((s, i) => {
+	const [y, ...rest] = s.label.split('·').map((x) => x.trim());
+	const sem = rest.join(' · ') || '';
+	const p = Math.max(0, Math.min(100, Math.round(s.progress)));
+	return {
+		n: roman[i] ?? String(i + 1),
+		y: sem ? y : '',
+		sem: sem || y || s.label,
+		p,
+		state: p >= 100 ? 'сыгран' : p > 0 ? `идёт · ${p}%` : 'впереди',
+	};
+});
 
-function fontFamilyClass(f: HomeFrontmatter['titleFont']): string {
-	if (f === 'sans') return 'font-sans';
-	if (f === 'serif') return 'font-serif';
-	return 'font-display';
-}
+// Заголовок: «Набор КИТ-20» → крупно «КиТ20» (как в концепте), полное название — в aria-label.
+const title = data.title.trim();
+const kit = title.match(/КИТ[-\s]?(\d+)/i);
 
-function weightClass(w: HomeFrontmatter['titleWeight']): string {
-	return w === 'bold' ? 'font-bold' : 'font-normal';
-}
-
-function progressFillClass(color: string | undefined): string {
-	switch (color) {
-		case 'accent':
-			return 'bb-progress-fill--accent';
-		case 'muted':
-			return 'bb-progress-fill--muted';
-		case 'mono':
-			return 'bb-progress-fill--mono';
-		default:
-			return '';
-	}
-}
-
-const titleFont = data.titleFont ?? 'display';
-const titleWeight = data.titleWeight ?? 'normal';
-const titleItalic = data.titleItalic ?? false;
-
-const kitMatch = data.title.trim().match(/^(.*?)(?:\s+)(КИТ[-\s]?20.*)$/i);
-const heroKicker = kitMatch?.[1]?.trim() ?? '';
-const heroTitle = kitMatch?.[2]?.trim() || data.title.trim();
+const slugs = students.map((s) => s.slug);
+const last5 = sortLessonsNewest(att.lessons ?? []).slice(0, 5);
+const attSum = attendanceSummary(last5, slugs);
+const potK = totalPotKopeks(ob.contributedKopeks, ob.expenses, ob.archivedContributedKopeks ?? {});
+const nEtudes = catalog.etudes.length;
+const nTopics = catalog.topics.length;
+const words = tickerWords(data.tickerBottom || data.tickerTop);
+const bdays = students
+	.map((s) => ({ n: s.data.displayName, dm: dayMonth(s.data.birthday) }))
+	.filter((x) => x.dm)
+	.map((x) => [x.n, x.dm!.m, x.dm!.d] as [string, number, number]);
+const nStudents = students.length;
+const semWord = semesters.length === 4 ? 'Два года, четыре семестра' : `${numWord(semesters.length)} ${plural(semesters.length, 'семестр', 'семестра', 'семестров')}`;
 ---
 
-<Layout title={title}>
-	<section class="relative mb-12">
-		<h1 class="text-center">
+<Layout title={`КиТ20 — программка учебной группы театра и кино Парт Академии`}>
+	<!-- ПРОЛОГ -->
+	<section class="stage" id="top" aria-label="Пролог">
+		<div class="valance" aria-hidden="true"></div>
+		<div class="curtain curtain--l" aria-hidden="true"></div>
+		<div class="curtain curtain--r" aria-hidden="true"></div>
+		<div class="stage__in">
+			<div class="stage__text">
+				<p class="overline">Программка · <b>выпуск 01</b> · Парт Академия · театр и кино · 2026–2028</p>
+				<h1 class="mega" aria-label={title}>
+					{kit ? (<>КиТ<span>{kit[1]}</span></>) : title}
+				</h1>
+				<p class="lede">
+					{title} — учебная группа театра и кино Парт&nbsp;Академии. {semWord}, {numWord(nStudents)}&nbsp;{plural(nStudents, 'исполнитель', 'исполнителя', 'исполнителей')}.
+				</p>
+				<div class="ctas">
+					<a class="btn btn--red" href="#afisha">Смотреть афишу</a>
+					<a class="btn btn--ghost" href="/class">Действующие лица</a>
+				</div>
+			</div>
 			{
-				heroKicker && (
-					<span
-						class:list={[
-							'mb-2 block text-base uppercase leading-none tracking-[0.22em] text-ink sm:text-lg',
-							fontFamilyClass(titleFont),
-							weightClass(titleWeight),
-							titleItalic ? 'italic' : 'not-italic',
-						]}
-					>
-						{heroKicker}
-					</span>
+				data.photo && (
+					<figure class="frame">
+						<div class="frame__img" id="frame">
+							<img src={data.photo} alt={`Группа ${title}`} width="2000" height="1500" fetchpriority="high" />
+							<div class="spot" id="spot" aria-hidden="true" />
+						</div>
+						<figcaption>
+							<span>Кадр 01</span>
+							<span>{title} · сцена Парт Академии</span>
+						</figcaption>
+					</figure>
 				)
 			}
-			<span
-				id="home-hero-title"
-				class:list={[
-					'inline-block text-6xl uppercase leading-[0.95] tracking-[0.08em] text-ink sm:text-7xl lg:text-8xl',
-					fontFamilyClass(titleFont),
-					weightClass(titleWeight),
-					titleItalic ? 'italic' : 'not-italic',
-				]}
-			>
-				{heroTitle}
-			</span>
-		</h1>
-
+		</div>
 		{
-			data.photo && (
-				<div class="mt-8 overflow-hidden border-[3px] border-ink bg-muted-surface">
-					<img
-						src={data.photo}
-						alt="Фото группы"
-						class="h-[min(70vw,36rem)] w-full object-cover object-center"
-					/>
+			words.length > 0 && (
+				<div class="ticker" aria-hidden="true">
+					<div class="ticker__t">
+						{[0, 1].map(() =>
+							words.map((w) => (
+								<>
+									<span>{w}</span>
+									<i>✶</i>
+								</>
+							)),
+						)}
+					</div>
 				</div>
 			)
 		}
+	</section>
 
-		<div class="mt-10 max-w-3xl border-t-[3px] border-ink pt-8">
-			<h2 class="mb-4 font-display text-lg uppercase tracking-[0.18em] text-ink font-normal">
-				Учебные семестры <span class="whitespace-nowrap">(2 года)</span>
-			</h2>
-			<div class="flex flex-col gap-5">
+	<!-- КОРОТКО: служебный вход для своих -->
+	<section class="today" aria-labelledby="today-h">
+		<div class="wrap">
+			<h2 class="sr" id="today-h">Коротко</h2>
+			<ol>
+				<li>
+					<a href="/attendance">
+						<span class="lbl">Явка · {last5.length} {plural(last5.length, 'последнее занятие', 'последних занятия', 'последних занятий')}</span>
+						<span class="big">{attSum.pct}<small>%</small></span>
+						<span class="go">{attSum.present} из {attSum.slots} мест заняты · открыть зал →</span>
+					</a>
+				</li>
+				<li>
+					<a href="/obshchak">
+						<span class="lbl">В кассе</span>
+						<span class="big">{fmtRub(potK)}<small>₽</small></span>
+						<span class="go">Взносы и траты →</span>
+					</a>
+				</li>
+				<li>
+					<a href="/dni-rozhdeniya">
+						<span class="lbl">До ближайшего дня рождения</span>
+						<span class="big"><span data-bd-days>—</span><small>дн.</small></span>
+						<span class="go" data-bd-who>Календарь →</span>
+					</a>
+				</li>
+				<li>
+					<a href="/class#etudy">
+						<span class="lbl">Этюдов в репертуаре</span>
+						<span class="big">{nEtudes}</span>
+						<span class="go">{nTopics} {plural(nTopics, 'тема', 'темы', 'тем')} · смотреть →</span>
+					</a>
+				</li>
+			</ol>
+		</div>
+	</section>
+
+	<section class="acts-wrap" aria-labelledby="acts-h">
+		<div class="wrap">
+			<h2 id="acts-h">Пьеса в {semesters.length === 4 ? 'четырёх' : numWord(semesters.length)} актах <span>учебные семестры · 2 года</span></h2>
+			<ol class="acts">
 				{
-					semesters.map((s) => (
-						<div>
-							<div class="bb-progress-label text-ink/85">{s.label}</div>
-							<div class="bb-progress-bar">
-								<div
-									class:list={['bb-progress-fill h-full', progressFillClass(s.color)]}
-									style={`width: ${s.progress}%`}
-								/>
-							</div>
-						</div>
+					acts.map((a) => (
+						<li class:list={['act', { 'act--now': a.p > 0 && a.p < 100, 'act--done': a.p >= 100 }]} style={`--p:${a.p}`}>
+							<span class="act__n">Акт {a.n}</span>
+							<span class="act__y">{a.y ? `${a.y} · ${a.sem}` : a.sem}</span>
+							<span class="act__bar" role="progressbar" aria-valuenow={a.p} aria-valuemin="0" aria-valuemax="100" aria-label={`${a.sem}, ${a.p}%`}><b /></span>
+							<span class="act__s">{a.state}</span>
+						</li>
 					))
 				}
-			</div>
+			</ol>
 		</div>
-
-		<SpectaclesSection spectacles={spectacles} />
-
-		{
-			bodyHtml.trim() && (
-				<div class="markdown-body mt-10 max-w-3xl border-t-[3px] border-ink pt-8" set:html={bodyHtml} />
-			)
-		}
 	</section>
-</Layout>
 
-<script is:inline define:vars={{ homeTitle: heroTitle }}>
-	(function () {
-		const CHARS =
-			'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЫЬЭЮЯabcdefghijklmnopqrstuvwxyz0123456789@#$%&';
-		const el = document.getElementById('home-hero-title');
-		if (!el) return;
-		const original = homeTitle;
-		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	<!-- ДЕЙСТВИЕ ПЕРВОЕ: АФИША -->
+	<section class="paper sec" id="afisha" aria-labelledby="afisha-h">
+		<div class="wrap">
+			<header class="sec__h">
+				<span class="sec__no">Действие первое</span>
+				<h2 id="afisha-h">Афиша</h2>
+				<p>Показы группы: афиши, режиссёры и кадры.</p>
+			</header>
+			<SpectaclesSection spectacles={spectacles} />
+			{bodyHtml.trim() && <div class="markdown-body prog-md" set:html={bodyHtml} />}
+		</div>
+	</section>
 
-		function attachGlitch() {
-			el.setAttribute('data-text', original);
-			el.classList.add('glitch-title');
-		}
-
-		if (reduced) {
-			el.textContent = original;
-			return;
-		}
-
-		let iter = 0;
-		const id = window.setInterval(() => {
-			el.textContent = original
-				.split('')
-				.map((c, i) => {
-					if (c === ' ') return ' ';
-					if (i < Math.floor(iter)) return original[i];
-					return CHARS[Math.floor(Math.random() * CHARS.length)];
-				})
-				.join('');
-			iter += 0.45;
-			if (iter >= original.length + 2) {
-				window.clearInterval(id);
-				el.textContent = original;
-				attachGlitch();
+	<script is:inline type="application/json" id="bd-mini" set:html={JSON.stringify(bdays)}></script>
+	<script is:inline>
+		(function () {
+			var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+			var stage = document.querySelector('.stage');
+			if (stage) requestAnimationFrame(function () { setTimeout(function () { stage.classList.add('is-open'); }, reduce ? 0 : 250); });
+			var spot = document.getElementById('spot');
+			var fr = document.getElementById('frame');
+			if (stage && spot && fr && !reduce && matchMedia('(pointer:fine)').matches) {
+				var raf = 0;
+				stage.addEventListener('pointermove', function (ev) {
+					if (raf) return;
+					raf = requestAnimationFrame(function () {
+						var r = fr.getBoundingClientRect();
+						spot.style.setProperty('--sx', ((ev.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+						spot.style.setProperty('--sy', ((ev.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+						raf = 0;
+					});
+				});
 			}
-		}, 32);
-	})();
-</script>
+			// ближайший день рождения (без года)
+			var B = [];
+			try { B = JSON.parse(document.getElementById('bd-mini').textContent || '[]'); } catch (e) {}
+			var M = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+			var now = new Date(), t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()), best = null;
+			B.forEach(function (x) {
+				var dt = new Date(t0.getFullYear(), x[1] - 1, x[2]);
+				if (dt < t0) dt = new Date(t0.getFullYear() + 1, x[1] - 1, x[2]);
+				var days = Math.round((dt - t0) / 864e5);
+				if (!best || days < best.days) best = { m: x[1], d: x[2], days: days };
+			});
+			if (best) {
+				var same = B.filter(function (x) { return x[1] === best.m && x[2] === best.d; }).map(function (x) { return x[0]; }).join(' и ');
+				document.querySelectorAll('[data-bd-days]').forEach(function (el) { el.textContent = best.days; });
+				document.querySelectorAll('[data-bd-who]').forEach(function (el) { el.textContent = (best.days === 0 ? 'Сегодня — ' : '') + same + ', ' + best.d + ' ' + M[best.m - 1] + ' →'; });
+			}
+		})();
+	</script>
+</Layout>

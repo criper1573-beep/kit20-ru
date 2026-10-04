@@ -1,6 +1,6 @@
 ---
 export const prerender = false;
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../layouts/AdminLayout.astro';
 import { readStudentsSorted, readAttendance } from '../../lib/siteContent';
 import { hasValidAdminSession } from '../../lib/adminApiAuth';
 
@@ -121,17 +121,6 @@ const initialJson = JSON.stringify({ lessons });
 	<script id="att-initial" type="application/json" set:html={initialJson} />
 
 	<script>
-		const dbgTable = document.getElementById('att-table');
-		const dbgWrapper = dbgTable?.closest('.bb-scrollbar') as HTMLElement | null;
-		const dbgHeadRow = dbgTable?.querySelector('thead tr');
-		const dbgFirstHead = dbgHeadRow?.children?.[0] as HTMLElement | undefined;
-		const dbgSecondHead = dbgHeadRow?.children?.[1] as HTMLElement | undefined;
-		const dbgFirstData = dbgTable?.querySelector('tbody tr td') as HTMLElement | null;
-		// #region agent log
-		const debugPayload = {sessionId:'cdc693',runId:'attendance-width-v2',hypothesisId:'H1_H2_H4_H9',location:'src/pages/admin/attendance.astro:script',message:'Admin attendance runtime width snapshot',data:{viewportWidth:window.innerWidth,isSm:window.matchMedia('(min-width: 640px)').matches,cssVarNameCol:dbgWrapper?getComputedStyle(dbgWrapper).getPropertyValue('--att-name-col-w').trim():'',cssVarNameColSm:dbgWrapper?getComputedStyle(dbgWrapper).getPropertyValue('--att-name-col-w-sm').trim():'',tableClientWidth:dbgTable?.clientWidth??null,tableScrollWidth:dbgTable?.scrollWidth??null,wrapperClientWidth:dbgWrapper?.clientWidth??null,wrapperScrollWidth:dbgWrapper?.scrollWidth??null,firstHeadClientWidth:dbgFirstHead?.clientWidth??null,firstHeadScrollWidth:dbgFirstHead?.scrollWidth??null,secondHeadClientWidth:dbgSecondHead?.clientWidth??null,secondHeadScrollWidth:dbgSecondHead?.scrollWidth??null,firstDataClientWidth:dbgFirstData?.clientWidth??null,firstDataScrollWidth:dbgFirstData?.scrollWidth??null,firstDataText:dbgFirstData?.textContent?.trim()?.slice(0,32)??''},timestamp:Date.now()};
-		fetch('http://127.0.0.1:7285/ingest/cd037db6-f3b9-4893-a32f-5e239cf83106',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'cdc693'},body:JSON.stringify(debugPayload)}).catch(()=>{});
-		fetch('/api/debug/log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(debugPayload)}).catch(()=>{});
-		// #endregion
 		const initialEl = document.getElementById('att-initial');
 		const saveBtn = document.getElementById('att-save');
 		const status = document.getElementById('att-status');
