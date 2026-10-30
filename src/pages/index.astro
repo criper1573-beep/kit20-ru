@@ -43,50 +43,49 @@ function progressFillClass(color: string | undefined): string {
 const titleFont = data.titleFont ?? 'display';
 const titleWeight = data.titleWeight ?? 'normal';
 const titleItalic = data.titleItalic ?? false;
-const subtitleFont = data.subtitleFont ?? 'sans';
-const subtitleWeight = data.subtitleWeight ?? 'normal';
-const subtitleItalic = data.subtitleItalic ?? false;
+
+const kitMatch = data.title.trim().match(/^(.*?)(?:\s+)(КИТ[-\s]?20.*)$/i);
+const heroKicker = kitMatch?.[1]?.trim() ?? '';
+const heroTitle = kitMatch?.[2]?.trim() || data.title.trim();
 ---
 
 <Layout title={title}>
-	<section
-		class="relative mb-12 overflow-hidden border-[3px] border-ink bg-surface p-8 shadow-[var(--shadow-card)] sm:p-12"
-	>
-		<h1
-			class:list={[
-				'text-balance text-5xl uppercase leading-[0.95] tracking-[-0.02em] text-ink sm:text-6xl lg:text-7xl',
-				fontFamilyClass(titleFont),
-				weightClass(titleWeight),
-				titleItalic ? 'italic' : 'not-italic',
-			]}
-		>
-			<span id="home-hero-title" class="inline-block tracking-[0.08em]">
-				{data.title}
+	<section class="relative mb-12">
+		<h1 class="text-center">
+			{
+				heroKicker && (
+					<span
+						class:list={[
+							'mb-2 block text-base uppercase leading-none tracking-[0.22em] text-ink sm:text-lg',
+							fontFamilyClass(titleFont),
+							weightClass(titleWeight),
+							titleItalic ? 'italic' : 'not-italic',
+						]}
+					>
+						{heroKicker}
+					</span>
+				)
+			}
+			<span
+				id="home-hero-title"
+				class:list={[
+					'inline-block text-6xl uppercase leading-[0.95] tracking-[0.08em] text-ink sm:text-7xl lg:text-8xl',
+					fontFamilyClass(titleFont),
+					weightClass(titleWeight),
+					titleItalic ? 'italic' : 'not-italic',
+				]}
+			>
+				{heroTitle}
 			</span>
 		</h1>
-		{
-			data.subtitle && (
-				<p
-					class:list={[
-						'mt-4 max-w-2xl text-2xl leading-tight text-accent sm:text-3xl',
-						fontFamilyClass(subtitleFont),
-						weightClass(subtitleWeight),
-						subtitleItalic ? 'italic' : 'not-italic',
-						subtitleFont === 'display' ? 'type-cta uppercase tracking-[0.18em]' : '',
-					]}
-				>
-					{data.subtitle}
-				</p>
-			)
-		}
 
 		{
 			data.photo && (
-				<div class="mt-8 overflow-hidden border-[3px] border-ink bg-muted-surface shadow-[var(--shadow-card)]">
+				<div class="mt-8 overflow-hidden border-[3px] border-ink bg-muted-surface">
 					<img
 						src={data.photo}
 						alt="Фото группы"
-						class="max-h-[500px] w-full object-cover"
+						class="h-[min(70vw,36rem)] w-full object-cover object-center"
 					/>
 				</div>
 			)
@@ -121,7 +120,7 @@ const subtitleItalic = data.subtitleItalic ?? false;
 	</section>
 </Layout>
 
-<script is:inline define:vars={{ homeTitle: data.title }}>
+<script is:inline define:vars={{ homeTitle: heroTitle }}>
 	(function () {
 		const CHARS =
 			'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЫЬЭЮЯabcdefghijklmnopqrstuvwxyz0123456789@#$%&';

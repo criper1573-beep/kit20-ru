@@ -1,0 +1,228 @@
+[
+  {
+    "slug": "egor",
+    "displayName": "Егор",
+    "fullName": "Апрелев Егор Константинович",
+    "photo": "/uploads/33873f59-245b-412a-b1f6-656e667bf60f.jpg",
+    "etudes": [
+      {
+        "title": "Лампочка",
+        "passed": true,
+        "teacherComment": "Проработать конец.Разобраться с хвостиками."
+      },
+      {
+        "title": "Лис",
+        "passed": true,
+        "teacherComment": "Убрать себя,найти характер персонажа.Проработать историю , непонятно как показывать снег на сцене."
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "slug": "gazik",
+    "displayName": "Газик",
+    "fullName": "Газиев Владислав Денисович",
+    "photo": "/uploads/ab2060d2-0d87-480e-ad67-4d00ffda9320.jpg",
+    "etudes": [
+      {
+        "title": "Дозатор",
+        "passed": true,
+        "teacherComment": "Проработать костюм.Отредактировать конец."
+      },
+      {
+        "title": "Лев",
+        "passed": true,
+        "teacherComment": "Поработать над пластикой движений"
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "slug": "ira",
+    "displayName": "Ира",
+    "fullName": "Овчинникова Ирина Владимировна",
+    "photo": "/uploads/dd45ff93-7068-409e-aa1e-977abd4fe9d6.jpg",
+    "etudes": [
+      {
+        "title": "Ластик",
+        "passed": true,
+        "teacherComment": "Проработать этюд."
+      },
+      {
+        "title": "Львица",
+        "passed": true,
+        "teacherComment": "Поменять причёску.Больше проработать историю."
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "slug": "katya-2",
+    "displayName": "Катя М. ",
+    "fullName": "Мальская Екатерина Александровна",
+    "photo": "/uploads/b584b9dc-391b-4a26-bd51-133722602bd1.jpg",
+    "etudes": [
+      {
+        "title": "Степлер",
+        "passed": true
+      },
+      {
+        "title": "Сова",
+        "passed": true,
+        "teacherComment": "Поменять положение зеркала.Укоротить историю.Проработать характер персонажа."
+      },
+      {
+        "title": "3 стихии",
+        "passed": true,
+        "teacherComment": "Проработать различие между водой и воздухом."
+      }
+    ]
+  },
+  {
+    "slug": "katya",
+    "displayName": "Катя",
+    "fullName": "Кузина Екатерина Николаевна",
+    "photo": "/uploads/f944fd63-c5a4-42b0-b135-57268b62ee97.jpg",
+    "etudes": []
+  },
+  {
+    "slug": "kolya",
+    "displayName": "Коля",
+    "fullName": "Экволс Николай Петрович",
+    "photo": "/uploads/621e9f9d-fbc3-422a-98e1-66640a9798ac.jpg",
+    "etudes": [
+      {
+        "title": "Тряпка",
+        "passed": true,
+        "teacherComment": "Проработать своё оружее,поправить конец истории."
+      },
+      {
+        "title": "Олень",
+        "passed": true,
+        "teacherComment": "Отрепетировать дуэт с Егором.Поставить волосы в рога."
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "slug": "marusya",
+    "displayName": "Маруся",
+    "fullName": "Черникова Мария Андреевна",
+    "photo": "/uploads/7dd6b7b8-c367-48d5-8c93-d2297f074d2c.jpg",
+    "etudes": [
+      {
+        "title": "Фен",
+        "passed": true,
+        "teacherComment": "Проработать историю и характер персонажа"
+      },
+      {
+        "title": "Сурок",
+        "passed": true
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "slug": "nastya",
+    "displayName": "Настя",
+    "fullName": "Важева Анастасия Александровна",
+    "photo": "/uploads/d7f892e6-d287-4e88-b55a-28370fafd5cb.jpg",
+    "etudes": [
+      {
+        "title": "Свеча",
+        "passed": true,
+        "teacherComment": "Работать с темпо ритмом.Смотреть зрителям в глаза."
+      },
+      {
+        "title": "Кошка",
+        "passed": true,
+        "teacherComment": "Убрать волосы"
+      },
+      {
+        "title": "3 стихии",
+        "passed": true,
+        "teacherComment": "Поработать над лицом."
+      }
+    ]
+  },
+  {
+    "slug": "natasha",
+    "displayName": "Наташа",
+    "fullName": "Круглова Наталья Андреевна",
+    "photo": "/uploads/4d0465c8-d1d6-48b0-94e4-1a0385e0b331.jpg",
+    "etudes": [
+      {
+        "title": "Носовой платок",
+        "passed": true,
+        "teacherComment": "Проработать конец.Проработать историю."
+      },
+      {
+        "title": "Кенгуру",
+        "passed": true,
+        "teacherComment": "Удлинить этюд."
+      },
+      {
+        "title": "3 стихии",
+        "passed": true,
+        "teacherComment": "Проработать различие между водой и воздухом."
+      }
+    ]
+  },
+  {
+    "slug": "vika",
+    "displayName": "Вика",
+    "fullName": "Кекуа Виктория Николаевна",
+    "photo": "/uploads/17c45ad2-f1a7-449b-a1e0-5184d9566562.jpg",
+    "etudes": [
+      {
+        "title": "Красная помада",
+        "passed": true,
+        "teacherComment": "Проработать движения."
+      },
+      {
+        "title": "Ленивец",
+        "passed": true
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "slug": "yulya-1",
+    "displayName": "Юля",
+    "fullName": "Биктимирова Юлия Рашидовна",
+    "photo": "/uploads/8e84d36c-52f3-49e9-bbe0-9cee797454a4.jpg",
+    "etudes": [
+      {
+        "title": "Штопор",
+        "passed": true,
+        "teacherComment": "Проработать историю.Проработать характер персонажа."
+      },
+      {
+        "title": "Курица",
+        "passed": true
+      },
+      {
+        "title": "3 стихии",
+        "passed": true
+      }
+    ]
+  }
+]

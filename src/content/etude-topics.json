@@ -1,0 +1,301 @@
+{
+  "topics": [
+    {
+      "id": "predmet",
+      "title": "Предмет",
+      "createdAt": "2026-09-01T10:00:00.000Z"
+    },
+    {
+      "id": "zhivotnoe",
+      "title": "Животное",
+      "createdAt": "2026-09-01T10:00:01.000Z"
+    },
+    {
+      "id": "organichnoe-molchanie",
+      "title": "Органичное молчание",
+      "createdAt": "2026-09-01T10:00:02.000Z"
+    },
+    {
+      "id": "nablyudenie-za-lyudmi",
+      "title": "Наблюдение за людьми",
+      "createdAt": "2026-09-01T10:00:03.000Z"
+    },
+    {
+      "id": "pimenov",
+      "title": "Пименов",
+      "createdAt": "2026-09-01T10:00:04.000Z"
+    }
+  ],
+  "etudes": [
+    {
+      "id": "predmet--egor",
+      "topicId": "predmet",
+      "title": "Лампочка",
+      "teacherComment": "Проработать конец.Разобраться с хвостиками.",
+      "participantSlugs": [
+        "egor"
+      ]
+    },
+    {
+      "id": "predmet--gazik",
+      "topicId": "predmet",
+      "title": "Дозатор",
+      "teacherComment": "Проработать костюм.Отредактировать конец.",
+      "participantSlugs": [
+        "gazik"
+      ]
+    },
+    {
+      "id": "predmet--ira",
+      "topicId": "predmet",
+      "title": "Ластик",
+      "teacherComment": "Проработать этюд.",
+      "participantSlugs": [
+        "ira"
+      ]
+    },
+    {
+      "id": "predmet--katya-2",
+      "topicId": "predmet",
+      "title": "Степлер",
+      "teacherComment": "",
+      "participantSlugs": [
+        "katya-2"
+      ]
+    },
+    {
+      "id": "predmet--kolya",
+      "topicId": "predmet",
+      "title": "Тряпка",
+      "teacherComment": "Проработать своё оружее,поправить конец истории.",
+      "participantSlugs": [
+        "kolya"
+      ]
+    },
+    {
+      "id": "predmet--marusya",
+      "topicId": "predmet",
+      "title": "Фен",
+      "teacherComment": "Проработать историю и характер персонажа",
+      "participantSlugs": [
+        "marusya"
+      ]
+    },
+    {
+      "id": "predmet--nastya",
+      "topicId": "predmet",
+      "title": "Свеча",
+      "teacherComment": "Работать с темпо ритмом.Смотреть зрителям в глаза.",
+      "participantSlugs": [
+        "nastya"
+      ]
+    },
+    {
+      "id": "predmet--natasha",
+      "topicId": "predmet",
+      "title": "Носовой платок",
+      "teacherComment": "Проработать конец.Проработать историю.",
+      "participantSlugs": [
+        "natasha"
+      ]
+    },
+    {
+      "id": "predmet--vika",
+      "topicId": "predmet",
+      "title": "Красная помада",
+      "teacherComment": "Проработать движения.",
+      "participantSlugs": [
+        "vika"
+      ]
+    },
+    {
+      "id": "predmet--yulya-1",
+      "topicId": "predmet",
+      "title": "Штопор",
+      "teacherComment": "Проработать историю.Проработать характер персонажа.",
+      "participantSlugs": [
+        "yulya-1"
+      ]
+    },
+    {
+      "id": "zhivotnoe--egor",
+      "topicId": "zhivotnoe",
+      "title": "Лис",
+      "teacherComment": "Убрать себя,найти характер персонажа.Проработать историю , непонятно как показывать снег на сцене.",
+      "participantSlugs": [
+        "egor"
+      ]
+    },
+    {
+      "id": "zhivotnoe--gazik",
+      "topicId": "zhivotnoe",
+      "title": "Лев",
+      "teacherComment": "Поработать над пластикой движений",
+      "participantSlugs": [
+        "gazik"
+      ]
+    },
+    {
+      "id": "zhivotnoe--ira",
+      "topicId": "zhivotnoe",
+      "title": "Львица",
+      "teacherComment": "Поменять причёску.Больше проработать историю.",
+      "participantSlugs": [
+        "ira"
+      ]
+    },
+    {
+      "id": "zhivotnoe--katya-2",
+      "topicId": "zhivotnoe",
+      "title": "Сова",
+      "teacherComment": "Поменять положение зеркала.Укоротить историю.Проработать характер персонажа.",
+      "participantSlugs": [
+        "katya-2"
+      ]
+    },
+    {
+      "id": "zhivotnoe--kolya",
+      "topicId": "zhivotnoe",
+      "title": "Олень",
+      "teacherComment": "Отрепетировать дуэт с Егором.Поставить волосы в рога.",
+      "participantSlugs": [
+        "kolya"
+      ]
+    },
+    {
+      "id": "zhivotnoe--marusya",
+      "topicId": "zhivotnoe",
+      "title": "Сурок",
+      "teacherComment": "",
+      "participantSlugs": [
+        "marusya"
+      ]
+    },
+    {
+      "id": "zhivotnoe--nastya",
+      "topicId": "zhivotnoe",
+      "title": "Кошка",
+      "teacherComment": "Убрать волосы",
+      "participantSlugs": [
+        "nastya"
+      ]
+    },
+    {
+      "id": "zhivotnoe--natasha",
+      "topicId": "zhivotnoe",
+      "title": "Кенгуру",
+      "teacherComment": "Удлинить этюд.",
+      "participantSlugs": [
+        "natasha"
+      ]
+    },
+    {
+      "id": "zhivotnoe--vika",
+      "topicId": "zhivotnoe",
+      "title": "Ленивец",
+      "teacherComment": "",
+      "participantSlugs": [
+        "vika"
+      ]
+    },
+    {
+      "id": "zhivotnoe--yulya-1",
+      "topicId": "zhivotnoe",
+      "title": "Курица",
+      "teacherComment": "",
+      "participantSlugs": [
+        "yulya-1"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--egor",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "egor"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--gazik",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "gazik"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--ira",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "ira"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--katya-2",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "katya-2"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--kolya",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "kolya"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--marusya",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "marusya"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--nastya",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "nastya"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--natasha",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "natasha"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--vika",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "vika"
+      ]
+    },
+    {
+      "id": "organichnoe-molchanie--yulya-1",
+      "topicId": "organichnoe-molchanie",
+      "title": "",
+      "teacherComment": "",
+      "participantSlugs": [
+        "yulya-1"
+      ]
+    }
+  ]
+}

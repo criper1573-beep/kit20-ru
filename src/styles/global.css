@@ -113,6 +113,27 @@
 		scrollbar-color: var(--color-ink) var(--color-surface);
 	}
 
+	/* Таблицы класса / посещаемости: колонки по контенту, перенос на узком экране */
+	.kit-data-table {
+		width: 100%;
+		max-width: 100%;
+		table-layout: fixed;
+		border-collapse: collapse;
+	}
+	.kit-data-table th,
+	.kit-data-table td {
+		min-width: 0;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+		white-space: normal;
+	}
+	.kit-data-table input,
+	.kit-data-table textarea,
+	.kit-data-table button {
+		max-width: 100%;
+		min-width: 0;
+	}
+
 	/* Glitch (бренд-бук, SVG-лаборатория A3) — светлый текст на красном */
 	.glitch-brand {
 		position: relative;

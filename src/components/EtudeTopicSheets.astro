@@ -1,0 +1,77 @@
+---
+export interface TopicSheet {
+	id: string;
+	title: string;
+}
+
+interface Props {
+	topics: TopicSheet[];
+	activeId: string | null;
+	basePath: string;
+	/** Кнопка «новая тема» слева (админка). */
+	newTopicControl?: boolean;
+}
+
+const { topics, activeId, basePath, newTopicControl = false } = Astro.props;
+
+function hrefFor(id: string): string {
+	const q = new URLSearchParams({ topic: id });
+	return `${basePath}?${q.toString()}`;
+}
+---
+
+<nav class="etude-topic-sheets-wrap border-b-[3px] border-ink bg-[#d8d2c4]" aria-label="Темы этюдов">
+	<div class="etude-topic-sheets bb-scrollbar flex items-end gap-0 overflow-x-auto px-2 pt-2 sm:px-4">
+		{
+			newTopicControl && (
+				<button
+					type="button"
+					id="etude-topic-new"
+					class="etude-sheet etude-sheet--new shrink-0 border-[3px] border-b-0 border-ink bg-accent px-3 py-1.5 font-display text-sm uppercase tracking-widest text-canvas sm:px-4 sm:text-base"
+					title="Новая тема появится слева"
+				>
+					+ Тема
+				</button>
+			)
+		}
+		{
+			topics.length === 0 ? (
+				<span class="px-3 py-2 font-sans text-[10px] uppercase tracking-widest text-muted sm:text-xs">
+					Нет тем
+				</span>
+			) : (
+				topics.map((t) => (
+					<a
+						href={hrefFor(t.id)}
+						data-topic-id={t.id}
+						class:list={[
+							'etude-sheet shrink-0 border-[3px] border-b-0 border-ink px-3 py-1.5 font-display text-sm uppercase tracking-widest no-underline sm:px-4 sm:text-lg',
+							t.id === activeId
+								? 'etude-sheet--active relative z-[1] bg-surface text-ink'
+								: 'bg-[#c9c2b3] text-ink/80 hover:bg-muted-surface hover:text-ink',
+						]}
+					>
+						{t.title}
+					</a>
+				))
+			)
+		}
+	</div>
+</nav>
+
+<style>
+	.etude-topic-sheets {
+		margin-bottom: -3px;
+	}
+	.etude-sheet {
+		margin-right: -3px;
+		box-shadow: inset 0 -3px 0 var(--color-ink);
+	}
+	.etude-sheet--active {
+		box-shadow: none;
+	}
+	.etude-sheet--new {
+		margin-right: 6px;
+		box-shadow: none;
+	}
+</style>

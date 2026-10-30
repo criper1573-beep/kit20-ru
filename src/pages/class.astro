@@ -1,152 +1,110 @@
 ---
 export const prerender = false;
 import Layout from '../layouts/Layout.astro';
-import ClassPageOverlay from '../components/ClassPageOverlay.astro';
-import StudentAvatar from '../components/StudentAvatar.astro';
-import { readStudentsSorted } from '../lib/siteContent';
-import { renderMarkdownToHtml } from '../lib/renderMarkdown';
+import EtudeTopicSheets from '../components/EtudeTopicSheets.astro';
+import StudentProfileDialogs from '../components/StudentProfileDialogs.astro';
+import { readEtudeTopics, readStudentsSorted } from '../lib/siteContent';
+import { etudesForTopic, pickActiveTopic, sortTopicsNewestLeft, topicHidesEtudeTitle } from '../lib/etudeTopics';
 
-const rows = await readStudentsSorted();
+const students = await readStudentsSorted();
+const catalog = await readEtudeTopics();
+const topics = sortTopicsNewestLeft(catalog.topics);
+const active = pickActiveTopic(topics, Astro.url.searchParams.get('topic'));
+const orderBySlug = new Map(students.map((s) => [s.slug, s.data.order]));
 
-const blocks = rows.map((entry, i) => ({
-	slug: entry.data.slug,
+const rows = active
+	? etudesForTopic(catalog.etudes, active.id).slice().sort((a, b) => {
+			const ao = orderBySlug.get(a.participantSlugs[0] ?? '') ?? 9999;
+			const bo = orderBySlug.get(b.participantSlugs[0] ?? '') ?? 9999;
+			if (ao !== bo) return ao - bo;
+			return (a.title || a.id).localeCompare(b.title || b.id, 'ru');
+		})
+	: [];
+const hideTitle = topicHidesEtudeTitle(active);
+
+const studentBySlug = new Map(students.map((s) => [s.slug, s]));
+const studentBlocks = students.map((entry, i) => ({
+	slug: entry.slug,
 	data: entry.data,
-	bodyHtml: renderMarkdownToHtml(entry.body),
 	variant: i,
-}));
-
-const stageBlocks = blocks.map(({ slug, data, variant }) => ({
-	slug,
-	data: { displayName: data.displayName },
-	variant,
 }));
 ---
 
-<Layout title="Класс" description="Карточки группы и этюды">
-	<div class="relative left-1/2 z-[1] w-screen -translate-x-1/2">
-		<ClassPageOverlay blocks={stageBlocks} />
-	</div>
+<Layout title="Класс" description="Темы этюдов и комментарии педагога">
+	<EtudeTopicSheets slot="after-ticker" topics={topics} activeId={active?.id ?? null} basePath="/class" />
+
 	{
-		blocks.map(({ slug, data, bodyHtml, variant }) => (
-			<dialog
-				id={`dlg-${slug}`}
-				class="fixed left-1/2 top-1/2 z-[100] w-[min(100vw-2rem,28rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden border-[3px] border-ink bg-surface p-0 text-ink shadow-[var(--shadow-float)]"
-			>
-				<div class="border-b-[3px] border-ink bg-muted-surface px-5 py-4">
-					<div class="flex items-start justify-between gap-4">
-						<div>
-							<h2 class="font-display text-2xl font-normal text-ink sm:text-3xl uppercase tracking-wider">{data.displayName}</h2>
-							{data.fullName && <p class="text-sm font-sans text-muted uppercase">{data.fullName}</p>}
-						</div>
-						<button
-							type="button"
-							class="type-cta border-[3px] border-ink bg-surface px-3 py-2 text-sm text-ink shadow-[var(--shadow-card)] hover:bg-accent hover:text-canvas active-shift transition-colors"
-							data-close-dialog=""
-						>
-							Закрыть
-						</button>
-					</div>
-				</div>
-				<div class="max-h-[min(70vh,32rem)] overflow-y-auto px-5 py-6">
-					<div class="mb-6 flex gap-5">
-						<div class="h-28 w-24 shrink-0 border-[3px] border-ink bg-muted-surface overflow-hidden">
-							{data.photo ? (
-								<img
-									src={data.photo}
-									alt={`Фото: ${data.displayName}`}
-									class="h-full w-full object-cover object-top"
-									loading="lazy"
-								/>
-							) : (
-								<StudentAvatar variant={variant} displayName={data.displayName} class="h-full w-full" />
-							)}
-						</div>
-						<dl class="grid flex-1 gap-2 text-sm font-sans">
-							{data.fullName && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">ФИО</dt>
-									<dd class="text-right font-bold text-ink">{data.fullName}</dd>
-								</div>
-							)}
-							{data.birthday && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">ДР</dt>
-									<dd class="text-right font-bold text-ink">{data.birthday}</dd>
-								</div>
-							)}
-							{data.nickname && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">НИК</dt>
-									<dd class="text-right font-bold text-ink">{data.nickname}</dd>
-								</div>
-							)}
-							{data.phone && (
-								<div class="flex justify-between gap-4 border-b-2 border-ink/10 py-1.5">
-									<dt class="text-muted font-bold">ТЕЛ</dt>
-									<dd class="text-right font-bold text-ink">{data.phone}</dd>
-								</div>
-							)}
-						</dl>
-					</div>
-					{data.etudes.length > 0 && (
-						<>
-							<h3 class="mb-3 font-display text-xl font-normal tracking-widest text-accent uppercase">Этюды</h3>
-							<ul class="space-y-3 font-sans">
-								{data.etudes.map((e) => (
-									<li class="kit-etude-card" tabindex="0">
-										<div class="flex flex-wrap items-center justify-between gap-2">
-											<span class="kit-etude-shift kit-etude-shift--title uppercase text-ink">{e.title}</span>
-											<span
-												class:list={[
-													'kit-etude-shift kit-etude-shift--badge border-[2px] border-ink px-2 py-0.5 text-xs uppercase',
-													e.passed ? 'bg-accent text-canvas' : 'bg-muted-surface text-ink',
-												]}
-											>
-												{e.passed ? 'Сдан' : 'Не сдан'}
-											</span>
-										</div>
-										{e.date && (
-											<p class="kit-etude-shift kit-etude-shift--date mt-2 text-xs font-bold text-muted">{e.date}</p>
-										)}
-										{e.teacherComment && (
-											<p class="kit-etude-shift mt-2 text-xs text-ink/80">{e.teacherComment}</p>
-										)}
-									</li>
-								))}
-							</ul>
-						</>
-					)}
-					<div class="markdown-body mt-8 border-t-[3px] border-ink pt-6 text-sm" set:html={bodyHtml} />
-				</div>
-			</dialog>
-		))
+		active && (
+			<h1 class="mb-6 box-border w-full max-w-full border-[3px] border-ink bg-accent px-2.5 py-1.5 shadow-[var(--shadow-card)] sm:px-4 sm:py-2">
+				<span class="block min-w-0 break-words font-display text-[clamp(1rem,5vw,2.75rem)] font-normal uppercase leading-none tracking-[0.04em] text-canvas [overflow-wrap:anywhere] sm:tracking-[0.1em]">
+					{active.title}
+				</span>
+			</h1>
+		)
 	}
 
-	<script is:inline>
-		document.querySelectorAll('[data-open-dialog]').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const id = btn.getAttribute('data-open-dialog');
-				if (id?.startsWith('dlg-')) {
-					const slug = id.slice(4);
-					document.querySelectorAll(`[data-stage-slug="${slug}"]`).forEach((el) => {
-						el.classList.add('class-stage-figure-pulse');
-						window.setTimeout(() => el.classList.remove('class-stage-figure-pulse'), 780);
-					});
-				}
-				const dlg = id ? document.getElementById(id) : null;
-				if (dlg instanceof HTMLDialogElement) dlg.showModal();
-			});
-		});
-		document.querySelectorAll('[data-close-dialog]').forEach((btn) => {
-			btn.addEventListener('click', () => {
-				const dlg = btn.closest('dialog');
-				dlg?.close();
-			});
-		});
-		document.querySelectorAll('dialog').forEach((dlg) => {
-			dlg.addEventListener('click', (e) => {
-				if (e.target === dlg) dlg.close();
-			});
-		});
-	</script>
+	{
+		!active ? (
+			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
+				Нет тем этюдов.
+			</div>
+		) : rows.length === 0 ? (
+			<div class="border-[3px] border-dashed border-ink bg-muted-surface p-8 text-center font-sans text-sm uppercase text-muted">
+				В этой теме пока нет этюдов.
+			</div>
+		) : (
+			<div class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]">
+				<table class="kit-data-table text-left font-sans text-[10px] sm:text-sm" id="class-etudes-table">
+					<thead>
+						<tr class="border-b-[3px] border-ink bg-ink text-canvas">
+							<th class="w-[30%] border-r-[2px] border-ink px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+								Участники
+							</th>
+							<th class="w-[28%] border-r-[2px] border-ink/20 px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+								Название этюда
+							</th>
+							<th class="px-1.5 py-2 font-display text-[10px] font-normal uppercase tracking-wide sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+								Комментарий педагога
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						{rows.map((row) => (
+							<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface">
+								<td class="border-r-[2px] border-ink px-1.5 py-2 align-top uppercase tracking-normal text-ink sm:px-4 sm:py-3 sm:tracking-wider">
+									<div class="flex flex-wrap gap-x-2 gap-y-1">
+										{row.participantSlugs.length === 0 ? (
+											<span class="text-muted">—</span>
+										) : (
+											row.participantSlugs.map((slug) => {
+												const s = studentBySlug.get(slug);
+												const label = s?.data.displayName ?? slug;
+												return (
+													<button
+														type="button"
+														class="etude-participant border-b-[2px] border-transparent text-left uppercase hover:border-accent"
+														data-open-profile={slug}
+													>
+														{label}
+													</button>
+												);
+											})
+										)}
+									</div>
+								</td>
+								<td class="border-r-[2px] border-ink/20 px-1.5 py-2 align-top uppercase text-ink sm:px-4 sm:py-3">
+									{hideTitle ? '' : row.title?.trim() ? row.title : '—'}
+								</td>
+								<td class="px-1.5 py-2 align-top text-ink/90 normal-case sm:px-4 sm:py-3">
+									{hideTitle ? '' : row.teacherComment?.trim() ? row.teacherComment : '—'}
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		)
+	}
+
+	<StudentProfileDialogs students={studentBlocks} />
 </Layout>

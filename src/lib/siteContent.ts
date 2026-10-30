@@ -2,14 +2,17 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
 	attendanceFrontmatterSchema,
+	etudeTopicsDataSchema,
 	homeFrontmatterSchema,
 	obshchakDataSchema,
 	studentFrontmatterSchema,
 	type AttendanceFrontmatter,
+	type EtudeTopicsData,
 	type HomeFrontmatter,
 	type ObshchakData,
 	type StudentFrontmatter,
 } from './schemas';
+import { emptyEtudeTopics } from './etudeTopics';
 import { parseMarkdownFile, stringifyMarkdownFile } from './mdFile';
 
 function contentRoot(): string {
@@ -140,6 +143,40 @@ async function normalizeObshchakContribKeys(data: ObshchakData): Promise<Obshcha
 		contributed[slug] = data.contributedKopeks[slug] ?? 0;
 	}
 	return { ...data, contributedKopeks: contributed };
+}
+
+function etudeTopicsPath(): string {
+	return path.join(contentRoot(), 'etude-topics.json');
+}
+
+export async function readEtudeTopics(): Promise<EtudeTopicsData> {
+	const p = etudeTopicsPath();
+	let raw: string;
+	try {
+		raw = await fs.readFile(p, 'utf8');
+	} catch (e) {
+		const err = e as { code?: string };
+		if (err?.code === 'ENOENT') return emptyEtudeTopics();
+		throw e;
+	}
+	const json = JSON.parse(raw) as unknown;
+	const parsed = etudeTopicsDataSchema.safeParse(json);
+	if (!parsed.success) {
+		throw new Error(`etude-topics.json: ${parsed.error.message}`);
+	}
+	return parsed.data;
+}
+
+export async function writeEtudeTopics(data: EtudeTopicsData): Promise<void> {
+	const p = etudeTopicsPath();
+	const parsed = etudeTopicsDataSchema.parse(data);
+	const raw = `${JSON.stringify(parsed, null, 2)}\n`;
+	const tmp = `${p}.tmp`;
+	await fs.writeFile(tmp, raw, 'utf8');
+	await fs.rename(tmp, p);
+	const lkgDir = path.join(process.cwd(), 'storage', 'last-known-good');
+	await fs.mkdir(lkgDir, { recursive: true });
+	await fs.writeFile(path.join(lkgDir, 'etude-topics.json'), raw, 'utf8');
 }
 
 export async function writeObshchak(data: ObshchakData): Promise<void> {

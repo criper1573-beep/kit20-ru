@@ -39,25 +39,25 @@ const totalLessons = lessons.length;
 		) : (
 			<>
 				<div
-					class="bb-scrollbar overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
-					style="--att-name-col-w:6.75rem; --att-name-col-w-sm:7.5rem; --att-count-col-w:2.85rem; --att-count-col-w-sm:3.25rem; --att-cell-w:5.6rem; --att-cell-w-sm:6.4rem;"
+					class="bb-scrollbar max-w-full overflow-x-auto border-[3px] border-ink bg-surface shadow-[var(--shadow-card)]"
+					style="--att-name-col-w:4.35rem; --att-name-col-w-sm:7.5rem; --att-count-col-w:2.15rem; --att-count-col-w-sm:3.25rem; --att-cell-w:7.09rem; --att-cell-w-sm:14.4rem;"
 				>
 					<table class="w-max table-fixed border-collapse text-left font-sans text-[10px] sm:text-sm" id="att-table">
 						<thead>
 							<tr class="border-b-[3px] border-ink bg-ink text-canvas">
-								<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] whitespace-nowrap border-r-[2px] border-ink bg-ink px-1.5 py-2 text-[10px] font-display font-normal leading-none tracking-wide sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
+								<th class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-0 max-w-[var(--att-name-col-w)] border-r-[2px] border-ink bg-ink px-1 py-2 text-[10px] font-display font-normal leading-none tracking-wide sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-3 sm:py-3.5 sm:text-base sm:tracking-wider">
 									УЧЕНИК
 								</th>
 								<th
-									class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-[var(--att-count-col-w)] max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-0.5 py-2 text-center font-mono text-[9px] font-normal uppercase tracking-[0.06em] text-canvas/80 sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3.5 sm:text-[10px]"
+									class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-0 max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-ink px-0.5 py-2 text-center font-mono text-[9px] font-normal uppercase tracking-[0.06em] text-canvas/80 sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3.5 sm:text-[10px]"
 									title="Посещений из записанных занятий"
 								>
 									Б/все
 								</th>
 								{lessons.map((lesson) => (
-									<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
-										<div class="text-[10px] text-accent sm:text-xs">{lesson.date}</div>
-										<div class="mt-0.5 text-[9px] uppercase tracking-[0.08em] text-canvas/70 sm:mt-1 sm:text-[10px] sm:tracking-wider">
+									<th class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+										<div class="break-all text-[9px] leading-tight text-accent sm:text-xs">{lesson.date}</div>
+										<div class="mt-0.5 break-words text-[8px] uppercase leading-tight tracking-[0.04em] text-canvas/70 sm:mt-1 sm:text-[10px] sm:tracking-wider">
 											{lesson.label ?? '—'}
 										</div>
 									</th>
@@ -69,11 +69,11 @@ const totalLessons = lessons.length;
 								const presentCount = attendancePresentCount(lessons, s.data.slug);
 								return (
 								<tr class="border-b-[2px] border-ink/20 last:border-0 hover:bg-muted-surface transition-colors">
-									<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-[var(--att-name-col-w)] max-w-[var(--att-name-col-w)] overflow-hidden text-ellipsis whitespace-nowrap border-r-[2px] border-ink bg-surface px-1 py-2 uppercase tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
+									<td class="sticky left-0 z-10 w-[var(--att-name-col-w)] min-w-0 max-w-[var(--att-name-col-w)] break-words border-r-[2px] border-ink bg-surface px-1 py-2 uppercase leading-tight tracking-normal text-ink group-hover:bg-muted-surface transition-colors sm:w-[var(--att-name-col-w-sm)] sm:min-w-[var(--att-name-col-w-sm)] sm:max-w-[var(--att-name-col-w-sm)] sm:px-4 sm:py-3 sm:tracking-wider">
 										{s.data.displayName}
 									</td>
 									<td
-										class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-[var(--att-count-col-w)] max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-surface px-0.5 py-2 text-center font-mono text-[10px] tabular-nums text-ink group-hover:bg-muted-surface transition-colors sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3 sm:text-xs"
+										class="sticky left-[var(--att-name-col-w)] z-[11] w-[var(--att-count-col-w)] min-w-0 max-w-[var(--att-count-col-w)] overflow-hidden border-r-[3px] border-ink bg-surface px-0.5 py-2 text-center font-mono text-[10px] tabular-nums text-ink group-hover:bg-muted-surface transition-colors sm:left-[var(--att-name-col-w-sm)] sm:w-[var(--att-count-col-w-sm)] sm:min-w-[var(--att-count-col-w-sm)] sm:max-w-[var(--att-count-col-w-sm)] sm:px-1 sm:py-3 sm:text-xs"
 										title={`Был на ${presentCount} из ${totalLessons} занятий`}
 									>
 										{presentCount}/{totalLessons}
@@ -83,10 +83,10 @@ const totalLessons = lessons.length;
 										const label = statusLabel[st];
 										const t = statusTitle[st];
 										return (
-											<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] overflow-hidden border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
+											<td class="w-[var(--att-cell-w)] min-w-[var(--att-cell-w)] max-w-[var(--att-cell-w)] border-r-[2px] border-ink/20 px-0.5 py-2 text-center last:border-r-[3px] last:border-ink sm:w-[var(--att-cell-w-sm)] sm:min-w-[var(--att-cell-w-sm)] sm:max-w-[var(--att-cell-w-sm)] sm:px-0.5 sm:py-2">
 												<span
 													class:list={[
-														'inline-flex min-w-[1.4rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
+														'inline-flex min-w-[1.25rem] justify-center border-[2px] border-ink px-0.5 py-0.5 text-[10px] sm:min-w-[1.6rem] sm:px-0.5 sm:py-0.5 sm:text-[10px]',
 														st === 'present' ? 'bg-surface text-ink' : 'bg-accent text-canvas',
 													]}
 													title={t}
